@@ -1,0 +1,46 @@
+# Gerado pelo build. Nunca editar à mão, nunca versionar.
+# (Se publicares no Cloudflare Pages sem build command, comenta a linha abaixo
+#  e commita a pasta — nesse caso é o dist/ que é servido.)
+dist/
+
+# Cópias de inspecção do QA, apagadas no fim de cada sessão
+site/_qa.html
+site/_responsive.html
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+
+# Editores
+.vscode/
+.idea/
+
+# Node, se algum dia houver
+node_modules/
+npm-debug.log*
+
+# ---------------------------------------------------------------------------
+# PRIVADO — o repositório é público. Nada disto pode lá ir.
+#
+# A pasta docs/ tem a estratégia de procura de emprego: empresas-alvo,
+# rascunhos de candidaturas, mensagens a pessoas com nome, notas de entrevista
+# e pensamento sobre relocação e salário. Um recrutador que encontrasse isto
+# ficava a saber a que mais empresas te candidataste. Fica de fora, inteira.
+# ---------------------------------------------------------------------------
+docs/
+cv/
+versions/
+design-options/
+*.xlsx
+*.zip
+Cloudflare/
+CLAUDE.md
+ESTADO.md
+PORTFOLIO-BRIEF.md
+PROJECTS.md
+PROCURA-ESTADO.md
+RESPONSIVO.md
+3D-E-MONTAGEM.md
