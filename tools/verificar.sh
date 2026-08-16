@@ -36,7 +36,7 @@ titulo "5. Build"
 ./tools/build.sh > /dev/null && echo "  ok  dist/ gerado e verificado" || falhou=1
 
 if [ "$falhou" -eq 0 ]; then
-  printf '\n\033[32mTudo passa.\033[0m Podes publicar: arrasta dist/ para o Netlify.\n\n'
+  printf '\n\033[32mTudo passa.\033[0m Faz `git push` e o Cloudflare publica sozinho.\n\n'
 else
   printf '\n\033[31mHá coisas a corrigir acima.\033[0m\n\n'
   exit 1
