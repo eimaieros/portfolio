@@ -1,0 +1,3523 @@
+<!DOCTYPE html>
+<html lang="en">
+<noscript><style>html .tag i,html h1 .ln i{transform:none!important}html .hsub,html .sdown,html .hmeta{opacity:1!important}</style></noscript>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rodrigo Figueiredo — Fullstack Web Developer, Lisbon</title>
+<link rel="canonical" href="https://rodrigofigueiredo.dev/">
+<meta name="description" content="Fullstack web developer in Lisbon. Built and ran the official Rock in Rio Lisboa website — 1.9M users, 18M events, no downtime through the 2026 festival.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23080809'/%3E%3Ccircle cx='32' cy='17' r='5' fill='%23ff3d1f'/%3E%3Ctext x='32' y='50' text-anchor='middle' fill='%23ececed' font-family='Helvetica,Arial,sans-serif' font-size='27' font-weight='700'%3ERF%3C/text%3E%3C/svg%3E">
+<meta name="theme-color" content="#080809">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://rodrigofigueiredo.dev/">
+<meta property="og:title" content="Rodrigo Figueiredo — Fullstack Web Developer">
+<meta property="og:description" content="Built and maintained the official Rock in Rio Lisboa website — 1.9M users, no downtime.">
+<meta property="og:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='630'%3E%3Crect width='1200' height='630' fill='%23080809'/%3E%3Ctext x='72' y='300' fill='%23ececed' font-family='sans-serif' font-size='104' font-weight='800'%3ERODRIGO%3C/text%3E%3Ctext x='72' y='410' fill='none' stroke='%23ececed' stroke-width='2' font-family='sans-serif' font-size='104' font-weight='800'%3EFIGUEIREDO%3C/text%3E%3Ctext x='72' y='500' fill='%23ff3d1f' font-family='monospace' font-size='26' letter-spacing='6'%3EFULLSTACK WEB DEVELOPER %E2%80%94 LISBON%3C/text%3E%3C/svg%3E">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap"></noscript>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<!-- as bibliotecas pesadas começam a descarregar em paralelo com o HTML,
+     mas só executam no fim: sem bloqueio de render, sem esperar por elas -->
+<link rel="preload" as="script" href="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin>
+<link rel="preload" as="script" href="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" crossorigin>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Person","name":"Rodrigo Figueiredo",
+"jobTitle":"Fullstack Web Developer","email":"eimaieros@gmail.com",
+"url":"https://rodrigofigueiredo.dev/",
+"address":{"@type":"PostalAddress","addressLocality":"Seixal","addressRegion":"Lisbon","addressCountry":"PT"},
+"knowsLanguage":["Portuguese","English"],
+"sameAs":["https://linkedin.com/in/rodrigomvfigueiredo","https://github.com/eimaieros"],
+"knowsAbout":["JavaScript","React","Next.js","Node.js","PHP","Python","SQL","WebGL","SEO","UI/UX"]}
+</script>
+<style>
+/* fontes carregadas por <link> no <head> — @import bloqueia o CSS */
+*{margin:0;padding:0;box-sizing:border-box}
+/* `anywhere` parte palavras a meio mesmo quando não é preciso — dava
+   "DEVELOPME / NT" e "PERFORMA / NCE" nos cartões. `break-word` só parte
+   quando a palavra sozinha não cabe, que é o comportamento que se quer. */
+h1,h2,h3,p,blockquote,.big{overflow-wrap:break-word}
+:root{
+  --bg:#080809;--fg:#ececed;
+  /* CONTRASTE — medido, não escolhido a olho.
+     O --dim antigo (#4e4e58) dava 2.44:1 contra o fundo. O mínimo da WCAG para
+     corpo de texto é 4.5:1, e metade das palavras da página usavam-no: o corpo
+     do About, as metas dos trabalhos, os anos, o subtítulo do contacto. O site
+     não parecia sóbrio, parecia enevoado — e ao mesmo tempo o fundo decorativo
+     estava alto. Hierarquia ao contrário.
+       --dim   #777782  4.52:1  texto que é para ler
+       --faint #5c5c65  3.03:1  micro-etiquetas em mono, caixa alta, decorativas */
+  --dim:#777782;--faint:#5c5c65;--line:rgba(255,255,255,.07);
+  /* --acc é escrito por JS ao longo do scroll: a página muda de temperatura
+     como muda um festival — véspera fria, carga quente, pico incandescente,
+     e o verde de quem aguentou. Este valor é só o ponto de partida. */
+  --acc:#ff3d1f;
+  --acc-soft:rgba(255,61,31,.14);
+  --acc-glow:rgba(255,61,31,.45);
+  --e:cubic-bezier(.16,1,.3,1);
+  /* unidade base fluida: 1u ≈ 1% da largura útil, com travões */
+  --u: clamp(14px, 0.92vw, 26px);
+  --pad: clamp(20px, 3.2vw, 90px);
+  --maxw: min(2600px, 82vw);
+
+  /* escala tipográfica derivada */
+  --t-micro: calc(var(--u) * 0.75);   /* etiquetas mono */
+  --t-small: calc(var(--u) * 0.82);
+  --t-body:  calc(var(--u) * 1.05);
+  --t-lead:  calc(var(--u) * 1.9);
+  --t-h2:    calc(var(--u) * 3.4);
+}
+html{-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--fg);font-family:Inter,sans-serif;cursor:none;overflow-x:hidden}
+body.lock{overflow:hidden;height:100vh}
+canvas#gl{position:fixed;inset:0;z-index:1}
+#smooth{position:relative;z-index:3}
+.wrap{max-width:var(--maxw);margin:0 auto;width:100%}
+.vig{position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 45%,rgba(8,8,9,.35) 0%,rgba(8,8,9,.72) 55%,rgba(8,8,9,.93) 100%)}
+
+/* preloader */
+/* ---------- IMAGEM EM MOSAICOS ---------- */
+.mos{height:280vh;position:relative;z-index:5}
+.mosIn{position:sticky;top:0;height:100svh;display:grid;place-items:center;overflow:hidden}
+/* Sangria completa. Enquadrada num rectângulo de 78vw a imagem lia-se como
+   "uma foto num site"; a ocupar o ecrã inteiro, quem está a ver fica dentro
+   dela — que é o ponto da secção. */
+#mosCv{width:100vw;height:100svh;display:block;background:#0a0a0f}
+/* legibilidade da legenda por cima da imagem cheia */
+.mosIn::after{content:'';position:absolute;inset:auto 0 0 0;height:46%;
+  background:linear-gradient(to top,rgba(6,6,8,.92),rgba(6,6,8,0));pointer-events:none}
+.mosCap{position:absolute;left:var(--pad);bottom:calc(var(--u)*3);z-index:2;
+  display:flex;flex-direction:column;gap:.5em;pointer-events:none}
+.mosCap .k{font-family:'JetBrains Mono',monospace;font-size:calc(var(--u)*.6);
+  letter-spacing:.28em;text-transform:uppercase;color:var(--acc)}
+.mosCap .t{font-family:Syne,sans-serif;font-weight:700;font-size:calc(var(--u)*1.8);
+  letter-spacing:-.02em;max-width:14ch;line-height:1.05}
+@media(max-width:900px){
+  .mos{height:200vh}
+  .mosCap .t{font-size:calc(var(--u)*1.4)}
+}
+
+/* ---------- RECOMENDAÇÕES ----------
+   Carrossel conduzido pelo scroll, como o resto da página: a pessoa não carrega
+   em setas, desce e as cartas passam. Nada roda sozinho — auto-play tira o
+   controlo a quem está a ler, e são citações, não um anúncio.
+   Sem citações preenchidas em RECS, a secção não existe (ver o JS). */
+.recs{position:relative;z-index:5;padding:clamp(90px,12vh,220px) 0}
+.recs .wrapIn{max-width:var(--maxw);margin:0 auto;padding:0 var(--pad)}
+/* Um testemunho que se pode confrontar vale mais do que um bonito. O link vai
+   direito à página onde as recomendações estão publicadas. */
+.recHead{display:flex;align-items:baseline;justify-content:space-between;gap:var(--u)}
+.recHead .sh{flex:1}
+.recVerify{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);
+  letter-spacing:.18em;text-transform:uppercase;color:var(--dim);text-decoration:none;
+  white-space:nowrap;transition:color .4s var(--e)}
+.recVerify:hover,.recVerify:focus-visible{color:var(--acc)}
+@media(max-width:700px){.recHead{flex-direction:column;align-items:flex-start;gap:.6em}}
+.recTrack{margin-top:calc(var(--u)*3);overflow:hidden;
+  /* esbate as pontas para as cartas entrarem e saírem em vez de serem cortadas */
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);
+          mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.recRow{display:flex;gap:calc(var(--u)*2);will-change:transform;padding:0 var(--pad)}
+.rec{flex:0 0 min(46ch,78vw);position:relative;padding:calc(var(--u)*2.4);
+  border:1px solid var(--line);background:rgba(12,12,15,.62);backdrop-filter:blur(10px);
+  display:flex;flex-direction:column;gap:calc(var(--u)*1.6);
+  transition:border-color .5s var(--e),background .5s var(--e),transform .5s var(--e);
+  transform-style:preserve-3d}
+.rec:hover{border-color:rgba(255,61,31,.42);background:rgba(16,13,14,.72)}
+/* aspas como elemento gráfico, não como pontuação */
+.rec::before{content:'“';position:absolute;top:calc(var(--u)*-.4);left:calc(var(--u)*1.4);
+  font-family:'Instrument Serif',Georgia,serif;font-size:calc(var(--u)*8);line-height:1;
+  color:var(--acc);opacity:.16;pointer-events:none;transition:opacity .5s var(--e)}
+.rec:hover::before{opacity:.34}
+.rec q{quotes:none;font-family:'Instrument Serif',Georgia,serif;font-style:italic;
+  font-size:calc(var(--u)*1.34);line-height:1.45;color:var(--fg);position:relative}
+.rec .who{display:flex;align-items:center;gap:calc(var(--u)*1);margin-top:auto;
+  padding-top:calc(var(--u)*1.4);border-top:1px solid var(--line)}
+/* iniciais em vez de fotografia: não tenho autorização para publicar retratos */
+.rec .ini{flex:0 0 auto;width:calc(var(--u)*2.6);height:calc(var(--u)*2.6);
+  display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;
+  font-family:'JetBrains Mono',monospace;font-size:calc(var(--u)*.72);letter-spacing:.06em;
+  color:var(--acc)}
+.rec .who>span:last-child{display:flex;flex-direction:column;min-width:0}
+.rec .nm{display:block;font-family:Syne,sans-serif;font-weight:700;
+  font-size:calc(var(--u)*.94);letter-spacing:-.01em;line-height:1.25}
+.rec .rl{display:block;font-family:'JetBrains Mono',monospace;font-size:calc(var(--u)*.62);
+  letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:.4em}
+.recFoot{display:flex;align-items:center;gap:calc(var(--u)*1.4);
+  margin-top:calc(var(--u)*2);padding:0 var(--pad)}
+.recBar{flex:1;height:1px;background:var(--line);position:relative;overflow:hidden}
+.recBar i{position:absolute;inset:0 auto 0 0;width:0;background:var(--acc);display:block}
+.recNote{font-family:'JetBrains Mono',monospace;font-size:calc(var(--u)*.62);
+  letter-spacing:.16em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+@media(max-width:900px){
+  .recTrack{-webkit-mask-image:none;mask-image:none;overflow-x:auto;
+    scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+  .recRow{transform:none!important}
+  .rec{scroll-snap-align:center;flex-basis:82vw}
+  .recFoot{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .recTrack{overflow-x:auto}
+  .recRow{transform:none!important}
+}
+
+/* ---------- FRASE QUE SE MONTA COM O SCROLL ----------
+   Cada fragmento tem a sua posição, escala e profundidade. Entram de bordas
+   diferentes e assentam no sítio. O scroll é o realizador. */
+.say{height:215vh;position:relative;z-index:5}
+.sayIn{position:sticky;top:0;height:100svh;display:block;
+  perspective:1200px;perspective-origin:50% 50%;overflow:hidden}
+.say .f{position:absolute;font-family:Syne,sans-serif;font-weight:700;
+  font-size:calc(var(--u)*2.6);line-height:.95;letter-spacing:-.03em;
+  white-space:nowrap;will-change:transform,opacity,filter;opacity:0;
+  transform-style:preserve-3d}
+.say .f.acc{color:var(--acc)}
+.say .f.big{font-size:calc(var(--u)*5.4);font-weight:800;letter-spacing:-.045em}
+/* a palavra que carrega o sentido muda de voz: serif itálico */
+.say .f em{font-family:'Instrument Serif',Georgia,serif;font-style:italic;
+  font-weight:400;letter-spacing:-.01em;color:var(--acc)}
+/* Posições de repouso. Desalinhadas como um cartaz, mas nunca contra a leitura:
+   cada fragmento fica à direita e/ou abaixo do anterior, para o olho descer em
+   escada. A versão anterior punha "Keeping one up" encostado à margem direita e
+   "while" de volta à esquerda — lia-se aos ziguezagues e a frase perdia-se. */
+.say .f[data-f="0"]{left:7%;  top:13%}
+.say .f[data-f="1"]{left:27%; top:23%}
+.say .f[data-f="2"]{left:11%; top:39%}
+.say .f[data-f="3"]{left:45%; top:39%}
+.say .f[data-f="4"]{left:57%; top:39%}
+.say .f[data-f="5"]{left:29%; top:51%}
+.say .f[data-f="6"]{left:7%;  top:63%}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(max-width:900px){
+  .say{height:185vh}
+  .say .f{font-size:calc(var(--u)*1.9);white-space:normal;max-width:78vw}
+  .say .f.big{font-size:calc(var(--u)*3.2)}
+  .say .f[data-f="1"]{left:16%;top:24%}
+  .say .f[data-f="2"]{left:9%; top:40%}
+  .say .f[data-f="3"]{left:9%; top:49%}
+  .say .f[data-f="4"]{left:26%;top:49%}
+  .say .f[data-f="5"]{left:9%; top:58%}
+  .say .f[data-f="6"]{left:8%; top:70%}
+}
+
+/* ---------- HUD de monitorização ---------- */
+#hud{position:fixed;top:calc(var(--u)*1.1);left:50%;transform:translateX(-50%) translateY(-140%);
+  z-index:120;display:flex;flex-direction:column;align-items:center;gap:.55em;
+  pointer-events:none;opacity:0;transition:opacity .9s var(--e),transform 1s var(--e);
+  font-family:'JetBrains Mono',monospace;font-size:calc(var(--u)*.6);letter-spacing:.2em;
+  text-transform:uppercase;mix-blend-mode:difference}
+html.ready #hud{opacity:1;transform:translateX(-50%) translateY(0)}
+.hudScale{position:relative;width:min(34vw,calc(var(--u)*22));height:calc(var(--u)*1.05)}
+.hudTicks{position:absolute;inset:0 0 auto 0;height:calc(var(--u)*.62);
+  background-image:repeating-linear-gradient(to right,
+    rgba(255,255,255,.34) 0 1px, transparent 1px calc(100%/24));
+  background-size:100% 100%}
+.hudTicks::after{content:'';position:absolute;inset:0;
+  background-image:repeating-linear-gradient(to right,
+    rgba(255,255,255,.62) 0 1px, transparent 1px calc(100%/4))}
+.hudNeedle{position:absolute;top:-2px;left:0;width:1px;height:calc(var(--u)*.86);
+  background:var(--acc);box-shadow:0 0 7px rgba(255,61,31,.9);
+  transform:translateX(0);will-change:transform}
+.hudLabels{position:absolute;left:0;right:0;top:calc(var(--u)*.78);display:flex;
+  justify-content:space-between;font-size:calc(var(--u)*.5);color:var(--faint);letter-spacing:.16em}
+.hudLabels span{transition:color .5s var(--e)}
+.hudLabels span.on{color:var(--acc)}
+.hudRead{display:flex;gap:calc(var(--u)*1.5)}
+.hudRead span{display:flex;align-items:baseline;gap:.55em}
+.hudRead i{font-style:normal;color:var(--faint);font-size:calc(var(--u)*.5)}
+.hudRead b{font-weight:400;letter-spacing:.1em}
+.hudRead b.ok{color:#5fd08a}
+@media(max-width:1100px){#hud{display:none}}
+
+/* ---------- porta de entrada ---------- */
+/* Arrastar com o botão em baixo pinta meia página de azul, porque o browser
+   assume que se quer seleccionar texto. Aqui o arrasto é um controlo, não uma
+   selecção — por isso desliga-se em todo o lado, e volta-se a ligar só onde
+   copiar faz sentido: contactos, links e corpo de texto (`.sel`). */
+body, body *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.sel, .sel *, a[href^="mailto"], a[href^="tel"]{-webkit-user-select:text;user-select:text}
+/* durante o gesto, nem essas — senão arrastar por cima de um parágrafo pinta-o */
+html.dragging *{-webkit-user-select:none!important;user-select:none!important}
+html.gateOn{overflow:hidden}
+::selection{background:var(--acc);color:#fff}
+
+/* A porta estava centrada e caía em cima do nome: o anel atravessava
+   RODRIGO FIGUEIREDO e o fundo escurecia-o. O nome estava lá, mas ilegível —
+   e era isso que se via como "o nome não aparece".
+   Passa para o terço inferior, onde não há nada. O nome fica livre, e a porta
+   continua a ser um convite. (Nielsen Norman sobre ecrãs intermédios: mostrar
+   o conteúdo imediatamente. Lindgaard: 50 ms para a primeira impressão.) */
+#gate{position:fixed;inset:0;z-index:9000;display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:clamp(64px,10vh,120px);
+  /* leve: o nome tem de se ler através dela desde o primeiro fotograma */
+  /* escurece só a base, onde a porta está — o herói fica intacto */
+  background:linear-gradient(to top,rgba(8,8,10,.86) 0%,rgba(8,8,10,.40) 30%,rgba(8,8,10,0) 56%);
+  opacity:0;pointer-events:none;transition:opacity .9s var(--e)}
+#gate.on{opacity:1;pointer-events:auto}
+/* respiração: o anel pulsa devagar enquanto ninguém lhe toca, e pára assim
+   que se começa a arrastar — o movimento é um convite, não um enfeite */
+@keyframes gBreathe{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.045);opacity:1}}
+#gate.on .gWrap{animation:gBreathe 2.6s var(--e) infinite}
+#gate.on.pulling .gWrap{animation:none}
+/* aros que se afastam a partir do centro, como ondas num tanque */
+.gWave{position:absolute;inset:0;border:1px solid rgba(255,61,31,.85);border-radius:50%;
+  opacity:0;pointer-events:none}
+#gate.on .gWave{animation:gWave 2.6s var(--e) infinite}
+#gate.on .gWave.w2{animation-delay:.85s}
+#gate.on .gWave.w3{animation-delay:1.7s}
+#gate.on.pulling .gWave{animation-duration:1.1s}
+@keyframes gWave{0%{transform:scale(.72);opacity:.42}100%{transform:scale(1.9);opacity:0}}
+/* o cursor diz o que fazer */
+#gate.on{cursor:grab}
+#gate.on.pulling{cursor:grabbing}
+
+/* as letras da instrução acendem em cascata, como um letreiro a ligar */
+.gTxt b i{display:inline-block;font-style:normal;opacity:.55;
+  animation:gLetter 2.8s var(--e) infinite;
+  animation-delay:calc(var(--i) * .07s)}
+@keyframes gLetter{0%,55%,100%{opacity:.55;transform:translateY(0);color:var(--fg)}
+  22%{opacity:1;transform:translateY(-.16em);color:var(--acc)}}
+#gate.pulling .gTxt b i{animation:none;opacity:1;transform:none}
+
+/* o número reage: cresce e ganha a cor do acento à medida que enche */
+.gPct{transition:transform .25s var(--e), color .4s var(--e)}
+#gate.pulling .gPct{transform:scale(1.14);color:var(--acc)}
+
+/* onda de choque no momento em que a porta abre */
+.gBurst{position:absolute;inset:0;border:2px solid var(--acc);border-radius:50%;
+  opacity:0;pointer-events:none}
+#gate.done .gBurst{animation:gBurst 1s var(--e) forwards}
+@keyframes gBurst{0%{transform:scale(1);opacity:.9;border-width:2px}
+  100%{transform:scale(7);opacity:0;border-width:0}}
+#gate.done .gWrap{transform:scale(.86);opacity:0;
+  transition:transform .9s var(--e), opacity .6s var(--e)}
+#gate.done{opacity:0;pointer-events:none;transition:opacity 1.1s var(--e)}
+/* mais pequeno: é um convite, não um obstáculo */
+.gWrap{position:relative;display:grid;place-items:center;
+  width:clamp(132px,calc(var(--u)*11),180px);height:clamp(132px,calc(var(--u)*11),180px)}
+.gRing{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.gTrack,.gFill,.gTicks{fill:none;stroke-width:1.4}
+.gTrack{stroke:rgba(255,255,255,.2)}
+/* coroa de traços que roda devagar — um mostrador, não um spinner */
+.gTicks{stroke:rgba(255,255,255,.4);stroke-width:3.4;stroke-dasharray:1.6 8.2;
+  transform-origin:60px 60px;animation:gSpin 34s linear infinite}
+#gate.pulling .gTicks{stroke:var(--acc);animation-duration:5s}
+@keyframes gSpin{to{transform:rotate(360deg)}}
+.gFill{stroke:var(--acc);stroke-linecap:round;stroke-width:2.4;
+  stroke-dasharray:339.29;stroke-dashoffset:339.29;
+  transition:stroke-dashoffset .18s linear;filter:drop-shadow(0 0 8px rgba(255,61,31,.8))}
+.gPct{font-family:Syne,sans-serif;font-weight:800;font-size:clamp(22px,calc(var(--u)*2.1),34px);
+  letter-spacing:-.03em;line-height:1;color:var(--fg)}
+.gPct i{font-style:normal;font-size:.4em;color:var(--faint);margin-left:.12em}
+.gTxt{position:absolute;top:calc(100% + 14px);text-align:center;white-space:nowrap}
+.gTxt b{display:block;font-family:'JetBrains Mono',monospace;font-weight:400;
+  font-size:clamp(11px,calc(var(--u)*.86),15px);letter-spacing:.34em;text-transform:uppercase;
+  color:var(--fg)}
+.gTxt span{display:block;margin-top:1em;font-family:'JetBrains Mono',monospace;
+  font-size:clamp(9px,calc(var(--u)*.66),12px);letter-spacing:.16em;text-transform:uppercase;
+  color:rgba(255,255,255,.42)}
+.gSkip{position:fixed;bottom:calc(var(--u)*1.6);right:var(--pad);left:auto;transform:none;
+  background:none;border:1px solid var(--line);color:var(--dim);cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:calc(var(--u)*.66);letter-spacing:.22em;
+  text-transform:uppercase;padding:.9em 2.2em;transition:.5s var(--e)}
+.gSkip{color:rgba(255,255,255,.5);border-color:rgba(255,255,255,.18)}
+.gSkip:hover,.gSkip:focus-visible{border-color:var(--acc);color:var(--acc)}
+@media(max-width:900px){.gTxt b{letter-spacing:.18em}}
+
+#pre{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;
+  flex-direction:column;justify-content:space-between;padding:var(--pad);
+  transition:clip-path 1.2s var(--e);clip-path:inset(0)}
+#pre.gone{clip-path:inset(0 0 100% 0)}
+#pre .top{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);letter-spacing:.24em;
+  text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between}
+#pre .pct{font-family:Syne,sans-serif;font-weight:800;font-size:clamp(5rem,17vw,24rem);
+  line-height:.74;letter-spacing:-.045em;align-self:flex-end}
+#pbar{position:fixed;left:0;bottom:0;height:2px;background:var(--acc);width:0;z-index:10000;
+  transition:width .32s linear}
+
+/* cursor */
+#cur{position:fixed;width:8px;height:8px;border:1px solid var(--fg);border-radius:50%;
+  z-index:9998;pointer-events:none;transform:translate(-50%,-50%);
+  transition:width .55s var(--e),height .55s var(--e),border-color .4s,background .4s}
+#cur.on{width:calc(var(--u)*6);height:calc(var(--u)*6);border-color:var(--acc);background:rgba(255,61,31,.06)}
+#cur span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:calc(var(--u)*.66);letter-spacing:.18em;text-transform:uppercase;
+  color:var(--acc);opacity:0;transition:opacity .3s}
+#cur.on span{opacity:1}
+
+/* nav */
+/* `.mainNav` e não `nav`: o overlay do menu também é um <nav> e apanhava
+   estas regras — translateX(-50%), max-width, padding e mix-blend-mode —
+   o que no telemóvel o punha meio ecrã à esquerda, com os links cortados. */
+.mainNav{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--maxw);z-index:80;display:flex;justify-content:space-between;
+  align-items:center;padding:clamp(18px,1.6vw,40px) var(--pad);font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);
+  letter-spacing:.2em;text-transform:uppercase;transition:transform .7s var(--e);mix-blend-mode:difference}
+.mainNav.hide{transform:translateX(-50%) translateY(-140%)}
+.mainNav a{color:var(--fg);text-decoration:none;opacity:.5;transition:opacity .35s}
+.mainNav a:hover{opacity:1}
+.navr{display:flex;gap:clamp(20px,1.9vw,52px)}
+.dot{width:5px;height:5px;background:var(--acc);border-radius:50%;display:inline-block;
+  margin-right:10px;animation:pl 2.8s infinite}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.12}}
+
+/* ---- generic ---- */
+.sect{padding:clamp(90px,12vh,260px) var(--pad);position:relative;max-width:min(var(--maxw),100vw);margin:0 auto;width:100%;background:rgba(8,8,9,.88);backdrop-filter:blur(9px)}
+h2.sh,.sh{font-family:'JetBrains Mono',monospace;font-weight:400;margin-top:0;font-size:var(--t-micro);letter-spacing:.28em;
+  text-transform:uppercase;color:var(--acc);margin-bottom:24px;display:flex;align-items:center;gap:16px}
+.sh::after{content:'';flex:1;height:1px;background:var(--line)}
+.disp{font-family:Syne,sans-serif;font-weight:800;letter-spacing:-.035em;line-height:.86;
+  text-transform:uppercase}
+.out{color:transparent;-webkit-text-stroke:1.4px var(--fg)}
+
+/* ---------- FOCO VISÍVEL ----------
+   O site esconde o rato (cursor:none). Sem um anel de foco forte, quem navega
+   por teclado fica sem cursor E sem indicação de onde está — falha WCAG 2.4.7.
+   Definido uma vez, para tudo o que possa receber foco. */
+:where(a,button,[tabindex]:not([tabindex="-1"]),summary,[role="button"]):focus-visible{
+  outline:2px solid var(--acc);
+  outline-offset:4px;
+  border-radius:2px;
+  box-shadow:0 0 0 6px var(--acc-soft);
+}
+#case :focus-visible,#menu :focus-visible{outline-offset:6px}
+/* quem chega por teclado volta a ver o rato do sistema */
+html.kbd,html.kbd *{cursor:auto!important}
+html.kbd #cur{display:none}
+.msk{display:block;overflow:hidden}
+.msk>i{display:block;font-style:normal;transform:translateY(112%);
+  transition:transform 1.15s var(--e)}
+.msk.in>i{transform:translateY(0)}
+.rv{opacity:0;transform:translateY(36px);transition:1s var(--e)}
+.rv.in{opacity:1;transform:none}
+
+/* hero */
+.hero{height:100svh;display:flex;flex-direction:column;justify-content:center;
+  padding:0 var(--pad);position:relative;max-width:var(--maxw);margin:0 auto;width:100%;
+  container-type:inline-size}
+.tag{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);letter-spacing:.3em;
+  text-transform:uppercase;color:var(--acc);margin-bottom:calc(var(--u)*1.9);overflow:hidden}
+.tag i{display:block;font-style:normal;transform:translateY(120%);
+  transition:transform 1.05s var(--e)}
+html.ready .tag i{transform:translateY(0)}
+h1{font-family:Syne,sans-serif;font-weight:800;
+  font-size:var(--h1s,clamp(2.6rem,9.6vw,17rem));
+  line-height:.82;letter-spacing:-.05em;text-transform:uppercase;width:100%}
+h1 .ln i{white-space:nowrap}
+/* O nome reage ao cursor: uma fonte de luz atravessa as letras e cada linha
+   desloca-se ligeiramente em sentido contrário. É a jogada de "revelar ao
+   interagir" aplicada a tipografia — o herói deixa de ser uma imagem parada. */
+h1{--mx:50%;--my:50%}
+h1 .ln i{--mx:50%;--my:50%}
+/* O nome é a coisa mais importante da página: pinta-se sempre a cor sólida.
+   A fonte de luz que segue o cursor é uma CAMADA POR CIMA, não uma substituição
+   — se o background-clip:text falhar, falha a camada, nunca o nome.
+   Erro que cometi antes: pintar o próprio texto com o gradiente. */
+h1 .ln i{color:var(--fg)}
+h1 .ln i.out{color:transparent;-webkit-text-stroke:1.5px var(--fg);
+  transition:transform 1.3s var(--e), -webkit-text-stroke-color .7s var(--e)}
+html.ready h1:hover .ln i.out{-webkit-text-stroke-color:var(--acc)}
+
+html.lightname h1 .ln i:not(.out){position:relative}
+html.lightname h1 .ln i:not(.out)::after{
+  content:attr(data-txt);
+  position:absolute;left:0;top:0;white-space:nowrap;pointer-events:none;
+  /* raio fixo em px. Sem ele o gradiente dimensiona-se por `farthest-corner`,
+     ou seja pela largura da linha — a mancha de luz ficava com tamanhos
+     diferentes em "Rodrigo" e "Figueiredo" e nunca coincidia com o ponteiro. */
+  background-image:radial-gradient(circle 230px at var(--mx) var(--my),
+    #fff 0%, #ffd8cd 16%, var(--acc) 38%, transparent 74%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  opacity:0;transition:opacity .5s var(--e)}
+html.lightname h1:hover .ln i:not(.out)::after{opacity:1}
+h1 .ln{display:block;overflow:hidden}
+/* ATENÇÃO ao mexer aqui.
+   O Y desta linha é da revelação e pertence ao CSS. O X é a paralaxe do rato e
+   pertence ao JS — mas escrito numa VARIÁVEL, nunca na propriedade `transform`.
+   Enquanto os dois escreviam `transform`, o GSAP lia o valor a meio da transição
+   (por exemplo translateY(89px)), guardava-o em cache e voltava a escrevê-lo em
+   cada movimento do rato. Resultado: bastava mexer o rato durante o 1.3 s da
+   revelação para o nome ficar preso a meio, cortado pelo overflow:hidden desta
+   .ln — e o nome nunca mais aparecia. Era isso que o Rodrigo estava a ver. */
+h1 .ln i{display:block;font-style:normal;--px:0px;
+  transform:translate(var(--px),116%);
+  transition:transform 1.3s var(--e)}
+html.ready h1 .ln i{transform:translate(var(--px),0)}
+html.ready h1 .ln:nth-child(2) i{transition-delay:.1s}
+.hsub{margin-top:clamp(26px,2.4vw,46px);max-width:calc(var(--u)*40);font-size:var(--t-body);line-height:1.75;color:var(--dim);
+  font-weight:300;opacity:0}
+/* Faixa de prova do herói. Ocupa o vazio que existia entre a frase de abertura
+   e o rodapé do primeiro ecrã, e dá evidência antes de qualquer scroll. */
+/* Alinha-se pela largura do nome, não por uma medida sua. Antes parava a meio
+   do ecrã e ficava órfã, com todo o lado direito do herói vazio; agora a última
+   coluna encosta ao D de FIGUEIREDO e a linha superior atravessa o bloco todo. */
+.hproof{display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;
+  margin-top:clamp(26px,3vw,48px);
+  border-top:1px solid var(--line);padding-top:calc(var(--u)*1.2);
+  max-width:none;opacity:0;transform:translateY(14px);
+  transition:opacity .9s .45s var(--e), transform .9s .45s var(--e)}
+html.ready .hproof{opacity:1;transform:none}
+.hproof>div+div{padding-left:clamp(20px,2.4vw,44px);border-left:1px solid var(--line)}
+.hproof dt{font-family:Syne,sans-serif;font-weight:700;font-size:calc(var(--u)*.92);
+  letter-spacing:-.01em;color:var(--fg);line-height:1.2}
+/* Um só acento. O verde do "aguentou" pertence ao fim da viagem, quando já se
+   percebeu o que significa — no primeiro ecrã lia-se como outra marca. */
+.hproof dt b{font-weight:800;font-size:calc(var(--u)*1.5);color:var(--acc);letter-spacing:-.03em}
+.hproof dt b.ok{color:var(--fg)}
+.hproof .lbl{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);
+  letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin-top:.5em}
+@media(max-width:900px){
+  .hproof{grid-template-columns:repeat(3,1fr);row-gap:calc(var(--u)*1.2)}
+  .hproof>div:first-child{grid-column:1 / -1;padding-left:0;border-left:0;
+    padding-bottom:calc(var(--u)*1);border-bottom:1px solid var(--line)}
+  .hproof>div:nth-child(2){padding-left:0;border-left:0}
+  .hproof dt b{font-size:calc(var(--u)*1.25)}
+}
+
+.hmeta{position:absolute;bottom:calc(var(--pad) + 4px);right:var(--pad);text-align:right;
+  font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);letter-spacing:.18em;
+  text-transform:uppercase;color:var(--dim);line-height:2.2;opacity:0}
+.sdown{position:absolute;bottom:calc(var(--pad) + 4px);left:var(--pad);
+  font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);letter-spacing:.22em;
+  text-transform:uppercase;color:var(--dim);opacity:0;
+  transition:opacity 1s var(--e) .68s}
+html.ready .sdown{opacity:1}
+.sdown::after{content:'';display:block;width:1px;height:calc(var(--u)*3.4);background:var(--acc);
+  margin-top:11px;transform-origin:top;animation:dr 2.4s infinite}
+@keyframes dr{0%{transform:scaleY(0)}45%{transform:scaleY(1);transform-origin:top}
+  55%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* statement — big scroll-driven text */
+
+/* pinned stats */
+.pin{height:260vh;position:relative}
+.pinIn{position:sticky;top:0;height:100svh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;overflow:hidden;max-width:100vw}
+/* Mesmo defeito das fases do palco, e aqui é pior: são quatro números em
+   display a 14vw, empilhados no mesmo sítio. Com transições simétricas de .75s,
+   durante meio segundo viam-se "1.9M" e "18M" um por cima do outro.
+   Saída rápida, entrada lenta e atrasada — nunca há dois ao mesmo tempo. */
+/* Sobreposição CONFIRMADA por observação, não deduzida.
+   Cheguei a reverter isto por excesso de cautela — não tinha visto o defeito,
+   só inferido por analogia com as fases do palco. Ao reverter, o screenshot do
+   código ORIGINAL mostrou duas legendas ao mesmo tempo: "PEOPLE USED WHAT I
+   HELPED BUILD" e, por baixo, "INTERACTIONS TRACKED" a desvanecer. É real.
+   Saída rápida, entrada lenta e atrasada: a que sai chega a zero aos .30s e a
+   que entra só começa aos .24s. Sem `visibility` — ver v59: era um estado que
+   dependia de a transição terminar, e isso tem modo de falha. */
+.pStep{position:absolute;opacity:0;transform:translateY(44px) scale(.96);
+  transition:opacity .3s var(--e), transform .5s var(--e)}
+.pStep.on{opacity:1;transform:none;
+  transition:opacity .62s .24s var(--e), transform .9s .24s var(--e)}
+.pStep .big{font-family:Syne,sans-serif;font-weight:800;font-size:clamp(3.6rem,14vw,20rem);
+  line-height:.82;letter-spacing:-.05em;text-transform:uppercase}
+.pStep .cap{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);letter-spacing:.32em;
+  text-transform:uppercase;color:var(--dim);margin-top:calc(var(--u)*1.9)}
+.acc{color:var(--acc)}
+.pTicks{position:absolute;right:var(--pad);top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:11px}
+.pTicks i{width:22px;height:1px;background:var(--line);transition:.5s var(--e)}
+.pTicks i.on{background:var(--acc);width:44px}
+
+/* work */
+.wlist{border-top:1px solid var(--line);margin-top:34px}
+.itm{border-bottom:1px solid var(--line);padding:clamp(28px,3.4vw,68px) 0;display:grid;
+  grid-template-columns:clamp(48px,4vw,90px) 1fr clamp(200px,16vw,340px) clamp(80px,6vw,130px);gap:22px;align-items:center;position:relative;
+  transition:padding-left .65s var(--e)}
+.itm:hover{padding-left:30px}
+.itm::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--acc);
+  transform:scaleY(0);transform-origin:bottom;transition:transform .6s var(--e)}
+.itm:hover::before{transform:scaleY(1);transform-origin:top}
+.itm .i{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);color:var(--dim)}
+.itm .t{font-family:Syne,sans-serif;font-weight:700;font-size:clamp(1.5rem,3.4vw,4.2rem);
+  text-transform:uppercase;letter-spacing:-.028em;transition:color .55s var(--e);line-height:1}
+.itm:hover .t{color:var(--acc)}
+.itm .m{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);color:var(--dim);
+  letter-spacing:.13em;text-transform:uppercase;line-height:1.85}
+.itm .y{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);color:var(--dim);text-align:right}
+/* linha de amplitude no fim da lista de trabalhos */
+.alsoFor{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 calc(var(--u)*1.5);
+  margin-top:calc(var(--u)*2.6);padding-top:calc(var(--u)*1.4);
+  border-top:1px solid var(--line)}
+.alsoFor .k{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);
+  letter-spacing:.22em;text-transform:uppercase;color:var(--faint);
+  margin-right:calc(var(--u)*.6)}
+.alsoFor .n{font-family:Syne,sans-serif;font-weight:700;font-size:calc(var(--u)*1.05);
+  letter-spacing:-.02em;color:var(--dim);transition:color .4s var(--e)}
+.alsoFor .n:hover{color:var(--fg)}
+.alsoFor .n i{font-family:'JetBrains Mono',monospace;font-style:normal;font-weight:400;
+  font-size:var(--t-micro);letter-spacing:.16em;text-transform:uppercase;
+  color:var(--faint);margin-left:.5em;vertical-align:.15em}
+@media(max-width:900px){
+  .alsoFor{gap:.7em calc(var(--u)*1.2)}
+  .alsoFor .k{flex:1 0 100%;margin-bottom:.4em}
+  .alsoFor .n{font-size:calc(var(--u)*.95)}
+}
+/* miniatura por linha — só entra quando o painel que segue o rato não faz sentido
+   (tablet e telemóvel). No desktop é o #pv que mostra o projeto. */
+.itm .thumb{display:none;width:100%;aspect-ratio:16/10;border:1px solid var(--line);
+  background:#0a0a0f;align-self:center}
+.code{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:calc(var(--u)*.62);
+  border:1px solid var(--acc);color:var(--acc);padding:.3em .7em;letter-spacing:.14em;
+  margin-left:calc(var(--u)*1);vertical-align:middle}
+
+#pv{position:fixed;width:calc(var(--u)*26);height:calc(var(--u)*19);z-index:40;pointer-events:none;
+  clip-path:inset(100% 0 0 0);transition:clip-path .7s var(--e);overflow:hidden;
+  border:1px solid var(--line);background:#0a0a0e;transform:translate(-50%,-50%);
+  perspective:900px;transform-style:preserve-3d;
+  box-shadow:0 30px 80px -30px rgba(0,0,0,.9),0 0 0 1px rgba(255,61,31,.08) inset}
+#pv.on{clip-path:inset(0)}
+/* canto vivo: só um, para não parecer moldura */
+#pv::after{content:'';position:absolute;top:0;right:0;width:calc(var(--u)*2.2);height:1px;
+  background:var(--acc);transform:scaleX(0);transform-origin:right;
+  transition:transform .8s .12s var(--e)}
+#pv.on::after{transform:scaleX(1)}
+#pv canvas{width:100%;height:100%;display:block}
+#pv .cap{position:absolute;left:0;right:0;bottom:0;padding:1.4em 1.6em;
+  font-family:'JetBrains Mono',monospace;font-size:calc(var(--u)*.66);letter-spacing:.16em;
+  text-transform:uppercase;background:linear-gradient(transparent,rgba(0,0,0,.85))}
+
+/* case overlay */
+/* fundo translúcido: deixa sentir a estrutura por trás sem comprometer a
+   leitura — o texto continua a assentar em 0.88 de opacidade mais desfoque */
+/* Galeria do caso de estudo: capturas do site verdadeiro.
+   Vale mais do que qualquer parágrafo — é a diferença entre dizer que se
+   construiu e mostrar o que se construiu. */
+.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));
+  gap:calc(var(--u)*1.4);margin:calc(var(--u)*2.4) 0}
+.shots figure{margin:0}
+.shots img{width:100%;height:auto;display:block;border:1px solid var(--line);
+  background:#0a0a0f;transition:border-color .45s var(--e),transform .55s var(--e)}
+.shots figure:hover img{border-color:rgba(255,61,31,.4);transform:translateY(-3px)}
+.shots figcaption{margin-top:.85em;font-family:'JetBrains Mono',monospace;
+  font-size:var(--t-micro);letter-spacing:.1em;color:var(--faint);line-height:1.7}
+@media(max-width:700px){.shots{grid-template-columns:1fr;gap:calc(var(--u)*1.8)}}
+
+#case{position:fixed;inset:0;z-index:200;
+  background:linear-gradient(to bottom,rgba(8,8,9,.94),rgba(8,8,9,.88));
+  backdrop-filter:blur(16px) saturate(.9);-webkit-backdrop-filter:blur(16px) saturate(.9);
+  clip-path:inset(0 0 100% 0);transition:clip-path .9s var(--e);overflow-y:auto;cursor:none}
+@supports not (backdrop-filter:blur(1px)){#case{background:rgba(8,8,9,.97)}}
+#case .inner>*{opacity:0;transform:translateY(26px);
+  transition:opacity .8s var(--e),transform .9s var(--e)}
+#case.on .inner>*{opacity:1;transform:none}
+#case.on .inner>*:nth-child(1){transition-delay:.42s}
+#case.on .inner>*:nth-child(2){transition-delay:.5s}
+#case.on .inner>*:nth-child(3){transition-delay:.58s}
+#case.on .inner>*:nth-child(4){transition-delay:.66s}
+/* barra de progresso de leitura no case study */
+#caseProg{position:fixed;top:0;left:0;height:2px;background:var(--acc);width:0;z-index:210;
+  opacity:0;transition:opacity .3s}
+#case.on ~ #caseProg{opacity:1}
+#case.on{clip-path:inset(0)}
+#case .inner{max-width:calc(var(--u)*66);margin:0 auto;padding:calc(var(--u)*9) var(--pad) calc(var(--u)*8)}
+#case .kicker{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);letter-spacing:.28em;
+  text-transform:uppercase;color:var(--acc);margin-bottom:22px}
+#case h3{font-family:Syne,sans-serif;font-weight:800;font-size:clamp(2.2rem,6.5vw,7.5rem);
+  line-height:.9;text-transform:uppercase;letter-spacing:-.035em;margin-bottom:44px}
+#case .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:30px;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:28px 0;margin-bottom:48px}
+#case .meta b{display:block;font-family:'JetBrains Mono',monospace;font-size:calc(var(--u)*.66);
+  letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:8px;font-weight:400}
+#case .body h4{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);letter-spacing:.24em;
+  text-transform:uppercase;color:var(--acc);margin:48px 0 16px}
+#case .body p{font-size:var(--t-body);line-height:1.8;color:#c6c6cc;font-weight:300}
+#case .body p+p{margin-top:16px}
+#case .close{position:fixed;top:calc(var(--u)*2);right:var(--pad);font-family:'JetBrains Mono',monospace;
+  font-size:var(--t-micro);letter-spacing:.2em;text-transform:uppercase;color:var(--fg);
+  background:none;border:1px solid var(--line);padding:1em 1.9em;cursor:none;transition:.42s var(--e)}
+#case .close:hover{background:var(--acc);border-color:var(--acc);color:var(--bg)}
+
+/* about */
+.ab{display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(36px,7vw,90px);margin-top:52px}
+.ab .lead{font-family:Syne,sans-serif;font-weight:600;font-size:var(--t-lead);
+  line-height:1.24;letter-spacing:-.022em}
+.ab .body{margin-top:clamp(24px,2vw,42px);color:var(--dim);font-size:var(--t-body);line-height:1.8;font-weight:300;max-width:calc(var(--u)*46)}
+.tagset{display:flex;flex-direction:column;gap:calc(var(--u)*1.8);align-content:flex-start}
+.tagGroup{display:flex;flex-direction:column;gap:calc(var(--u)*.8)}
+.tagLbl{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);
+  letter-spacing:.24em;text-transform:uppercase;color:var(--acc)}
+.tagGroup:last-child .tagLbl{color:var(--dim)}
+.tags{display:flex;flex-wrap:wrap;gap:calc(var(--u)*.55);align-content:flex-start}
+/* as de conhecimento leem-se um degrau abaixo, sem se esconderem */
+.tg.alt{color:var(--dim);border-color:rgba(255,255,255,.05)}
+.tg{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);padding:.85em 1.3em;border:1px solid var(--line);
+  letter-spacing:.12em;text-transform:uppercase;color:var(--dim);transition:.45s var(--e)}
+.tg:hover{border-color:var(--acc);color:var(--acc);transform:translateY(-4px)}
+
+.ct{padding:clamp(140px,22vh,240px) var(--pad) 110px;text-align:center;max-width:var(--maxw);margin:0 auto}
+.ct h2{font-family:Syne,sans-serif;font-weight:800;font-size:clamp(2.6rem,10vw,16rem);
+  overflow-wrap:normal;
+  line-height:.85;text-transform:uppercase;letter-spacing:-.05em}
+/* o contacto diz exactamente o que se procura — quem chega aqui já está
+   interessado, e a pergunta seguinte é sempre "que tipo de função?" */
+.ctSub{margin:calc(var(--u)*2.2) auto 0;max-width:calc(var(--u)*34);
+  font-size:var(--t-body);line-height:1.7;color:var(--dim);font-weight:300}
+.ctAlt{margin-top:calc(var(--u)*2.4);display:flex;gap:calc(var(--u)*2);
+  justify-content:center;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;
+  font-size:var(--t-micro);letter-spacing:.2em;text-transform:uppercase}
+.ctAlt a{color:var(--dim);text-decoration:none;position:relative;padding-bottom:.4em;
+  transition:color .4s var(--e)}
+.ctAlt a::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;
+  background:var(--acc);transform:scaleX(0);transform-origin:right;
+  transition:transform .5s var(--e)}
+.ctAlt a:hover,.ctAlt a:focus-visible{color:var(--fg)}
+.ctAlt a:hover::after,.ctAlt a:focus-visible::after{transform:scaleX(1);transform-origin:left}
+.mag{display:inline-block;margin-top:calc(var(--u)*3.4);font-family:'JetBrains Mono',monospace;font-size:var(--t-small);
+  letter-spacing:.16em;color:var(--fg);text-decoration:none;border:1px solid var(--line);
+  padding:1.4em 2.8em;transition:background .45s var(--e),color .45s var(--e),border-color .45s}
+.mag:hover{background:var(--acc);border-color:var(--acc);color:var(--bg)}
+footer{display:flex;justify-content:space-between;gap:calc(var(--u)*1.5);flex-wrap:wrap;padding:28px var(--pad);max-width:var(--maxw);margin:0 auto;border-top:1px solid var(--line);
+  font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);letter-spacing:.18em;
+  text-transform:uppercase;color:var(--dim);background:var(--bg);position:relative;z-index:3}
+footer a{color:var(--dim);text-decoration:none;transition:color .3s}
+footer a:hover{color:var(--acc)}
+
+
+/* ---------- scroll progress ---------- */
+#prog{position:fixed;top:0;left:0;height:2px;width:100%;transform:scaleX(0);transform-origin:left;
+  background:var(--acc);z-index:90;pointer-events:none;will-change:transform}
+/* ---------- section counter ---------- */
+#sidx{position:fixed;left:var(--pad);bottom:var(--pad);z-index:70;font-family:'JetBrains Mono',monospace;
+  font-size:var(--t-micro);letter-spacing:.22em;text-transform:uppercase;color:var(--dim);
+  display:flex;align-items:center;gap:12px;opacity:0;transition:opacity .6s var(--e);
+  mix-blend-mode:difference;pointer-events:none}
+#sidx.on{opacity:1}
+#sidx b{font-weight:400;color:var(--fg);font-variant-numeric:tabular-nums}
+#sidx i{display:block;width:clamp(34px,3vw,60px);height:1px;background:rgba(255,255,255,.2);
+  position:relative;overflow:hidden}
+#sidx i::after{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(var(--sp,0));
+  transform-origin:left;transition:transform .5s var(--e)}
+/* ---------- menu overlay ---------- */
+#menuBtn{background:none;border:0;color:inherit;font:inherit;letter-spacing:.2em;text-transform:uppercase;
+  cursor:none;display:none;padding:0;opacity:.55;transition:opacity .35s}
+#menuBtn:hover{opacity:1}
+#menu{position:fixed;inset:0;width:100%;max-width:none;transform:none;
+  mix-blend-mode:normal;z-index:150;background:var(--bg);clip-path:inset(0 0 100% 0);
+  transition:clip-path .85s var(--e);display:flex;flex-direction:column;justify-content:center;
+  padding:0 var(--pad);gap:clamp(8px,1.2vh,22px)}
+#menu a{font-family:Syne,sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:-.04em;
+  font-size:clamp(2.4rem,9vw,7rem);line-height:.95;color:var(--fg);text-decoration:none;
+  overflow:hidden;display:block}
+#menu a span{display:block;transform:translateY(112%);transition:transform .85s var(--e),color .4s}
+#menu a:hover span{color:var(--acc)}
+#menu.on{clip-path:inset(0)}
+#menu.on a span{transform:translateY(0)}
+#menu.on a:nth-child(1) span{transition-delay:.14s}
+#menu.on a:nth-child(2) span{transition-delay:.21s}
+#menu.on a:nth-child(3) span{transition-delay:.28s}
+#menu .foot{margin-top:calc(var(--u)*3.5);font-family:'JetBrains Mono',monospace;
+  font-size:var(--t-micro);letter-spacing:.18em;text-transform:uppercase;color:var(--dim);
+  opacity:0;transition:opacity .6s .5s;line-height:2}
+#menu.on .foot{opacity:1}
+#menuClose{position:fixed;top:calc(var(--u)*2);right:var(--pad);z-index:160;background:none;
+  border:1px solid var(--line);color:var(--fg);font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);
+  letter-spacing:.2em;text-transform:uppercase;cursor:none;display:none;padding:12px 22px;
+  transition:.4s var(--e)}
+#menuClose:hover{background:var(--acc);border-color:var(--acc);color:var(--bg)}
+#menuClose.on{display:block}
+
+html.ready .hsub{opacity:1;transition:opacity 1s var(--e) .55s}
+html.ready .sdown{opacity:1;transition:opacity 1s var(--e) .68s}
+html.ready .hmeta{opacity:1;transition:opacity 1s var(--e) .8s}
+
+
+
+
+
+
+
+
+/* ---------- TRANSIÇÃO DE COR POR SECÇÃO ---------- */
+body{transition:background-color 1.1s var(--e)}
+/* ---------- REVELAÇÃO DE CARACTERES (letra a letra) ---------- */
+.chars i{display:inline-block;transform:translateY(105%);opacity:0;
+  transition:transform .85s var(--e),opacity .6s var(--e)}
+.chars.in i{transform:translateY(0);opacity:1}
+/* ---------- LINHA QUE DESENHA ---------- */
+.drawline{position:relative}
+.drawline::after{content:'';position:absolute;left:0;bottom:calc(var(--u)*-1.2);
+  height:1px;width:100%;background:var(--acc);transform:scaleX(0);transform-origin:left;
+  transition:transform 1.3s var(--e) .25s}
+.drawline.in::after{transform:scaleX(1)}
+/* ---------- NÚMERO GRANDE DE FUNDO (marca-secção) ---------- */
+.sect{position:relative}
+.ghost{position:absolute;right:var(--pad);top:calc(var(--u)*4);z-index:-1;
+  font-family:Syne,sans-serif;font-weight:800;font-size:calc(var(--u)*11);
+  color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.035);
+  line-height:.8;pointer-events:none;user-select:none}
+@media(max-width:900px){.ghost{font-size:calc(var(--u)*7);opacity:.6}}
+
+/* ---------- polimento ---------- */
+::selection{background:var(--acc);color:#fff}
+.invert ::selection{background:#c8391f;color:#fff}
+html{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.14) transparent}
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:99px;
+  border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--acc)}
+
+/* sublinhado que cresce nos links de nav */
+.mainNav a[href^="#"]{position:relative}
+.mainNav a[href^="#"]::after{content:'';position:absolute;left:0;right:0;bottom:-6px;height:1px;
+  background:currentColor;transform:scaleX(0);transform-origin:right;
+  transition:transform .5s var(--e)}
+.mainNav a[href^="#"]:hover::after{transform:scaleX(1);transform-origin:left}
+
+/* linha de acento a crescer nos cabeçalhos de secção */
+.sh{position:relative}
+.sh::before{content:'';position:absolute;left:0;bottom:-8px;width:0;height:1px;
+  background:var(--acc);transition:width 1.1s var(--e) .2s}
+.sh.in::before{width:calc(var(--u)*4)}
+
+/* ligeiro tilt nos cartões ao mover o rato */
+.card{transform-style:preserve-3d;will-change:transform}
+
+/* email a revelar por carateres */
+.mag{position:relative;overflow:hidden}
+.mag::before{content:'';position:absolute;inset:0;background:var(--acc);
+  transform:scaleY(0);transform-origin:bottom;transition:transform .55s var(--e);z-index:-1}
+.mag:hover::before{transform:scaleY(1);transform-origin:top}
+
+/* footer: hora ao vivo */
+#lisTime{font-variant-numeric:tabular-nums}
+
+/* ---------- FAQ / PERGUNTAS (acordeão) ---------- */
+.faq{margin-top:calc(var(--u)*3);border-top:1px solid var(--line)}
+.q{border-bottom:1px solid var(--line)}
+.q button{width:100%;background:none;border:0;color:inherit;text-align:left;cursor:none;
+  padding:calc(var(--u)*2.2) 0;display:flex;justify-content:space-between;align-items:center;
+  gap:calc(var(--u)*2);font-family:Syne,sans-serif;font-weight:700;
+  font-size:calc(var(--u)*1.35);letter-spacing:-.02em;transition:color .4s var(--e)}
+.q button:hover{color:var(--acc)}
+.q .ic{flex:none;width:calc(var(--u)*1.5);height:calc(var(--u)*1.5);position:relative}
+.q .ic::before,.q .ic::after{content:'';position:absolute;background:currentColor;
+  left:50%;top:50%;transition:transform .5s var(--e)}
+.q .ic::before{width:100%;height:1px;transform:translate(-50%,-50%)}
+.q .ic::after{width:1px;height:100%;transform:translate(-50%,-50%)}
+.q.open .ic::after{transform:translate(-50%,-50%) rotate(90deg)}
+.q .a{max-height:0;overflow:hidden;transition:max-height .7s var(--e)}
+.q .a p{font-size:var(--t-body);line-height:1.8;color:var(--dim);font-weight:300;
+  max-width:calc(var(--u)*44);padding-bottom:calc(var(--u)*2.2)}
+.q.open .a{max-height:calc(var(--u)*24)}
+
+/* ---------- BOTÃO DE TOPO ---------- */
+#toTop{position:fixed;right:var(--pad);bottom:calc(var(--u)*2.4);z-index:75;
+  width:calc(var(--u)*3);height:calc(var(--u)*3);border-radius:50%;
+  border:1px solid var(--line);background:rgba(7,7,9,.7);backdrop-filter:blur(10px);
+  color:var(--fg);cursor:none;display:grid;place-items:center;font-size:calc(var(--u)*.9);
+  opacity:0;pointer-events:none;transition:.5s var(--e)}
+#toTop.on{opacity:1;pointer-events:auto}
+#toTop:hover{background:var(--acc);border-color:var(--acc);color:var(--bg);transform:translateY(-3px)}
+@media(max-width:900px){#toTop{display:none}}
+
+/* ---------- MARQUEE VERTICAL DE STACK ---------- */
+.stackband{border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  overflow:hidden;max-width:100vw;padding:calc(var(--u)*1.5) 0;background:rgba(7,7,9,.7);
+  backdrop-filter:blur(10px);position:relative;z-index:4}
+.stackband .tr2{display:inline-flex;gap:calc(var(--u)*3);white-space:nowrap;
+  font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);letter-spacing:.28em;
+  text-transform:uppercase;color:var(--faint);will-change:transform;align-items:center}
+.stackband .tr2 b{color:var(--fg);font-weight:400}
+.stackband .tr2 em{color:var(--acc);font-style:normal}
+
+/* ---------- CITAÇÃO / DESTAQUE ---------- */
+.pull{padding:calc(var(--u)*9) var(--pad);max-width:var(--maxw);margin:0 auto;
+  position:relative;z-index:4}
+/* Um único momento em serif editorial. Existe para quebrar o registo:
+   o site inteiro é geométrico e técnico, e aqui — onde se fala do que custou
+   — a voz muda. É o contraste que faz notar a frase, não o tamanho. */
+.pull blockquote{font-family:'Instrument Serif',Georgia,serif;font-weight:400;
+  font-size:calc(var(--u)*3.6);line-height:1.06;letter-spacing:-.02em;
+  max-width:calc(var(--u)*38)}
+.pull blockquote em{font-style:italic;color:var(--acc)}
+.pull blockquote span{display:block;overflow:hidden}
+.pull blockquote i{display:block;font-style:normal;transform:translateY(112%);
+  transition:transform 1.15s var(--e)}
+.pull blockquote.in i{transform:translateY(0)}
+.pull blockquote.in span:nth-child(2) i{transition-delay:.08s}
+.pull blockquote.in span:nth-child(3) i{transition-delay:.16s}
+.pull cite{display:block;margin-top:calc(var(--u)*2);font-family:'JetBrains Mono',monospace;
+  font-size:var(--t-micro);letter-spacing:.24em;text-transform:uppercase;color:var(--acc);
+  font-style:normal}
+
+/* ---------- REVELAÇÃO DE IMAGEM/BLOCO POR CLIP ---------- */
+.clipIn{clip-path:inset(0 0 100% 0);transition:clip-path 1.15s var(--e)}
+.clipIn.in{clip-path:inset(0 0 0 0)}
+
+/* ---------- GRELHA DE PROJETOS (visual) ---------- */
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:calc(var(--u)*1.4);
+  margin-top:calc(var(--u)*3.4)}
+.card{position:relative;overflow:hidden;background:#0c0c11;border:1px solid var(--line);
+  aspect-ratio:16/10;cursor:none;transition:border-color .5s var(--e)}
+.card:hover{border-color:rgba(255,61,31,.4)}
+.card.w7{grid-column:span 7}.card.w5{grid-column:span 5}
+.card.w6{grid-column:span 6}.card.w12{grid-column:span 12;aspect-ratio:21/8}
+.card canvas{position:absolute;inset:0;width:100%;height:100%;
+  transition:transform 1.1s var(--e),filter .6s var(--e)}
+.card:hover canvas{transform:scale(1.06);filter:saturate(1.3)}
+.card .meta{position:absolute;left:0;right:0;bottom:0;z-index:2;
+  padding:calc(var(--u)*1.6);display:flex;justify-content:space-between;align-items:flex-end;
+  background:linear-gradient(transparent,rgba(6,6,9,.9) 62%)}
+.card h3{font-family:Syne,sans-serif;font-weight:800;text-transform:uppercase;
+  font-size:calc(var(--u)*1.55);letter-spacing:-.03em;line-height:1;
+  transition:color .45s var(--e)}
+.card:hover h3{color:var(--acc)}
+.card .tagline{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);
+  letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:calc(var(--u)*.5)}
+.card .yr{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);color:var(--dim)}
+.card .badge{position:absolute;top:calc(var(--u)*1.2);left:calc(var(--u)*1.2);z-index:2;
+  font-family:'JetBrains Mono',monospace;font-size:calc(var(--u)*.6);letter-spacing:.16em;
+  border:1px solid var(--acc);color:var(--acc);padding:.35em .8em;
+  background:rgba(6,6,9,.6);backdrop-filter:blur(6px)}
+.card .go{position:absolute;top:calc(var(--u)*1.2);right:calc(var(--u)*1.2);z-index:2;
+  width:calc(var(--u)*2.2);height:calc(var(--u)*2.2);border:1px solid rgba(255,255,255,.2);
+  border-radius:50%;display:grid;place-items:center;font-size:calc(var(--u)*.9);
+  opacity:0;transform:translate(6px,-6px);transition:.5s var(--e);color:var(--acc)}
+.card:hover .go{opacity:1;transform:none;border-color:var(--acc)}
+@media(max-width:1100px){
+  .card.w7,.card.w5,.card.w6{grid-column:span 12}
+  .card{aspect-ratio:16/11}
+}
+
+/* ---------- PALCO 3D (sticky, como o kott) ---------- */
+.stage{height:300svh;position:relative;z-index:5}
+.stageIn{position:sticky;top:0;height:100svh;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 50%,rgba(10,10,13,.55),var(--bg) 78%)}
+#stageCanvas{position:absolute;inset:0;width:100%;height:100%}
+/* Com um case study aberto, o palco sai da secção e passa a ocupar o ecrã
+   inteiro por trás do texto — é ali que se vê a estrutura a reconfigurar-se
+   na forma do projeto. O sticky do pai é ignorado com position:fixed. */
+html.caseOpen .stageIn{position:fixed;inset:0;height:100svh;z-index:190;
+  background:none;pointer-events:none}
+html.caseOpen .stageUI{opacity:0;transition:opacity .4s var(--e)}
+html.caseOpen #stageCanvas{position:fixed;inset:0}
+.stageUI{position:relative;z-index:3;width:100%;max-width:var(--maxw);margin:0 auto;
+  padding:0 var(--pad);pointer-events:none}
+/* As três fases ocupam o MESMO sítio e trocam por opacidade. Com a mesma
+   duração nos dois sentidos, havia um período em que as duas estavam a meio
+   caminho — e como os parágrafos se sobrepõem exactamente, lia-se texto por
+   cima de texto. Apanhei "Every platform begins as parts…" sobreposto a
+   "…part of the job nobody sees".
+   Agora a saída é rápida (.26s) e a entrada é lenta e atrasada (.6s após .22s):
+   a anterior já desapareceu quando a seguinte começa a aparecer.
+   O que corrige a sobreposição é o TEMPO, não o `visibility`. Cheguei a pôr
+   `visibility` atrasado por cima e tirei-o: acrescentava um estado que depende
+   de a transição correr — e se o browser a suspender, um bloco podia ficar
+   invisível e ainda assim ocupar o sítio. `pointer-events` chega para o que
+   interessa e não tem esse modo de falha. */
+.stageStep{position:absolute;left:var(--pad);right:var(--pad);top:50%;transform:translateY(-50%);
+  opacity:0;pointer-events:none;
+  transition:opacity .26s var(--e)}
+.stageStep.on{opacity:1;pointer-events:auto;
+  transition:opacity .6s .22s var(--e)}
+.stageStep .k{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);letter-spacing:.3em;
+  text-transform:uppercase;color:var(--acc);margin-bottom:calc(var(--u)*1.2)}
+.stageStep h3{font-family:Syne,sans-serif;font-weight:800;font-size:calc(var(--u)*3.2);
+  text-transform:uppercase;letter-spacing:-.04em;line-height:.92;max-width:calc(var(--u)*30)}
+.stageStep p{margin-top:calc(var(--u)*1.3);font-size:var(--t-body);line-height:1.75;
+  color:var(--dim);font-weight:300;max-width:calc(var(--u)*28)}
+.stageProg{position:absolute;bottom:calc(var(--u)*3);left:var(--pad);right:var(--pad);
+  display:flex;gap:calc(var(--u)*.5);z-index:4}
+.stageProg i{flex:1;height:2px;background:rgba(255,255,255,.1);position:relative;overflow:hidden}
+.stageProg i::after{content:'';position:absolute;inset:0;background:var(--acc);
+  transform:scaleX(var(--p,0));transform-origin:left;transition:transform .35s linear}
+.stageHint{position:absolute;right:var(--pad);bottom:calc(var(--u)*5.5);z-index:4;
+  font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);letter-spacing:.24em;
+  text-transform:uppercase;color:var(--faint);opacity:.7;
+  animation:hintPulse 3.4s infinite}
+@keyframes hintPulse{0%,100%{opacity:.22}50%{opacity:.62}}
+@media(max-width:900px){.stageHint{display:none}}
+@media(max-width:900px){
+  .stage{height:260svh}
+  .stageStep h3{font-size:calc(var(--u)*2.2)}
+  .stageStep p{font-size:var(--t-small)}
+  .grid{grid-template-columns:1fr;gap:calc(var(--u)*1.2)}
+  .card,.card.w7,.card.w5,.card.w6,.card.w12{grid-column:span 1;aspect-ratio:4/3}
+  .pull{padding:calc(var(--u)*6) var(--pad)}
+  .pull blockquote{font-size:calc(var(--u)*2)}
+  .q button{font-size:calc(var(--u)*1.15);padding:calc(var(--u)*1.8) 0}
+  .svc-row{gap:calc(var(--u)*2)}
+  .stackband .tr2{gap:calc(var(--u)*2)}
+}
+
+/* ---------- INVERTIDA (quebra o ritmo) ---------- */
+.invert{background:#ecece8;color:#0d0d0f;position:relative;z-index:4;
+  padding:calc(var(--u)*11) var(--pad);max-width:100vw;width:100%;overflow:hidden}
+.invert .wrapIn{max-width:var(--maxw);margin:0 auto}
+.invert .sh{color:#c8391f}
+.invert .sh::after{background:rgba(13,13,15,.14)}
+.invert .svc-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));
+  gap:calc(var(--u)*2.4);margin-top:calc(var(--u)*3.4)}
+.svc{border-top:1px solid rgba(13,13,15,.16);padding-top:calc(var(--u)*1.6);position:relative;
+  transition:padding-left .55s var(--e)}
+.svc:hover{padding-left:calc(var(--u)*.9)}
+.svc .n{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);letter-spacing:.24em;
+  color:#8a8880;text-transform:uppercase}
+/* O tamanho segue a largura da própria coluna, não a da janela: com quatro
+   colunas "FULLSTACK DEVELOPMENT" tem de caber sem se partir. */
+.svc{container-type:inline-size}
+/* 7.1cqi porque a palavra mais longa da secção — PERFORMANCE, em Syne 800
+   caixa alta — ocupa 13.7× o tamanho da fonte. Acima disto parte-se a meio,
+   e "PERFORMA / NCE" num portefólio de front-end é um autogolo. */
+.svc h3{font-family:Syne,sans-serif;font-weight:800;
+  font-size:clamp(17px, 7.1cqi, calc(var(--u)*1.9));
+  letter-spacing:-.035em;text-transform:uppercase;margin:calc(var(--u)*.7) 0;
+  line-height:1.02;text-wrap:balance;hyphens:none;
+  transition:color .45s var(--e)}
+.svc:hover h3{color:#c8391f}
+.svc p{font-size:var(--t-body);line-height:1.7;color:#4a4a4e;font-weight:300}
+
+/* ---------- PROCESSO ---------- */
+.steps{margin-top:calc(var(--u)*3.4);border-top:1px solid var(--line)}
+.step{display:grid;grid-template-columns:calc(var(--u)*5) 1fr;gap:calc(var(--u)*2);
+  padding:calc(var(--u)*2.6) 0;border-bottom:1px solid var(--line);position:relative;
+  transition:background .6s var(--e),padding-left .6s var(--e)}
+.step:hover{background:rgba(255,255,255,.022);padding-left:calc(var(--u)*1.4)}
+.step .num{font-family:Syne,sans-serif;font-weight:800;font-size:calc(var(--u)*2.6);
+  color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.28);line-height:.9;
+  transition:-webkit-text-stroke-color .5s,color .5s}
+.step:hover .num{-webkit-text-stroke-color:var(--acc);color:rgba(255,61,31,.08)}
+.step h3{font-family:Syne,sans-serif;font-weight:700;font-size:calc(var(--u)*1.6);
+  letter-spacing:-.025em;text-transform:uppercase;margin-bottom:calc(var(--u)*.7)}
+.step p{font-size:var(--t-body);line-height:1.75;color:var(--dim);font-weight:300;
+  max-width:calc(var(--u)*44)}
+
+/* ---------- PERCURSO ---------- */
+.tl{margin-top:calc(var(--u)*3.4);position:relative;padding-left:calc(var(--u)*2.4)}
+.tl::before{content:'';position:absolute;left:calc(var(--u)*.42);top:0;bottom:0;width:1px;
+  background:linear-gradient(var(--acc),rgba(255,255,255,.08) 40%,rgba(255,255,255,.04))}
+.tlItem{position:relative;padding:calc(var(--u)*1.6) 0 calc(var(--u)*1.6) calc(var(--u)*1.6);
+  transition:padding-left .5s var(--e)}
+.tlItem:hover{padding-left:calc(var(--u)*2.2)}
+.tlItem::before{content:'';position:absolute;left:calc(var(--u)*-2.02);top:calc(var(--u)*2.2);
+  width:calc(var(--u)*.62);height:calc(var(--u)*.62);border-radius:50%;
+  background:var(--bg);border:1px solid var(--acc);transition:.5s var(--e)}
+.tlItem:hover::before{background:var(--acc);transform:scale(1.5)}
+.tlItem .yr{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);letter-spacing:.22em;
+  text-transform:uppercase;color:var(--acc)}
+.tlItem h3{font-family:Syne,sans-serif;font-weight:700;font-size:calc(var(--u)*1.5);
+  letter-spacing:-.025em;margin:calc(var(--u)*.5) 0 calc(var(--u)*.4)}
+.tlItem p{font-size:var(--t-body);color:var(--dim);line-height:1.7;font-weight:300;
+  max-width:calc(var(--u)*42)}
+
+/* ---------- CTA grande ---------- */
+.bigcta{border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:calc(var(--u)*6) var(--pad);text-align:center;position:relative;overflow:hidden}
+.bigcta .lbl{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);
+  letter-spacing:.3em;text-transform:uppercase;color:var(--faint)}
+.bigcta .big{font-family:Syne,sans-serif;font-weight:800;font-size:calc(var(--u)*4.4);
+  text-transform:uppercase;letter-spacing:-.04em;margin-top:calc(var(--u)*1.4);line-height:1}
+.bigcta .ctaSub{margin-top:calc(var(--u)*1.6);font-family:'JetBrains Mono',monospace;
+  font-size:var(--t-micro);letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.bigcta::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 120%,rgba(255,61,31,.10),transparent 62%);
+  pointer-events:none}
+
+@media(max-width:900px){
+  .step{grid-template-columns:1fr;gap:calc(var(--u)*.8)}
+  .invert{padding:calc(var(--u)*7) var(--pad)}
+}
+
+/* ---- tablet ---- */
+@media(max-width:1200px){
+  .ab{grid-template-columns:1fr;gap:calc(var(--u)*3)}
+  .ab .body{max-width:none}
+  .itm{grid-template-columns:calc(var(--u)*3) 1fr calc(var(--u)*12) calc(var(--u)*7);
+    align-items:center}
+  .itm .m{display:none}
+  .itm .thumb{display:block}
+  #pv{display:none}
+}
+/* ---- portátil pequeno ---- */
+@media(max-width:900px){
+  body{cursor:auto}#cur,#pv,.pTicks{display:none}
+  .hmeta{display:none}
+  .navr{display:none}
+  #menuBtn{display:block}
+  #sidx{display:none}
+  .itm{grid-template-columns:30px 1fr;gap:12px 14px}
+  .itm .m,.itm .y{display:none}
+  /* no telemóvel a miniatura passa a ocupar a linha toda, por baixo do título */
+  .itm .thumb{grid-column:1/-1;order:3;margin-top:calc(var(--u)*.7)}
+  .ab{grid-template-columns:1fr}
+  .pin{height:200svh}
+      .pStep .big{font-size:calc(var(--u)*5.2)}
+  /* medido, não estimado: "BUILD" em Syne 800 caixa alta ocupa 5.09× o tamanho
+     da fonte, e a coluna útil num iPhone é 283 px. 13vw dá 51 px, ou seja 260 px
+     de palavra — cabe com folga em qualquer telemóvel a partir dos 320. */
+  .ct h2{font-size:clamp(2rem, 13vw, calc(var(--u)*5.4))}
+  /* "CONTACT" em Syne 800 caixa alta ocupa ~7.35× o tamanho da fonte. Com
+     var(--u)*3.6 dava 50 px num iPhone e a palavra saía cortada pelo
+     overflow:hidden do link — o menu mostrava "CONTAC". 11vw deixa margem
+     em qualquer telemóvel, do 320 ao 430. */
+  #menu a{font-size:clamp(1.8rem, 10.4vw, calc(var(--u)*3.6))}
+  footer{flex-direction:column;gap:calc(var(--u)*.8);text-align:left}
+  .sdown{display:none}
+}
+/* ---- telemóvel pequeno ---- */
+@media(max-width:420px){
+    .pStep .big{font-size:calc(var(--u)*4.4)}
+  .tag{letter-spacing:.18em}
+  .sh{letter-spacing:.18em}
+}
+/* ---- ecrãs baixos (portáteis 768/900px de altura) ---- */
+@media(max-height:820px) and (min-width:901px){
+  .hero{height:auto;min-height:100svh;padding-top:calc(var(--u)*7);padding-bottom:calc(var(--u)*6)}
+  .pin{height:240svh}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body class="lock">
+<a href="#work" class="skip">Skip to content</a>
+
+<div id="pre" role="status" aria-live="polite" aria-label="Loading">
+  <div class="top"><span>Rodrigo Figueiredo</span><span>Portfolio 2026</span></div>
+  <div class="pct">0</div>
+</div>
+<div id="pbar"></div>
+
+<!-- Porta de entrada: arrasta para empurrar carga pelo sistema.
+     Nunca bloqueia o conteúdo — o DOM está todo lá para leitores de ecrã e
+     para o Google, e abre sozinha ao fim de alguns segundos. -->
+<div id="gate" aria-hidden="true">
+  <div class="gWrap">
+    <div class="gWave w1"></div><div class="gWave w2"></div><div class="gWave w3"></div>
+    <div class="gBurst"></div>
+    <svg class="gRing" viewBox="0 0 120 120">
+      <circle class="gTrack" cx="60" cy="60" r="54"></circle>
+      <circle class="gTicks" cx="60" cy="60" r="47"></circle>
+      <circle class="gFill"  cx="60" cy="60" r="54"></circle>
+    </svg>
+    <div class="gTxt"><b data-split>Hold and drag</b><span>or scroll — either way you push load through the system</span></div>
+    <div class="gPct">0<i>%</i></div>
+  </div>
+  <button class="gSkip" type="button">Skip</button>
+</div>
+
+<!-- HUD persistente: lê-se como um painel de monitorização.
+     Os números são reais e históricos (ciclo 2026), não simulados em tempo real. -->
+<div id="hud" aria-hidden="true">
+  <div class="hudScale">
+    <div class="hudTicks"></div>
+    <div class="hudNeedle"></div>
+    <div class="hudLabels"><span>ARRIVE</span><span>LOAD</span><span>PEAK</span><span>HOLD</span></div>
+  </div>
+  <div class="hudRead">
+    <span><i>users</i><b id="hUsers">0</b></span>
+    <span><i>events</i><b id="hEvents">0</b></span>
+    <span><i>downtime</i><b class="ok">0</b></span>
+  </div>
+</div>
+
+<div id="prog" aria-hidden="true"></div>
+<div id="cur" aria-hidden="true"><span></span></div>
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="vig"></div>
+<div id="pv" aria-hidden="true"><canvas aria-hidden="true"></canvas><div class="cap"></div></div>
+
+<div id="case" role="dialog" aria-modal="true" aria-label="Project case study"><button class="close" data-cursor="Close">Close ✕</button><div class="inner"></div></div>
+
+<nav class="mainNav" aria-label="Main">
+  <a href="#" data-cursor=""><span class="dot"></span>RF</a>
+  <div class="navr"><a href="#capabilities" data-cursor="">Services</a><a href="#work" data-cursor="">Work</a><a href="#process" data-cursor="">Process</a><a href="#about" data-cursor="">About</a><a href="#contact" data-cursor="">Contact</a></div>
+  <button id="menuBtn" data-cursor="Open" aria-label="Open menu" aria-expanded="false">Menu</button>
+</nav>
+
+<nav id="menu" aria-label="Overlay" aria-hidden="true">
+  <a href="#work" data-cursor=""><span>Work</span></a>
+  <a href="#about" data-cursor=""><span>About</span></a>
+  <a href="#contact" data-cursor=""><span>Contact</span></a>
+  <div class="foot">eimaieros@gmail.com<br>Lisbon, Portugal — Available</div>
+</nav>
+<div id="caseProg" aria-hidden="true"></div>
+<button id="toTop" data-cursor="Top" aria-label="Back to top">↑</button>
+<button id="menuClose" data-cursor="Close" aria-label="Close menu">Close ✕</button>
+
+<div id="sidx" aria-hidden="true"><b>01</b><i></i><span>Intro</span></div>
+
+<main id="smooth">
+
+<header class="hero">
+  <div class="tag"><i>Fullstack Web Developer — Lisbon, Portugal</i></div>
+  <h1>
+    <span class="ln"><i data-scr>Rodrigo</i></span>
+    <span class="ln"><i class="out" data-scr>Figueiredo</i></span>
+  </h1>
+  <p class="hsub">I build web platforms and help keep them standing.</p>
+  <!-- A prova tem de estar no primeiro ecrã.
+       Antes, a primeira coisa que se lia era uma afirmação — "construo
+       plataformas e ajudo a mantê-las de pé" — e os números que a sustentam só
+       apareciam a três ecrãs de distância. Um recrutador que passe dez segundos
+       na página nunca lá chega. Estes valores são do Google Analytics, do ciclo
+       de 2026, e são a coisa mais forte que ele tem. -->
+  <dl class="hproof">
+    <div><dt>Rock in Rio Lisboa 2026</dt><dd class="lbl">Platform</dd></div>
+    <div><dt><b>1.9M</b></dt><dd class="lbl">Users</dd></div>
+    <div><dt><b>18M</b></dt><dd class="lbl">Events</dd></div>
+    <div><dt><b class="ok">Zero</b></dt><dd class="lbl">Downtime</dd></div>
+  </dl>
+  <div class="sdown">Scroll</div>
+  <div class="hmeta">Available immediately<br>Remote · Hybrid · On-site · Relocation<br>EN · PT</div>
+</header>
+
+
+<!-- Frase que se monta com o scroll: cada fragmento entra de um sítio e de uma
+     profundidade diferentes. O texto é um só parágrafo para leitores de ecrã. -->
+<div class="say" id="say">
+  <div class="sayIn" aria-hidden="true">
+    <span class="f" data-f="0">Anyone can</span>
+    <span class="f" data-f="1">launch a website.</span>
+    <span class="f" data-f="2">Keeping one up</span>
+    <span class="f" data-f="3">while</span>
+    <span class="f acc" data-f="4">1.9 million</span>
+    <span class="f" data-f="5">pass through</span>
+    <span class="f big" data-f="6">is a <em>different</em> job.</span>
+  </div>
+  <p class="sr">Anyone can launch a website. Keeping one up while 1.9 million people pass through is a different job.</p>
+</div>
+
+<div class="pin">
+  <div class="pinIn">
+    <div class="pStep"><div class="big"><span class="acc" data-to="1.9" data-dec="1" data-suf="M">1.9M</span></div><div class="cap">People used what I helped build</div></div>
+    <div class="pStep"><div class="big"><span data-to="18" data-dec="0">18</span><span class="acc">M</span></div><div class="cap">Interactions tracked</div></div>
+    <div class="pStep"><div class="big"><span data-to="1.1" data-dec="1">1.1</span><span class="acc">M</span></div><div class="cap">Organic sessions from search</div></div>
+    <div class="pStep"><div class="big out">ZERO</div><div class="cap">Minutes of downtime · festival week</div></div>
+  </div>
+  <div class="pTicks"><i></i><i></i><i></i><i></i></div>
+</div>
+
+
+
+<div class="stage" id="stage">
+  <h2 class="sr">How a platform comes together</h2>
+  <div class="stageIn">
+    <canvas id="stageCanvas" aria-hidden="true"></canvas>
+    <div class="stageUI">
+      <div class="stageStep" data-i="0">
+        <div class="k">Phase 01 — Scattered</div>
+        <h3>Nothing<br>starts whole</h3>
+        <p>Every platform begins as parts that don't know about each other yet.</p>
+      </div>
+      <div class="stageStep" data-i="1">
+        <div class="k">Phase 02 — Converging</div>
+        <h3>Then it<br>comes together</h3>
+        <p>Front-end, back-end, content, SEO — each piece arriving on its own schedule.</p>
+      </div>
+      <div class="stageStep" data-i="2">
+        <div class="k">Phase 03 — Assembled</div>
+        <h3>And it<br>has to hold</h3>
+        <p>1.9 million people came through over the 2026 cycle. It held. That's the part of the job nobody sees.</p>
+      </div>
+    </div>
+    <div class="stageProg"><i></i><i></i><i></i></div>
+    <div class="stageHint" aria-hidden="true">Move your cursor</div>
+  </div>
+</div>
+
+<section class="invert" id="capabilities">
+  <div class="wrapIn">
+    <h2 class="sh rv">What I do</h2>
+    <div class="svc-row">
+      <div class="svc rv">
+        <div class="n">01 / Build</div>
+        <h3>Fullstack<br>Development</h3>
+        <p>Front-end and back-end in JavaScript, PHP and WordPress — the stack I ship in. React, Next.js and Node I know and use, but my production years are in the first three. From a landing page to a platform that has to stay up when tens of thousands arrive at once.</p>
+      </div>
+      <div class="svc rv">
+        <div class="n">02 / Design</div>
+        <h3>Interface<br>&amp; Experience</h3>
+        <p>Master's in Web UX/UI. I care how a thing feels to use, not only whether it works. Layout, motion, and the decisions that make a page easy to move through.</p>
+      </div>
+      <div class="svc rv">
+        <div class="n">03 / Grow</div>
+        <h3>SEO &amp;<br>Performance</h3>
+        <p>1.1M organic sessions on the Rock in Rio platform — its largest channel, ahead of paid. Technical SEO, Core Web Vitals, and pages that load before people leave.</p>
+      </div>
+      <div class="svc rv">
+        <div class="n">04 / Make</div>
+        <h3>Motion<br>&amp; 3D</h3>
+        <p>Video, motion graphics and 3D in Blender and Adobe Creative Cloud. Useful more often than it sounds — it means a project doesn't stall waiting on assets.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Imagem que se monta em mosaicos com o scroll.
+     Hoje o conteúdo é desenhado em canvas; o dia em que houver uma fotografia
+     do Rock in Rio autorizada, troca-se a fonte e o resto continua igual. -->
+<div class="mos" id="mos">
+  <div class="mosIn">
+    <canvas id="mosCv" aria-hidden="true"></canvas>
+    <div class="mosCap">
+      <span class="k">Rock in Rio Lisboa · 2026</span>
+      <span class="t">The night it all arrived at once</span>
+    </div>
+  </div>
+</div>
+
+
+<section class="sect" id="work">
+  <div class="ghost" aria-hidden="true">02</div>
+  <h2 class="sh rv drawline">Selected Work</h2>
+  
+    <div class="wlist">
+      <div class="itm rv" data-cursor="Open" data-k="rir" data-seed="0" role="button" tabindex="0">
+        <canvas class="thumb" aria-hidden="true"></canvas>
+        <span class="i">01</span>
+        <span class="t">Rock in Rio<span class="code">CODE</span></span>
+        <span class="m">JavaScript · PHP<br>1.9M users · 18M events</span>
+        <span class="y">2026</span>
+      </div>
+      <div class="itm rv" data-cursor="Open" data-k="pf" data-seed="1" role="button" tabindex="0">
+        <canvas class="thumb" aria-hidden="true"></canvas>
+        <span class="i">02</span>
+        <span class="t">Portfolio<span class="code">CODE</span></span>
+        <span class="m">Next.js · GSAP<br>WebGL · Three.js</span>
+        <span class="y">2026</span>
+      </div>
+      <div class="itm rv" data-cursor="Open" data-k="nh" data-seed="2" role="button" tabindex="0">
+        <canvas class="thumb" aria-hidden="true"></canvas>
+        <span class="i">03</span>
+        <span class="t">NH Concierge</span>
+        <span class="m">Design &amp; build<br>SEO · Maintenance</span>
+        <span class="y">2022—</span>
+      </div>
+      <div class="itm rv" data-cursor="Open" data-k="fl" data-seed="3" role="button" tabindex="0">
+        <canvas class="thumb" aria-hidden="true"></canvas>
+        <span class="i">04</span>
+        <span class="t">FL Performance</span>
+        <span class="m">Tuscany, Italy<br>Design · SEO</span>
+        <span class="y">2023—</span>
+      </div>
+      <div class="itm rv" data-cursor="Open" data-k="dl" data-seed="4" role="button" tabindex="0">
+        <canvas class="thumb" aria-hidden="true"></canvas>
+        <span class="i">05</span>
+        <span class="t">Daylight LA</span>
+        <span class="m">Brand site<br>Design &amp; build</span>
+        <span class="y">2025</span>
+      </div>
+    </div>
+
+    <!-- Amplitude, não vaidade. Os cinco de cima são os que aguentam um caso de
+         estudo; estes mostram que o trabalho atravessou mercados e clientes de
+         nome. Todos reais, todos no CV. Nomes em texto, não logótipos — evita a
+         questão das marcas registadas e assenta melhor na tipografia do site. -->
+    <p class="alsoFor">
+      <span class="k">Client work also delivered for</span>
+      <span class="n">Valtours <i>Angola</i></span>
+      <span class="n">RE/MAX</span>
+      <span class="n">Espalha Cores</span>
+      <span class="n">NKEY <i>Italy</i></span>
+    </p>
+
+</section>
+
+
+
+<div class="stackband" aria-hidden="true">
+  <div class="tr2" id="tr2">
+    <span><b>JavaScript</b></span><em>/</em>
+    <span><b>PHP</b></span><em>/</em>
+    <span><b>HTML5</b></span><em>/</em>
+    <span><b>CSS/SASS</b></span><em>/</em>
+    <span><b>WordPress</b></span><em>/</em>
+    <span><b>REST APIs</b></span><em>/</em>
+    <span><b>Git</b></span><em>/</em>
+    <span><b>Figma</b></span><em>/</em>
+    <span><b>SEO</b></span><em>/</em>
+    <span><b>Three.js</b></span><em>/</em>
+    <span><b>GSAP</b></span><em>/</em>
+    <span><b>WebGL</b></span><em>/</em>
+    <span><b>React</b></span><em>/</em>
+    <span><b>Next.js</b></span><em>/</em>
+    <span><b>Node.js</b></span><em>/</em>
+    <span><b>Python</b></span><em>/</em>
+    <span><b>SQL</b></span><em>/</em>
+    <span><b>Azure</b></span><em>/</em>
+    <span><b>Blender</b></span><em>/</em>
+    <span><b>JavaScript</b></span><em>/</em>
+    <span><b>PHP</b></span><em>/</em>
+    <span><b>HTML5</b></span><em>/</em>
+    <span><b>CSS/SASS</b></span><em>/</em>
+    <span><b>WordPress</b></span><em>/</em>
+    <span><b>REST APIs</b></span><em>/</em>
+    <span><b>Git</b></span><em>/</em>
+    <span><b>Figma</b></span><em>/</em>
+    <span><b>SEO</b></span><em>/</em>
+    <span><b>Three.js</b></span><em>/</em>
+    <span><b>GSAP</b></span><em>/</em>
+    <span><b>WebGL</b></span><em>/</em>
+    <span><b>React</b></span><em>/</em>
+    <span><b>Next.js</b></span><em>/</em>
+    <span><b>Node.js</b></span><em>/</em>
+    <span><b>Python</b></span><em>/</em>
+    <span><b>SQL</b></span><em>/</em>
+    <span><b>Azure</b></span><em>/</em>
+    <span><b>Blender</b></span><em>/</em>
+    </div>
+</div>
+
+<div class="pull">
+  <blockquote class="pullq">
+    <span><i>The hard part was never</i></span>
+    <span><i>building the site. It was</i></span>
+    <span><i>being the one who <em>kept it up</em>.</i></span>
+  </blockquote>
+  <cite>On the 2026 Rock in Rio Lisboa cycle</cite>
+</div>
+
+<section class="sect" id="process">
+  <div class="ghost" aria-hidden="true">03</div>
+  <h2 class="sh rv drawline">How I work</h2>
+  <div class="steps">
+    <div class="step rv"><div class="num">01</div>
+      <div><h3>Understand before building</h3>
+      <p>Most bad websites are built fast and understood late. I want to know who uses it, what breaks it, and what happens on the worst day — before writing anything.</p></div></div>
+    <div class="step rv"><div class="num">02</div>
+      <div><h3>Ship small, ship often</h3>
+      <p>Features go out in pieces that can be tested and rolled back. On a festival site during live dates, that isn't a preference — it's the only way to work.</p></div></div>
+    <div class="step rv"><div class="num">03</div>
+      <div><h3>Measure, don't assume</h3>
+      <p>Analytics on everything that matters. The ticketing page held a 9.3% bounce rate against a 34% site average — I only know that because it was measured.</p></div></div>
+    <div class="step rv"><div class="num">04</div>
+      <div><h3>Stay reachable</h3>
+      <p>Code is half the job. The other half is being the person marketing and production can call at 11pm on a festival night and get an answer.</p></div></div>
+  </div>
+</section>
+
+<section class="sect" id="path">
+  <div class="ghost" aria-hidden="true">04</div>
+  <h2 class="sh rv drawline">Path</h2>
+  <div class="tl">
+    <div class="tlItem rv"><div class="yr">Feb — Jul 2026</div>
+      <h3>Rock in Rio Lisboa — Tech Manager &amp; Fullstack Developer</h3>
+      <p>Developed and maintained the official festival website through the 2026 cycle. 1.9M users, 18M events, no downtime.</p></div>
+    <div class="tlItem rv"><div class="yr">2024</div>
+      <h3>Master's in Web UX/UI — IADE, Universidade Europeia</h3>
+      <p>Where the design half of the work came from.</p></div>
+    <div class="tlItem rv"><div class="yr">Sep — Dec 2023</div>
+      <h3>NKEY SRL — Erasmus+, Tuscany</h3>
+      <p>Web pages, forms and WordPress themes in HTML, CSS, JavaScript and PHP. API integrations and full client sites, delivered in another language and market.</p></div>
+    <div class="tlItem rv"><div class="yr">2020 — 2023</div>
+      <h3>BSc Multimedia Engineering — ISTEC, Lisbon</h3>
+      <p>The technical base: programming, databases, and everything visual.</p></div>
+    <div class="tlItem rv"><div class="yr">Since 2022</div>
+      <h3>Freelance — Portugal, Italy &amp; Angola</h3>
+      <p>Client sites end to end: build, hosting, SEO, multimedia, and the client conversation.</p></div>
+  </div>
+</section>
+
+<section class="sect" id="about">
+  <div class="ghost" aria-hidden="true">05</div>
+  <h2 class="sh rv">About</h2>
+  <div class="ab">
+    <div>
+      <div class="lead">
+        <span class="msk"><i>Four years building for the web —</i></span>
+        <span class="msk"><i>from client sites across Portugal, Italy</i></span>
+        <span class="msk"><i>and Angola to the platform behind one</i></span>
+        <span class="msk"><i>of the largest festivals in the world.</i></span>
+      </div>
+      <p class="body rv">Master's in Web UX/UI, which means I care as much about how a thing feels to use as about how it's put together. My production years are in JavaScript, PHP and WordPress; React, Next.js and Node I know and reach for, and I'm honest about the difference. I also work well with people who don't write code, which on a festival site matters more than it sounds.</p>
+    </div>
+    <!-- Duas listas, não uma. Um monte único de etiquetas insinua que tudo tem o
+         mesmo peso, e numa entrevista técnica isso desfaz-se em dois minutos.
+         Separar é mais honesto e, na prática, mais convincente. -->
+    <div class="tagset rv">
+      <div class="tagGroup">
+        <span class="tagLbl">Ship in production</span>
+        <div class="tags">
+          <span class="tg">JavaScript</span><span class="tg">PHP</span><span class="tg">WordPress</span>
+          <span class="tg">HTML5</span><span class="tg">CSS / SASS</span><span class="tg">REST APIs</span>
+          <span class="tg">Git</span><span class="tg">SEO</span><span class="tg">Figma</span>
+        </div>
+      </div>
+      <div class="tagGroup">
+        <span class="tagLbl">Know and use</span>
+        <div class="tags">
+          <span class="tg alt">React</span><span class="tg alt">Next.js</span><span class="tg alt">Node.js</span>
+          <span class="tg alt">Vue</span><span class="tg alt">Python</span><span class="tg alt">SQL</span>
+          <span class="tg alt">Three.js</span><span class="tg alt">GSAP</span><span class="tg alt">Blender</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- Recomendações. As cartas são construídas por JS a partir de RECS, no topo do
+     script. Se nenhuma tiver citação, a secção inteira é removida do DOM — mais
+     vale não existir do que aparecer com texto de encomenda. -->
+<section class="recs" id="recs" hidden>
+  <div class="wrapIn recHead">
+    <h2 class="sh rv">What people say</h2>
+    <a class="recVerify" href="https://www.linkedin.com/in/rodrigomvfigueiredo/details/recommendations/"
+       target="_blank" rel="noopener">Verify on LinkedIn ↗</a>
+  </div>
+  <div class="recTrack"><div class="recRow"></div></div>
+  <div class="recFoot" aria-hidden="true">
+    <span class="recNote">Scroll</span>
+    <span class="recBar"><i></i></span>
+    <span class="recNote recCount"></span>
+  </div>
+</section>
+
+<section class="sect" id="faq">
+  <div class="ghost" aria-hidden="true">06</div>
+  <h2 class="sh rv drawline">Questions</h2>
+  <div class="faq">
+    <div class="q rv"><button aria-expanded="false">What are you looking for?<span class="ic"></span></button>
+      <div class="a"><p>A mid-level fullstack or front-end role. Remote from Portugal for a company abroad is the best fit, but hybrid or on-site in the Lisbon area works too. Available immediately.</p></div></div>
+    <div class="q rv"><button aria-expanded="false">Can you work with a team that isn't technical?<span class="ic"></span></button>
+      <div class="a"><p>That was most of the job at Rock in Rio. Marketing needed content live, production needed changes during festival days, and none of them write code. Translating between those worlds is a skill I had to build fast.</p></div></div>
+    <div class="q rv"><button aria-expanded="false">What happens when something breaks at the worst moment?<span class="ic"></span></button>
+      <div class="a"><p>You find out quickly and you fix it without making it worse. During the 2026 festival the site stayed up — not because nothing went wrong, but because problems were caught and handled while people were on the site.</p></div></div>
+    <div class="q rv"><button aria-expanded="false">Do you design as well as build?<span class="ic"></span></button>
+      <div class="a"><p>Yes. Master's in Web UX/UI, and I produce my own motion and 3D assets in Blender and Adobe Creative Cloud. Useful more often than it sounds — most developers can't make their own visuals.</p></div></div>
+    <div class="q rv"><button aria-expanded="false">What languages do you work in?<span class="ic"></span></button>
+      <div class="a"><p>Portuguese natively and English fluently — those are the two I work in. I've delivered client work in Italy and Angola, so building across markets and time zones isn't new to me.</p></div></div>
+  </div>
+</section>
+
+<div class="bigcta rv" id="availability">
+  <div class="lbl">Currently</div>
+  <div class="big">Available for work</div>
+  <div class="ctaSub">Remote · Hybrid · On-site — Lisbon area or anywhere in the EU</div>
+</div>
+
+<section class="ct sel" id="contact">
+  <h2>Let's<br><span class="out">build</span></h2>
+  <p class="ctSub">Looking for a mid-level fullstack or front-end role — remote from Portugal,
+  hybrid in Lisbon, or relocation. Available immediately.</p>
+  <a class="mag" href="mailto:eimaieros@gmail.com?subject=Role%20enquiry%20%E2%80%94%20Rodrigo%20Figueiredo" data-cursor="Mail">eimaieros@gmail.com</a>
+  <div class="ctAlt">
+    <a href="https://linkedin.com/in/rodrigomvfigueiredo" target="_blank" rel="noopener">LinkedIn</a>
+    <a href="https://github.com/eimaieros" target="_blank" rel="noopener">GitHub</a>
+    <a href="tel:+351918154191">+351 918 154 191</a>
+  </div>
+</section>
+</main>
+
+<footer>
+  <span>Lisbon, Portugal — <span id="lisTime">--:--</span> — Available</span>
+  <span>EN · PT</span>
+  <span><a href="mailto:eimaieros@gmail.com">Email</a> · <a href="https://linkedin.com/in/rodrigomvfigueiredo" target="_blank" rel="noopener">LinkedIn</a> · <a href="https://github.com/eimaieros" target="_blank" rel="noopener">GitHub</a></span>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+(function(){
+'use strict';
+/* Uma excepção a meio do módulo mata tudo o que vem a seguir — foi assim que
+   um erro de âmbito apagou vinte sistemas de uma vez. `safe()` isola cada
+   arranque: se um falhar, os outros continuam e o erro fica visível na consola
+   em vez de desaparecer com a página. */
+function safe(name, fn){
+  try{ return fn(); }
+  catch(err){ console.error(`[portfolio] "${name}" falhou:`, err); }
+}
+addEventListener('error',e=>{
+  console.error('[portfolio] erro não apanhado:', e.message, '@', e.filename+':'+e.lineno);
+});
+
+const Q=(s,c)=>(c||document).querySelector(s),QA=(s,c)=>[...(c||document).querySelectorAll(s)];
+
+/* ================= MEDIA REAL =================
+   Basta pôr os ficheiros em `assets/` com estes nomes e eles entram sozinhos:
+   o preview da lista, o mosaico e os cartões passam a mostrar a fotografia
+   em vez do visual desenhado. Sem ficheiros, tudo continua a funcionar como
+   está — nada rebenta, o fallback generativo assume. */
+/* ================= RECOMENDAÇÕES =================
+   As duas recomendações são REAIS e estão públicas no LinkedIn. O texto exacto
+   não está aqui porque não o tenho — e inventar uma citação e pôr o nome de uma
+   pessoa por baixo não é uma opção, nem como rascunho.
+
+   Lidas directamente do LinkedIn a 11/08/2026. `quote` é um excerto traduzido
+   para inglês, porque o site é em inglês e uma carta com quatro parágrafos não
+   se lê. `original` guarda o texto português integral, tal como está publicado
+   — quem quiser confrontar, consegue.
+
+   Se um `quote` ficar vazio, a carta não entra. Se nenhuma tiver texto, a secção
+   inteira desaparece do DOM: o site nunca mostra um placeholder. */
+const RECS = [
+  {
+    name: 'João Pedro Franco',
+    role: 'Creative Designer, Rock in Rio Lisboa',
+    /* Excerto das duas frases centrais. Traduzido do português; o original
+       fica em `original` para que qualquer pessoa possa confrontar. */
+    quote: 'Our work crossed over mostly when new content had to go up or changes '
+         + 'had to be made to the site, often on very tight timings, especially '
+         + 'during the festival days. Rodrigo made himself available to take the '
+         + 'content, implement the changes and solve the technical issues that '
+         + 'came up along the way.',
+    original: 'Trabalhei com o Rodrigo durante o Rock in Rio Lisboa 2026. Eu, ligado '
+            + 'à área de design e produção de conteúdos, enquanto o Rodrigo era '
+            + 'responsável pela parte de desenvolvimento e gestão do site oficial. '
+            + 'O nosso trabalho cruzava-se sobretudo quando era necessário colocar '
+            + 'novos conteúdos ou fazer alterações no site, muitas vezes com timings '
+            + 'bastante apertados, especialmente durante os dias de festival. '
+            + 'O Rodrigo mostrou-se disponível para receber os conteúdos, implementar '
+            + 'as alterações necessárias e resolver as questões técnicas que iam '
+            + 'surgindo. Foi uma boa experiência trabalhar com ele num contexto tão '
+            + 'dinâmico e exigente como o Rock in Rio.',
+  },
+  {
+    name: 'Vitor Gonçalves',
+    role: 'CFO, ProEleven',
+    quote: 'He always showed autonomy, responsibility and the ability to meet the '
+         + 'objectives and deadlines set, fitting in well with our team and with the '
+         + 'way the company runs. I recommend him for projects and roles in web '
+         + 'development, multimedia and digital production.',
+    original: 'O Rodrigo esteve connosco na Proeleven Football Management, entre março '
+            + 'e junho de 2023, num estágio na área de produção multimédia e marketing '
+            + 'digital. Durante esse período, teve a oportunidade de colaborar em '
+            + 'diferentes projetos, desde a produção de conteúdos de vídeo e materiais '
+            + 'gráficos, ao desenvolvimento de ações de marketing digital, redes sociais, '
+            + 'eventos e projetos relacionados com os nossos jogadores e parceiros. '
+            + 'Demonstrou sempre autonomia, responsabilidade e capacidade para cumprir '
+            + 'os objetivos e prazos definidos, integrando-se muito bem na nossa equipa '
+            + 'e na dinâmica da empresa. Foi um gosto contar com o Rodrigo durante este '
+            + 'período e desejo-lhe o maior sucesso para o seu percurso profissional, '
+            + 'recomendando-o para projetos e funções nas áreas de desenvolvimento web, '
+            + 'multimédia e produção digital.',
+  },
+];
+
+const MEDIA = {
+  rir: {img:'../assets/rir-hero.webp',  video:'../assets/rir-hero.mp4'},
+  pf:  {img:'../assets/portfolio.webp', video:null},
+  nh:  {img:'../assets/nh.webp',        video:null},
+  fl:  {img:'../assets/fl.webp',        video:null},
+  dl:  {img:'../assets/daylight.webp',  video:null},
+};
+const MOSAIC_SRC = '../assets/rir-crowd.webp';   /* a imagem que se monta em peças */
+
+const lerp=(a,b,t)=>a+(b-a)*t,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---- dependency + capability guards ---- */
+const HAS_GSAP  = typeof gsap!=='undefined' && typeof ScrollTrigger!=='undefined';
+const HAS_LENIS = typeof Lenis!=='undefined';
+const HAS_WEBGL = (()=>{try{const c=document.createElement('canvas');
+  return !!(window.WebGLRenderingContext && (c.getContext('webgl')||c.getContext('experimental-webgl')));
+}catch(e){return false}})();
+const HAS_THREE = typeof THREE!=='undefined' && HAS_WEBGL;
+
+/* If the core libs failed to load, show the site as a plain document and stop. */
+if(!HAS_GSAP){
+  document.getElementById('pre').style.display='none';
+  document.body.classList.remove('lock');
+  QA('.rv').forEach(el=>{el.style.opacity=1;el.style.transform='none'});
+  QA('.msk>i').forEach(el=>el.style.transform='none');
+  QA('.tag i,h1 .ln i').forEach(el=>el.style.transform='none');
+  QA('.hsub,.sdown,.hmeta').forEach(el=>el.style.opacity=1);
+  QA('.w').forEach(el=>el.style.opacity=1);
+  QA('.pStep')[0]?.classList.add('on');
+  document.documentElement.style.scrollBehavior='smooth';
+  console.warn('[portfolio] GSAP unavailable — running in no-JS-motion mode.');
+  return;
+}
+gsap.registerPlugin(ScrollTrigger);
+if(!HAS_WEBGL) Q('#gl').style.display='none';
+
+/* ================= LENIS ================= */
+let scrollVel=0;
+const lenis = HAS_LENIS
+  ? new Lenis({duration:1.15,easing:t=>Math.min(1,1.001-Math.pow(2,-10*t)),smoothWheel:!REDUCE,touchMultiplier:1.6})
+  : {start(){},stop(){},scrollTo(t,o){const el=typeof t==='string'?Q(t):null;
+      el?el.scrollIntoView({behavior:'smooth'}):scrollTo({top:0,behavior:'smooth'})}};
+if(HAS_LENIS){
+  lenis.on('scroll',e=>{scrollVel=clamp(e.velocity/40,-1,1);ScrollTrigger.update()});
+  gsap.ticker.add(t=>lenis.raf(t*1000));
+  gsap.ticker.lagSmoothing(0);
+}else{
+  let ly=0;addEventListener('scroll',()=>{scrollVel=clamp((scrollY-ly)/40,-1,1);ly=scrollY},{passive:true});
+  document.documentElement.style.scrollBehavior='smooth';
+}
+
+/* ================= CASES ================= */
+const CASES={
+ rir:{k:'2026 · Fixed-term, festival cycle',t:'Rock in Rio Lisboa',
+  meta:[['Role','Tech Manager & Fullstack Developer'],['Stack','JavaScript · PHP · SEO'],['Scale','1.9M users · 18M events'],['Uptime','No downtime']],
+  /* Capturas do site verdadeiro, no ciclo de 2026. Carregam só quando o caso
+     de estudo abre — `loading="lazy"` e o painel começa fechado. */
+  shots:[
+    ['../assets/case/01-home.webp','Homepage — dates, ticket entry points and the main navigation'],
+    ['../assets/case/02-stage-for-dreams.webp','Stage for Dreams — the festival social programme'],
+    ['../assets/case/03-premium.webp','Premium experiences — the higher tiers of the ticket range'],
+    ['../assets/case/04-onde-ficar.webp','Where to stay — travel and accommodation partners'],
+    ['../assets/case/05-patrocinadores.webp','Partners — sponsor placement across the platform'],
+    ['../assets/case/06-mundo-melhor.webp','Por um Mundo Melhor — the sustainability programme'],
+  ],
+  body:[['Context','The official website for one of the largest music festivals in the world - a custom JavaScript and PHP platform with no CMS underneath, carrying everything from line-up and ticketing through to live content during the festival itself.'],
+        ['The problem','Traffic on a festival site is not steady. It sits low for weeks and then spikes hard the moment tickets go on sale or a headliner is announced. The site has to survive those windows, and during the festival it has to publish content in real time while tens of thousands of people are on it at once.'],
+        ['What I did','Developed and maintained the platform through the full 2026 cycle. Redesigned and rebuilt pages and sections to bring the site up to current standards. Shipped front-end and back-end features, published live content during festival days, and monitored performance through every peak-demand window.'],
+        ['Result','1.9M users and 18M tracked events over six months. 1.1M organic sessions from Google - the largest acquisition channel, ahead of both paid search and social. The ticketing page held a 9.3% bounce rate against a 34% site average. No downtime during the festival.'],
+        ['What I would do differently','More of the live-content workflow should have been self-service. During festival days a lot of updates still went through me, which is fine until it is not. If I ran another edition, the first thing I would build is a way for the content team to publish without a developer in the loop.'],
+        ['What it taught me','That the interesting part of the job is not the code. It is knowing which risks matter on the night, and being reachable when they do.']]},
+ pf:{k:'2026 · Personal',t:'This Portfolio',
+  meta:[['Role','Design & Development'],['Stack','Next.js · GSAP · Lenis · WebGL'],['Focus','Motion without cost'],['Target','Lighthouse >= 90']],
+  body:[['Why','For a web developer the portfolio is the work sample. Anything claimed on a CV should be visible in how this site is built.'],
+        ['Approach','GSAP with ScrollTrigger for choreography, Lenis for scroll, and a WebGL layer for the background and the scroll-driven particle field. The morphing formations are a single buffer geometry interpolated between three target shapes - no geometry is rebuilt at runtime.'],
+        ['The constraint','Most award-winning sites score around 40 on Lighthouse. The goal here was to keep the motion and the WebGL while staying above 90: capped device pixel ratio, transform-only animation, geometry allocated once, and full prefers-reduced-motion support.']]},
+ nh:{k:'2022 - present · Freelance',t:'NH Concierge',
+  meta:[['Role','Design · Build · SEO'],['Client','NH Concierge Services'],['Sector','Luxury travel'],['Live','nhcs.pt']],
+  body:[['Context','A luxury travel and concierge company operating between Portugal and the United States, needing a presence that matched the service.'],
+        ['What I did','Design and build of the site, custom HTML, CSS and JavaScript where the platform allowed, SEO across all pages, plus the supporting multimedia - video, animated logo, brand imagery. Ongoing maintenance and direct client contact since 2022.']]},
+ fl:{k:'2023 - present · Freelance',t:'FL Performance',
+  meta:[['Role','Design · Build · SEO'],['Client','FL Performance'],['Location','Fucecchio, Tuscany'],['Sector','Equestrian']],
+  body:[['Context','An Italian equestrian performance business with no digital presence.'],
+        ['What I did','Built the site around their brand guidelines, structured navigation around what their clients actually look for, and implemented SEO to make them findable. Ongoing maintenance and support - delivering for a client in another country and market.']]},
+ dl:{k:'2025 · Freelance',t:'Daylight LA',
+  meta:[['Role','Design · Build'],['Type','Brand site'],['Focus','Identity online'],['Year','2025']],
+  body:[['Context','A brand site where the design carried most of the weight.'],
+        ['What I did','Full design and build - layout, typography, responsive behaviour, and the translation of an existing brand into a web presence that held its tone.']]}
+};
+
+/* ================= CURSOR ================= */
+const cur=Q('#cur'),curL=Q('span',cur);
+let mx=innerWidth/2,my=innerHeight/2;
+const curX=gsap.quickTo(cur,'x',{duration:.5,ease:'power3'});
+const curY=gsap.quickTo(cur,'y',{duration:.5,ease:'power3'});
+/* ---------- teclado vs rato ----------
+   Ao primeiro Tab assume-se navegação por teclado: volta o cursor do sistema
+   e o anel de foco fica visível. Ao primeiro clique volta-se ao cursor
+   personalizado. Ninguém fica sem saber onde está. */
+addEventListener('keydown',e=>{
+  if(e.key==='Tab') document.documentElement.classList.add('kbd');
+},{passive:true});
+addEventListener('mousedown',()=>document.documentElement.classList.remove('kbd'),{passive:true});
+
+/* ---------- o nome segue o cursor ----------
+   Fonte de luz nas letras cheias, contorno a acender no nome vazado, e um
+   deslocamento mínimo em sentidos opostos entre as duas linhas. */
+{
+  const h1=Q('h1');
+  /* só liga a camada de luz se o browser souber recortar background em texto */
+  const canClip = (window.CSS && CSS.supports)
+    && (CSS.supports('background-clip','text') || CSS.supports('-webkit-background-clip','text'));
+  if(h1 && canClip && !REDUCE && matchMedia('(hover:hover)').matches){
+    /* depois do scramble, para a camada copiar o texto final e não o embaralhado */
+    setTimeout(()=>{
+      QA('.ln i:not(.out)',h1).forEach(el=>el.setAttribute('data-txt',el.dataset.txt||el.textContent));
+      document.documentElement.classList.add('lightname');
+    }, 2200);
+  }
+  if(h1 && !REDUCE && matchMedia('(hover:hover)').matches){
+    const lines=QA('.ln i',h1);
+    /* '--px' e não 'x': ver o comentário longo no CSS de h1 .ln i.
+       A suavização é feita aqui à mão, com um lerp por frame, em vez de se
+       confiar que o GSAP interpola variáveis CSS. Menos suposições, e o valor
+       escrito é sempre uma string com unidade, que é o que o CSS espera. */
+    const alvo = lines.map(()=>0), atual = lines.map(()=>0);
+    const lx = lines.map((el,i)=>v=>{ alvo[i]=v; });
+    gsap.ticker.add(()=>{
+      for(let i=0;i<lines.length;i++){
+        if(Math.abs(alvo[i]-atual[i]) < 0.05) continue;
+        atual[i] = lerp(atual[i], alvo[i], 0.09);
+        lines[i].style.setProperty('--px', atual[i].toFixed(2)+'px');
+      }
+    });
+    let raf=0;
+    addEventListener('mousemove',e=>{
+      if(raf) return;
+      raf=requestAnimationFrame(()=>{
+        raf=0;
+        const r=h1.getBoundingClientRect();
+        if(r.bottom<0||r.top>innerHeight) return;      /* fora do ecrã: não mexe */
+
+        /* A luz tem de ser medida na caixa de CADA linha, não na do h1.
+           Um `radial-gradient(circle at 40% 60%)` resolve as percentagens
+           contra a caixa do elemento que o pinta — aqui o ::after de cada
+           <i>. Como as linhas têm alturas diferentes e ainda se deslocam em
+           paralaxe, uma percentagem calculada no h1 caía sempre ao lado do
+           ponteiro. Agora é px sobre o rectângulo real de cada linha, o que
+           também absorve o deslocamento da paralaxe de graça. */
+        for(const el of lines){
+          if(el.classList.contains('out')) continue;   /* essa é vazada, não recebe luz */
+          const b=el.getBoundingClientRect();
+          el.style.setProperty('--mx',(e.clientX-b.left).toFixed(1)+'px');
+          el.style.setProperty('--my',(e.clientY-b.top ).toFixed(1)+'px');
+        }
+        const off=(e.clientX/innerWidth-.5);
+        lines.forEach((_,i)=>lx[i](off*(i===0?14:-14)));
+      });
+    },{passive:true});
+  }
+}
+
+/* posição normalizada do cursor para o campo de fluido.
+   Declarado aqui, no topo, para que o handler e a simulação partilhem o mesmo
+   objeto — se ficasse dentro do bloco do WebGL, o handler nunca lhe chegava. */
+const MOUSE={x:.5,y:.5,px:.5,py:.5,dx:0,dy:0,down:0};
+/* Arrastar com o botão em baixo faz o browser começar uma selecção de texto.
+   Fora de campos de texto e links isso nunca é o que se quer aqui: cancela-se
+   o comportamento por omissão e marca-se html.dragging para o CSS desligar a
+   selecção enquanto durar o gesto. */
+addEventListener('pointerdown',e=>{
+  MOUSE.down=1;
+  const t=e.target;
+  const editable = t && t.closest && t.closest('input,textarea,select,[contenteditable],a,button');
+  if(!editable && e.button===0){
+    e.preventDefault();
+    document.documentElement.classList.add('dragging');
+  }
+});
+function endDrag(){MOUSE.down=0;document.documentElement.classList.remove('dragging')}
+addEventListener('pointerup',endDrag);
+addEventListener('pointercancel',endDrag);
+addEventListener('blur',endDrag);
+addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;curX(e.clientX);curY(e.clientY);
+  /* y invertido: a textura cresce para cima, o ecrã para baixo */
+  MOUSE.x=e.clientX/innerWidth; MOUSE.y=1-e.clientY/innerHeight});
+/* toque: arrastar o dedo também empurra carga */
+addEventListener('touchmove',e=>{const p=e.touches[0];if(!p)return;
+  MOUSE.x=p.clientX/innerWidth;MOUSE.y=1-p.clientY/innerHeight},{passive:true});
+document.addEventListener('mouseover',e=>{const t=e.target.closest('[data-cursor]');
+  if(t){cur.classList.add('on');curL.textContent=t.dataset.cursor||''}});
+document.addEventListener('mouseout',e=>{if(e.target.closest('[data-cursor]'))cur.classList.remove('on')});
+
+/* (a antiga secção .stmt foi substituída pela frase que se monta em .say —
+   dizia exactamente as mesmas palavras e ficavam duas vezes na página) */
+
+/* ================= PRELOADER ================= */
+/* Preloader honesto: a percentagem segue coisas que estão mesmo a acontecer —
+   as fontes a chegar, as bibliotecas presentes, o primeiro frame desenhado.
+   Um contador falso é fácil de escrever e fácil de detetar. */
+const pre=Q('#pre'),pct=Q('.pct',pre),pbar=Q('#pbar');let p=0,introDone=false;
+/* O que o preloader espera, e porquê.
+   Já pesava 20% num sinal "frame renderizado", medido com requestAnimationFrame.
+   Esse sinal é frágil: o browser suspende o rAF em separadores em segundo plano,
+   janelas sem foco e modo de poupança — e nesses casos a barra ficava presa nos
+   80% até o failsafe disparar. Foi retirado.
+   Fica o que importa e é fiável: as fontes (o herói é tipografia, sem elas não
+   há nada para ver) e as bibliotecas. O WebGL entra quando entrar; o nome e a
+   prova não têm de esperar por ele. */
+const READY={fonts:0, libs:0};
+const WEIGHT={fonts:0.62, libs:0.38};
+
+if(document.fonts && document.fonts.ready){
+  document.fonts.ready.then(()=>{READY.fonts=1}).catch(()=>{READY.fonts=1});
+} else READY.fonts=1;
+
+(function libs(){
+  const have=[typeof gsap!=='undefined', typeof ScrollTrigger!=='undefined',
+              HAS_LENIS, HAS_THREE || !('WebGLRenderingContext' in window)];
+  READY.libs = have.filter(Boolean).length / have.length;
+  if(READY.libs<1) setTimeout(libs,80);
+})();
+
+
+let target=0;
+const pi=setInterval(()=>{
+  target = READY.fonts*WEIGHT.fonts + READY.libs*WEIGHT.libs;
+  /* aproxima-se do real sem nunca saltar para trás nem ficar preso a 99 */
+  p = Math.min(100, p + Math.max(1.7, (target*100 - p)*0.24));
+  if(target>=1 && p>=99.4){p=100;clearInterval(pi);setTimeout(intro,260)}
+  pct.textContent=Math.floor(p);pbar.style.width=p+'%';
+},60);
+/* Failsafe. Eram 4,5 s — e 4,5 s de ecrã preto é o custo real quando a rede
+   está má, que é precisamente quando um recrutador desiste. A investigação do
+   Lindgaard dá 50 ms para a primeira impressão; a Nielsen Norman diz para
+   mostrar o conteúdo imediatamente. 2,6 s é o limite que ainda deixa as fontes
+   chegarem na maioria das ligações sem prender ninguém.
+   Nada se perde: o que não tiver carregado entra depois, e os blocos que
+   dependem de bibliotecas estão todos dentro de safe(). */
+setTimeout(()=>{if(!introDone){clearInterval(pi);intro()}},2600);
+
+const CH='ABCDEFGHIJKLMNOPQRSTUVWXYZ#%&$@*<>/';
+/* O efeito corre em requestAnimationFrame. Se o browser o suspender a meio —
+   separador em segundo plano, janela sem foco, poupança de energia — o texto
+   fica congelado em lixo. Vi o nome dele ficar "*VNYY<&" no ecrã. Por isso há
+   um temporizador que restaura o texto certo, corra o rAF ou não. */
+function scramble(el,d=800){
+  const f=el.dataset.txt||el.textContent; el.dataset.txt=f;
+  const t0=performance.now();
+  const fim=()=>{ el.textContent=f; };
+  const rede=setTimeout(fim, d+700);
+  (function s(n){
+    const k=Math.min((n-t0)/d,1), r=Math.floor(f.length*k*1.3);
+    el.textContent=[...f].map((c,i)=>i<r||c===' '?c:CH[(Math.random()*CH.length)|0]).join('');
+    if(k<1) requestAnimationFrame(s);
+    else { clearTimeout(rede); fim(); }
+  })(t0);
+}
+
+/* A revelação do herói.
+   Já esteve atrasada para depois da porta abrir, para o gesto do utilizador
+   "causar" a chegada do nome. Foi um erro: durante os 7 s da porta — mais o
+   tempo do preloader — a página não tinha nome nenhum. O Rodrigo reparou duas
+   vezes, e tinha razão. A investigação do Lindgaard mostra que a primeira
+   impressão de uma página se forma em 50 ms; esconder o elemento mais
+   importante durante dez segundos para ganhar um momento dramático é uma troca
+   que não se faz. A porta passou a ser uma camada por cima de uma página já
+   composta, não uma cortina à frente de uma página vazia. */
+let heroRevealed=false;
+function revealHero(){
+  if(heroRevealed) return; heroRevealed=true;
+  requestAnimationFrame(()=>document.documentElement.classList.add('ready'));
+  QA('h1 .ln i').forEach((el,i)=>setTimeout(()=>scramble(el,760),340+i*155));
+  setTimeout(()=>document.documentElement.classList.add('ready'),2500);
+}
+function intro(){
+  if(introDone)return; introDone=true;
+  gsap.ticker.wake();                    /* garantir que a timeline corre mesmo em background */
+  pre.classList.add('gone');
+  document.body.classList.remove('lock');
+  lenis.start();
+  ScrollTrigger.refresh();
+  try{buildScrollTriggers()}catch(err){console.error('[portfolio] scroll setup failed',err)}
+  revealHero();          /* sempre, e primeiro */
+  openGate();            /* a porta assenta por cima do que já está lá */
+}
+lenis.stop();
+
+/* ================= PORTA DE ENTRADA =================
+   A ideia é a do site: uma plataforma que aguentou carga. Antes de entrares,
+   empurras tráfego pelo sistema com o rato e vês o campo responder. Ao chegar
+   aos 100%, o site abre.
+
+   Regras que não abdico:
+   · não bloqueia conteúdo — o DOM está todo presente para SEO e leitores de ecrã
+   · abre sozinha ao fim de 7 s sem interação (ninguém fica preso)
+   · tem botão Skip, e Enter/Espaço/Escape saltam
+   · não aparece de todo com prefers-reduced-motion, em toque, ou sem WebGL */
+const gate=Q('#gate');
+const gateFill=Q('.gFill',gate), gatePct=Q('.gPct',gate);
+let gateP=0, gateOpen=false, gateDone=false, gateIdle=null, gatePulling=false;
+/* Pintar o anel vive à parte porque tem duas fontes: o gesto do rato (que corre
+   dentro do passo de fluido) e a roda. Se ficasse só no fluido, uma máquina sem
+   texturas float mostrava a porta e ela nunca enchia. */
+function paintGate(){
+  gateFill.style.strokeDashoffset = (339.29*(1-gateP/100)).toFixed(1);
+  gatePct.firstChild.nodeValue = Math.round(gateP);
+  /* acento → verde: a mesma viagem que a página faz, de "carga a chegar" a
+     "aguentou". O número acompanha o anel, senão ficam a discutir. */
+  const c = gateP<50 ? 'var(--acc)'
+    : `rgb(${Math.round(255-(gateP-50)*3.6)},${Math.round(61+(gateP-50)*2.9)},${Math.round(31+(gateP-50)*2.1)})`;
+  gateFill.style.stroke = c;
+  gatePct.style.color = c;
+}
+let gateCleanup=()=>{};
+function closeGate(){
+  if(gateDone) return; gateDone=true;
+  gate.classList.remove('on','pulling'); gate.classList.add('done');
+  document.documentElement.classList.remove('gateOn');
+  document.body.classList.remove('lock');
+  gateCleanup();
+  /* Quem enche o anel com a roda do rato continua a rodá-la por inércia. Sem
+     isto, os eventos que sobram fazem scroll e a pessoa passa direto pelo
+     herói — perde exactamente aquilo que a porta lhe prometeu. Volta ao topo
+     antes de devolver o scroll. */
+  window.scrollTo(0,0);
+  lenis.start();
+  if(lenis.scrollTo) lenis.scrollTo(0,{immediate:true});
+  /* o Lenis guarda velocidade interna; um segundo empurrão no fim da janela
+     de tolerância apanha o que sobrou */
+  setTimeout(()=>{ if(!scrollY) return; window.scrollTo(0,0);
+    if(lenis.scrollTo) lenis.scrollTo(0,{immediate:true}); }, 760);
+  clearTimeout(gateIdle);
+  setTimeout(()=>gate.remove(), 1300);
+}
+function openGate(){
+  const coarse = matchMedia('(pointer:coarse)').matches;
+  if(REDUCE || coarse || !HAS_THREE || innerWidth<900){ gateDone=true; gate.remove(); return false; }
+  gateOpen=true;
+  gate.classList.add('on');
+  /* trava a selecção de texto enquanto a porta está aberta.
+     Sem isto, arrastar com o botão em baixo pinta meia página de azul. */
+  document.documentElement.classList.add('gateOn');
+  lenis.stop();
+
+  /* parte a instrução em letras para poderem acender em cascata */
+  const b=Q('.gTxt b',gate);
+  if(b && b.hasAttribute('data-split')){
+    b.innerHTML = b.textContent.split('').map((c,i)=>
+      c===' ' ? '<i style="--i:'+i+'">&nbsp;</i>'
+              : '<i style="--i:'+i+'">'+c+'</i>').join('');
+  }
+
+  /* lenis.stop() trava o scroll suave, mas a roda do rato continua a mexer a
+     página nativa por trás da porta. Enquanto ela estiver aberta, a roda passa
+     a contar como gesto — empurra carga em vez de fazer scroll. */
+  const eatScroll=e=>{
+    if(gateDone) return;
+    e.preventDefault();
+    gateP = Math.min(100, gateP + Math.min(Math.abs(e.deltaY||30),90)*0.055);
+    gate.classList.add('pulling'); gatePulling=true;
+    clearTimeout(gateIdle); gateIdle=setTimeout(closeGate, 4200);
+    paintGate();
+    if(gateP>=100) closeGate();
+  };
+  addEventListener('wheel', eatScroll, {passive:false});
+  addEventListener('touchmove', eatScroll, {passive:false});
+  /* A roda tem inércia: continuam a chegar eventos depois de a porta fechar.
+     Engolem-se mais 700 ms, senão o resto do impulso arrasta a página para
+     fora do herói no exacto momento em que ele aparece. */
+  gateCleanup=()=>{
+    setTimeout(()=>{
+      removeEventListener('wheel', eatScroll);
+      removeEventListener('touchmove', eatScroll);
+    }, 700);
+  };
+
+  /* nunca prender ninguém: ao fim de 7 s abre sozinha */
+  gateIdle=setTimeout(closeGate, 4200);
+  Q('.gSkip',gate).addEventListener('click',closeGate);
+  addEventListener('keydown',e=>{
+    if(!gateDone && (e.key==='Enter'||e.key===' '||e.key==='Escape')){e.preventDefault();closeGate()}
+  });
+  return true;
+}
+
+/* ================= SCROLLTRIGGERS ================= */
+let camZ={v:0},sph=.5,spv=.5,vel=0,assembly={t:0,target:0};
+function buildScrollTriggers(){
+  /* reveals */
+  QA('.rv').forEach(el=>gsap.to(el,{opacity:1,y:0,duration:1,ease:'expo.out',
+    scrollTrigger:{trigger:el,start:'top 88%',once:true}}));
+  QA('.msk').forEach((el,i)=>gsap.to(Q('i',el),{yPercent:0,duration:1.15,ease:'expo.out',delay:(i%4)*.07,
+    scrollTrigger:{trigger:el,start:'top 90%',once:true}}));
+
+  /* REDE DE SEGURANÇA DAS REVELAÇÕES
+     Os gatilhos são `once:true` e disparam quando o elemento passa os 88% da
+     altura da janela. Quem chega a uma secção por salto — um link da navegação,
+     um endereço com #ancora, o botão de voltar — pode aterrar com elementos já
+     dentro do ecrã que nunca cruzaram esse limiar. Apanhei um assim: o título
+     "How I work" ficou a 0.19 de opacidade, praticamente invisível, depois de
+     clicar em PROCESS na navegação.
+     Isto varre o que estiver visível e ainda apagado, e revela-o sem animação —
+     porque a animação já não faz sentido: a pessoa está a olhar para aquilo. */
+  const revelarVisiveis = ()=>{
+    const margem = innerHeight * 0.12;
+    for(const el of QA('.rv')){
+      const r = el.getBoundingClientRect();
+      const dentro = r.bottom > margem && r.top < innerHeight - margem;
+      if(dentro && parseFloat(getComputedStyle(el).opacity) < 0.9){
+        /* estilo inline, não gsap.set: o tween do ScrollTrigger ainda está
+           pendente para este elemento e voltaria a escrever por cima. O inline
+           ganha, e é o que garante que a pessoa vê o que está a olhar. */
+        gsap.killTweensOf(el);
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+      }
+    }
+    for(const el of QA('.msk')){
+      const r = el.getBoundingClientRect();
+      if(r.bottom > margem && r.top < innerHeight - margem){
+        const i = Q('i',el);
+        if(!i) continue;
+        const t = getComputedStyle(i).transform;
+        const desviado = t !== 'none' && Math.abs(parseFloat(t.split(',')[5] || 0)) > 2;
+        if(desviado){ gsap.killTweensOf(i); i.style.transform = 'none'; }
+      }
+    }
+  };
+  /* depois de cada salto de âncora e ao voltar de um caso de estudo */
+  addEventListener('hashchange', ()=>setTimeout(revelarVisiveis,1400));
+  window.revelarVisiveis = revelarVisiveis;
+
+
+  /* pinned stats */
+  const steps=QA('.pStep'),ticks=QA('.pTicks i');
+
+  /* contagem: o número sobe até ao valor quando o passo entra.
+     Só corre uma vez por passo — repetir a cada scroll seria enjoativo. */
+  /* A contagem corre em requestAnimationFrame, e o primeiro tick escreve ZERO.
+     Se o browser suspender o rAF a meio — separador em segundo plano, janela sem
+     foco, poupança de energia — o número congela no valor parcial. No pior caso
+     congela em "0.0M", que é exactamente a mensagem contrária à que estes
+     números existem para dar.
+     E `dataset.done` impede que volte a correr, por isso ficaria assim para
+     sempre. Mesmo defeito que o scramble do nome tinha; mesma correcção: um
+     temporizador que escreve o valor final, corra o rAF ou não. */
+  function countUp(step){
+    QA('[data-to]',step).forEach(el=>{
+      if(el.dataset.done) return; el.dataset.done='1';
+      const to=parseFloat(el.dataset.to), dec=+(el.dataset.dec||0), suf=el.dataset.suf||'';
+      const final=()=>{ el.textContent=to.toFixed(dec)+suf; };
+      if(REDUCE){ final(); return; }
+      const t0=performance.now(), dur=1150;
+      const rede=setTimeout(final, dur+600);
+      (function tick(now){
+        const k=Math.min(1,(now-t0)/dur);
+        const e=1-Math.pow(1-k,3);                    /* trava no fim, não salta */
+        el.textContent=(to*e).toFixed(dec)+suf;
+        if(k<1) requestAnimationFrame(tick);
+        else { clearTimeout(rede); final(); }
+      })(t0);
+    });
+  }
+
+  ScrollTrigger.create({trigger:'.pin',start:'top top',end:'bottom bottom',
+    onUpdate:s=>{const i=Math.min(steps.length-1,Math.floor(s.progress*steps.length*.999));
+      steps.forEach((el,j)=>el.classList.toggle('on',j===i));
+      ticks.forEach((el,j)=>el.classList.toggle('on',j===i));
+      countUp(steps[i]);}});
+  steps[0].classList.add('on');ticks[0].classList.add('on');
+  ScrollTrigger.create({trigger:'.pin',start:'top 85%',once:true,
+    onEnter:()=>countUp(steps[0])});
+
+  /* ---- imagem que se monta em mosaicos ----
+     Uma grelha de peças que chegam de fora, cada uma com o seu atraso e a sua
+     rotação, e assentam para formar a imagem. A fonte é desenhada em canvas
+     (um palco visto de frente, com multidão e feixes); trocar por uma
+     fotografia é substituir drawSource() por drawImage(). */
+  {
+    const mosEl=Q('#mos'), cv=Q('#mosCv');
+    if(mosEl && cv){
+      const ctx=cv.getContext('2d');
+      const COLS=16, ROWS=9;
+      const tiles=[];
+      for(let y=0;y<ROWS;y++) for(let x=0;x<COLS;x++){
+        const cx=(x+.5)/COLS-.5, cy=(y+.5)/ROWS-.5;
+        const dist=Math.hypot(cx,cy*0.6);              /* do centro para fora */
+        tiles.push({x,y,
+          /* o atraso cresce do centro para fora e fecha aos ~88% do scroll,
+             deixando o último troço para se ficar a olhar para a imagem */
+          delay: clamp(dist*0.98 + Math.random()*0.10, 0, 0.58),
+          dir: Math.atan2(cy,cx) + (Math.random()-.5)*0.7,
+          spin:(Math.random()-.5)*2.4});
+      }
+      /* buffer com a imagem-fonte, desenhado uma vez por resize.
+         Se existir uma fotografia em assets/, é ela que vai para os mosaicos;
+         caso contrário desenha-se a cena. */
+      const src=document.createElement('canvas');
+      const sctx=src.getContext('2d');
+      let heroImg=null;
+      {
+        const im=new Image(); im.decoding='async';
+        im.onload=()=>{ heroImg=im; sizeMos(); dirty=true; };
+        im.onerror=()=>{};
+        im.src=MOSAIC_SRC;
+      }
+      function drawSource(w,h){
+        src.width=w; src.height=h;
+        if(heroImg){
+          sctx.fillStyle='#0a0a0f'; sctx.fillRect(0,0,w,h);
+          const sw=heroImg.naturalWidth, sh=heroImg.naturalHeight;
+          const sc=Math.max(w/sw,h/sh);
+          sctx.drawImage(heroImg,(w-sw*sc)/2,(h-sh*sc)/2,sw*sc,sh*sc);
+          /* escurecer ligeiramente para a legenda continuar legível */
+          const sh2=sctx.createLinearGradient(0,h*0.45,0,h);
+          sh2.addColorStop(0,'rgba(8,8,10,0)'); sh2.addColorStop(1,'rgba(8,8,10,.55)');
+          sctx.fillStyle=sh2; sctx.fillRect(0,h*0.45,w,h*0.55);
+          return;
+        }
+        const g=sctx.createLinearGradient(0,0,0,h);
+        g.addColorStop(0,'#07070b'); g.addColorStop(.55,'#0d0d16'); g.addColorStop(1,'#08080c');
+        sctx.fillStyle=g; sctx.fillRect(0,0,w,h);
+        const acc=getComputedStyle(document.documentElement).getPropertyValue('--acc').trim()||'#ff3d1f';
+        /* feixes a partir da traves do palco */
+        for(let i=0;i<7;i++){
+          const bx=w*(0.16+i*0.115);
+          const grad=sctx.createLinearGradient(bx,h*0.26,bx+(i-3)*w*0.09,h);
+          grad.addColorStop(0,acc.replace('rgb','rgba').replace(')',',.24)'));
+          grad.addColorStop(1,'rgba(0,0,0,0)');
+          sctx.fillStyle=grad; sctx.beginPath();
+          sctx.moveTo(bx-2,h*0.26); sctx.lineTo(bx+2,h*0.26);
+          sctx.lineTo(bx+(i-3)*w*0.09+w*0.07,h); sctx.lineTo(bx+(i-3)*w*0.09-w*0.07,h);
+          sctx.closePath(); sctx.fill();
+        }
+        /* silhueta do palco */
+        sctx.fillStyle='rgba(0,0,0,.72)';
+        sctx.fillRect(w*0.13,h*0.24,w*0.03,h*0.44);
+        sctx.fillRect(w*0.84,h*0.24,w*0.03,h*0.44);
+        sctx.fillRect(w*0.13,h*0.22,w*0.74,h*0.035);
+        sctx.fillRect(w*0.20,h*0.62,w*0.60,h*0.06);
+        /* multidão: pontos densos que rareiam ao fundo */
+        for(let i=0;i<1500;i++){
+          const t=Math.pow(Math.random(),.6);
+          const yy=h*(0.70+t*0.30);
+          const xx=Math.random()*w;
+          const a=0.05+t*0.22;
+          sctx.fillStyle=`rgba(255,255,255,${a.toFixed(3)})`;
+          const r=0.8+t*2.2;
+          sctx.beginPath(); sctx.arc(xx,yy,r,0,Math.PI*2); sctx.fill();
+        }
+        /* névoa por cima da multidão */
+        const fog=sctx.createLinearGradient(0,h*0.62,0,h);
+        fog.addColorStop(0,'rgba(255,255,255,.05)'); fog.addColorStop(1,'rgba(255,255,255,0)');
+        sctx.fillStyle=fog; sctx.fillRect(0,h*0.62,w,h*0.38);
+      }
+      let W=0,H=0,TW=0,TH=0;
+      function sizeMos(){
+        const r=cv.getBoundingClientRect(); if(!r.width) return;
+        const dpr=Math.min(devicePixelRatio,1.5);
+        cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr);
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+        W=r.width; H=r.height; TW=W/COLS; TH=H/ROWS;
+        drawSource(Math.round(W*dpr), Math.round(H*dpr));
+      }
+      sizeMos(); addEventListener('resize',()=>setTimeout(sizeMos,180));
+
+      let prog=0, dirty=true;
+      function render(){
+        if(!W) return;
+        ctx.clearRect(0,0,W,H);
+        ctx.fillStyle='#0a0a0f'; ctx.fillRect(0,0,W,H);
+        const sw=src.width/COLS, sh=src.height/ROWS;
+        for(const tl of tiles){
+          let k=clamp((prog-tl.delay)/0.30,0,1);
+          k=1-Math.pow(1-k,3);
+          if(k<=0.001) continue;
+          const dx=tl.x*TW, dy=tl.y*TH;
+          const off=(1-k)*Math.max(W,H)*0.85;
+          const ox=Math.cos(tl.dir)*off, oy=Math.sin(tl.dir)*off;
+          ctx.save();
+          ctx.globalAlpha=k;
+          ctx.translate(dx+TW/2+ox, dy+TH/2+oy);
+          ctx.rotate(tl.spin*(1-k));
+          const sc=0.72+0.28*k;
+          ctx.scale(sc,sc);
+          ctx.drawImage(src, tl.x*sw, tl.y*sh, sw, sh, -TW/2, -TH/2, TW+0.6, TH+0.6);
+          ctx.restore();
+        }
+      }
+      ScrollTrigger.create({trigger:mosEl,start:'top top',end:'bottom bottom',scrub:0.5,
+        onUpdate:st=>{prog=st.progress;dirty=true}});
+      gsap.ticker.add(()=>{ if(dirty && !document.hidden){ render(); dirty=false; } });
+      render();
+    }
+  }
+
+  /* ---- frase que se monta: cada fragmento tem a sua janela no scroll ---- */
+  {
+    const sayEl=Q('#say'), frags=QA('.say .f');
+    if(sayEl && frags.length){
+      /* de onde vem cada fragmento: x, y e profundidade z iniciais */
+      const from=[
+        [-70,  20, -600],
+        [ 80, -30, -900],
+        [ 90,  40, -400],
+        [-60, -40, -750],
+        [  0,  60, -500],
+        [ 70,  30, -850],
+        [-40,  70, -300],
+      ];
+      const N=frags.length;
+      ScrollTrigger.create({
+        trigger:sayEl, start:'top top', end:'bottom bottom', scrub:0.6,
+        onUpdate:st=>{
+          const p=st.progress;
+          for(let i=0;i<N;i++){
+            /* janelas sobrepostas: entram em cascata e ficam */
+            const a=(i/N)*0.62, b=a+0.30;
+            let k=clamp((p-a)/(b-a),0,1);
+            k=1-Math.pow(1-k,3);                    /* trava suave no fim */
+            const f=from[i]||[0,0,-500];
+            const el=frags[i];
+            el.style.opacity=k.toFixed(3);
+            el.style.transform=
+              `translate3d(${(f[0]*(1-k)).toFixed(1)}vw,${(f[1]*(1-k)).toFixed(1)}vh,${(f[2]*(1-k)).toFixed(0)}px)`;
+            el.style.filter=k>0.97?'none':`blur(${((1-k)*7).toFixed(1)}px)`;
+          }
+        }});
+      /* estado inicial coerente para quem chega a meio da página */
+      frags.forEach((el,i)=>{const f=from[i]||[0,0,-500];
+        el.style.transform=`translate3d(${f[0]}vw,${f[1]}vh,${f[2]}px)`;});
+    }
+  }
+
+  /* montagem conduzida pelo palco sticky */
+  if(stageEl){
+    ScrollTrigger.create({trigger:stageEl,start:'top top',end:'bottom bottom',
+      onUpdate:st=>{
+        const p=st.progress, n=stageSteps.length;
+        assembly.target = p;                       /* alvo; suavizado no ticker */
+        const idx=Math.min(n-1,Math.floor(p*n*0.999));
+        stageSteps.forEach((el,i)=>el.classList.toggle('on',i===idx));
+        stageBars.forEach((el,i)=>{
+          const local=clamp(p*n - i,0,1);
+          el.style.setProperty('--p',local);
+        });
+      }});
+    stageSteps[0].classList.add('on');
+  }
+
+  /* camera dolly */
+  gsap.to(camZ,{v:1,ease:'none',
+    scrollTrigger:{trigger:document.body,start:'top top',end:'bottom bottom',scrub:1.4}});
+
+  /* nav autohide */
+  ScrollTrigger.create({start:'top -260',end:99999,
+    onUpdate:s=>Q('.mainNav').classList.toggle('hide',s.direction===1)});
+}
+
+/* ================= WEBGL ================= */
+/* Ponteiro para o redimensionamento do palco.
+   sizeStage() vive dentro de if(HAS_THREE){...} e é block-scoped; checkStage()
+   vive fora e chamava-o. Resultado: excepção na primeira vez que se chegava ao
+   palco a fazer scroll, que matava o Lenis e deixava só a barra nativa.
+   Bug antigo (desde a v15). Isto resolve-o sem mexer na estrutura. */
+let resizeStage = ()=>{};
+
+const mediaCache = new Map();
+function loadMedia(key){
+  if(mediaCache.has(key)) return mediaCache.get(key);
+  const spec = MEDIA[key];
+  const rec = {img:null, video:null, ready:false};
+  mediaCache.set(key, rec);
+  if(!spec) return rec;
+  if(spec.img){
+    const im = new Image();
+    im.decoding='async';
+    im.onload = ()=>{ rec.img=im; rec.ready=true; };
+    im.onerror = ()=>{};                       /* sem ficheiro: fica o fallback */
+    im.src = spec.img;
+  }
+  if(spec.video){
+    const vd = document.createElement('video');
+    vd.muted=true; vd.loop=true; vd.playsInline=true; vd.preload='metadata';
+    vd.oncanplay = ()=>{ rec.video=vd; rec.ready=true; };
+    vd.onerror = ()=>{};
+    vd.src = spec.video;
+  }
+  return rec;
+}
+/* desenha a media a cobrir o rectângulo, como object-fit:cover */
+function drawCover(ctx, src, w, h){
+  const sw = src.videoWidth || src.naturalWidth || src.width;
+  const sh = src.videoHeight || src.naturalHeight || src.height;
+  if(!sw || !sh) return false;
+  const scale = Math.max(w/sw, h/sh);
+  const dw = sw*scale, dh = sh*scale;
+  ctx.drawImage(src, (w-dw)/2, (h-dh)/2, dw, dh);
+  return true;
+}
+
+/* ================= PAINEL DE PRÉ-VISUALIZAÇÃO =================
+   Vivia dentro de if(HAS_THREE){...}, mas quem lhe chama — os handlers de
+   hover da lista de trabalhos — vive fora. Resultado: ReferenceError em
+   qualquer browser com WebGL, e o preview do projeto nunca aparecia. É a
+   quarta vez que esta mesma armadilha de âmbito morde neste ficheiro.
+   Regra a partir daqui: se um handler global lhe toca, declara-se aqui. */
+/* preview canvas — always available */
+const pv=Q('#pv'),pvc=Q('canvas',pv),pvCap=Q('.cap',pv),ctx=pvc.getContext('2d');
+pvc.width=680;pvc.height=500;
+const pvX=gsap.quickTo(pv,'x',{duration:.9,ease:'power3'});
+const pvY=gsap.quickTo(pv,'y',{duration:.9,ease:'power3'});
+addEventListener('mousemove',e=>{pvX(e.clientX);pvY(e.clientY)});
+/* (o bloco MEDIA REAL foi movido para o topo — estava dentro de if(HAS_THREE)
+   e era chamado de fora, o que deitava abaixo todo o script a partir daí) */
+
+/* estado do preview: alimenta o mesmo desenhador dos visuais por projeto.
+   Cada linha da lista tem o seu visual — tráfego, malha, camadas, velocidade, grelha.
+   Quando houver capturas reais dos sites, troca-se drawCard() por uma <img>/<video>
+   sem mexer em mais nada. */
+const pvState = {ctx, w:680, h:500, seed:0, hover:1, t:0, open:0};
+function drawPv(){
+  pvState.t += 1;
+  /* leve zoom-in enquanto abre — dá a sensação de "carregar" a peça */
+  const k = pvState.open;
+  ctx.save();
+  ctx.translate(pvState.w/2, pvState.h/2);
+  ctx.scale(1.06 - k*0.06, 1.06 - k*0.06);
+  ctx.translate(-pvState.w/2, -pvState.h/2);
+  /* fotografia ou vídeo se existirem; senão o visual desenhado */
+  const md = pvState.key ? loadMedia(pvState.key) : null;
+  let drew = false;
+  if(md && md.ready){
+    ctx.fillStyle='#0a0a0f'; ctx.fillRect(0,0,pvState.w,pvState.h);
+    const src = md.video || md.img;
+    if(md.video && md.video.paused) md.video.play().catch(()=>{});
+    drew = drawCover(ctx, src, pvState.w, pvState.h);
+  }
+  if(!drew) drawCard(pvState);
+  ctx.restore();
+  /* varrimento horizontal, como um monitor a atualizar */
+  const sy = (pvState.t*3.2) % (pvState.h+140) - 70;
+  const g = ctx.createLinearGradient(0, sy-70, 0, sy+70);
+  g.addColorStop(0,'rgba(255,61,31,0)');
+  g.addColorStop(.5,'rgba(255,61,31,.055)');
+  g.addColorStop(1,'rgba(255,61,31,0)');
+  ctx.fillStyle=g; ctx.fillRect(0, sy-70, pvState.w, 140);
+  /* linhas de scan finas */
+  ctx.fillStyle='rgba(0,0,0,.16)';
+  for(let y=0;y<pvState.h;y+=3) ctx.fillRect(0,y,pvState.w,1);
+}
+
+
+if(HAS_THREE){
+Q('#gl').addEventListener('webglcontextlost',e=>{e.preventDefault();
+  Q('#gl').style.display='none';console.warn('[portfolio] WebGL context lost — background disabled.')});
+const R=new THREE.WebGLRenderer({canvas:Q('#gl'),antialias:false,alpha:false,powerPreference:'high-performance'});
+R.setPixelRatio(Math.min(devicePixelRatio,1.5));R.setSize(innerWidth,innerHeight);
+const SC=new THREE.Scene();SC.fog=new THREE.FogExp2(0x080809,.028);
+const CAM=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,180);CAM.position.set(0,0,26);
+
+/* ============ CAMPO DE FLUIDO (o rato empurra carga pelo sistema) ============
+   Não é decoração. A ideia é a do site: uma plataforma sob carga. O cursor
+   injeta "tráfego", o campo transporta-o, difunde-o e dissipa-o, e o fundo
+   reage — as curvas deformam-se e aquecem onde passou gente.
+   Meia-resolução e ping-pong entre dois alvos: o custo é pequeno. */
+const FLUID = !REDUCE;
+const SIM = Math.min(320, Math.round(Math.max(innerWidth,innerHeight)/4));
+let fA=null,fB=null,simScene=null,simCam=null,simMat=null;
+if(FLUID){
+  /* half-float dá margem para valores acima de 1; onde não existir (GPUs
+     antigas, WebGL1 sem a extensão) caímos para 8 bits — o campo satura
+     mais cedo mas continua a funcionar em vez de rebentar */
+  let fType = THREE.HalfFloatType;
+  try{
+    const gl = R.getContext();
+    const ok = (typeof WebGL2RenderingContext!=='undefined' && gl instanceof WebGL2RenderingContext)
+               ? !!gl.getExtension('EXT_color_buffer_float')
+               : !!gl.getExtension('OES_texture_half_float');
+    if(!ok) fType = THREE.UnsignedByteType;
+  }catch(e){ fType = THREE.UnsignedByteType; }
+  const opts={type:fType, minFilter:THREE.LinearFilter,
+              magFilter:THREE.LinearFilter, depthBuffer:false, stencilBuffer:false};
+  fA=new THREE.WebGLRenderTarget(SIM,SIM,opts);
+  fB=new THREE.WebGLRenderTarget(SIM,SIM,opts);
+  simCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+  simScene=new THREE.Scene();
+  simMat=new THREE.ShaderMaterial({
+    uniforms:{prev:{value:null}, mouse:{value:new THREE.Vector2(.5,.5)},
+              vel:{value:new THREE.Vector2(0,0)}, px:{value:1/SIM},
+              amt:{value:0}, dt:{value:0}},
+    vertexShader:'varying vec2 uv2;void main(){uv2=uv;gl_Position=vec4(position,1.);}',
+    fragmentShader:`precision highp float;varying vec2 uv2;
+      uniform sampler2D prev;uniform vec2 mouse,vel;uniform float px,amt,dt;
+      void main(){
+        /* advecção: vai buscar o valor a montante do escoamento */
+        vec2 back = uv2 - vel*0.55;
+        vec4 c = texture2D(prev, back);
+        /* difusão barata: 4 vizinhos */
+        vec4 b = (texture2D(prev,back+vec2(px,0.))+texture2D(prev,back-vec2(px,0.))
+                 +texture2D(prev,back+vec2(0.,px))+texture2D(prev,back-vec2(0.,px)))*0.25;
+        c = mix(c, b, 0.22);
+        /* injeção no cursor, proporcional à velocidade do gesto */
+        float d = distance(uv2, mouse);
+        float splat = exp(-d*d*260.0) * amt;
+        c.r += splat;
+        c.g += splat*0.55;
+        /* dissipação: sem isto o ecrã satura */
+        c *= 0.972;
+        gl_FragColor = vec4(clamp(c.rgb,0.,3.), 1.);
+      }`});
+  simScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2), simMat));
+}
+
+const BU={t:{value:0},res:{value:new THREE.Vector2(innerWidth,innerHeight)},
+          m:{value:new THREE.Vector2(.5,.5)},s:{value:0},v:{value:0},
+          fluid:{value:null},hasFluid:{value:FLUID?1:0},
+          accCol:{value:new THREE.Color(1,.239,.121)}};
+const bgScene=new THREE.Scene(),bgCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+bgScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({uniforms:BU,
+ vertexShader:'void main(){gl_Position=vec4(position,1.);}',
+ fragmentShader:`precision highp float;uniform float t,s,v,hasFluid;uniform vec2 res,m;
+  uniform sampler2D fluid;uniform vec3 accCol;
+  float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+  float n(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);
+    return mix(mix(h(i),h(i+vec2(1,0)),u.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),u.x),u.y);}
+  float fbm(vec2 p){float a=.5,r=0.;for(int i=0;i<5;i++){r+=a*n(p);p*=2.04;a*=.5;}return r;}
+  void main(){vec2 uv=(gl_FragCoord.xy-.5*res)/res.y;
+    vec2 mp=(m-.5)*vec2(res.x/res.y,1.);float d=length(uv-mp);
+    /* campo de carga deixado pelo cursor */
+    vec2 fuv = gl_FragCoord.xy/res;
+    float dye = 0., dyeG = 0.;
+    if(hasFluid > .5){
+      vec3 fl = texture2D(fluid, fuv).rgb;
+      dye = clamp(fl.r, 0., 2.);
+      dyeG = clamp(fl.g, 0., 2.);
+    }
+    vec2 q=uv*2.6;
+    /* o fluido empurra o domínio: as curvas dobram por onde passou tráfego */
+    q += vec2(dye, dyeG) * 0.55;
+    q+=vec2(fbm(q+t*.028),fbm(q+vec2(4.1,1.9)-t*.022))*(.42+abs(v)*.9);
+    float f=fbm(q*1.9+t*.012-s*.3);
+    /* contour lines — thin, not blobs */
+    /* A 18 ciclos as curvas ficavam com menos de um pixel de largura e
+       diluíam-se num cinzento uniforme — o fundo lia-se como preto liso.
+       A 8 ciclos são curvas de nível legíveis, que é o que se queria:
+       um mapa topográfico de carga, não ruído. */
+    float band=fract(f*8.+s*.7);
+    float ln=smoothstep(.0,.075,band)*(1.-smoothstep(.09,.17,band));
+    /* segundo conjunto, mais denso: dá profundidade sem virar mancha */
+    float band2=fract(f*21.-s*1.1+t*.05);
+    float ln2=smoothstep(.0,.05,band2)*(1.-smoothstep(.065,.12,band2));
+    float glow=exp(-d*2.6)*.28;
+    vec3 base=vec3(.036,.036,.045);
+    /* arco de intensidade ao longo da página: começa contido, aquece na zona
+       dos números e do palco, e volta a acalmar no contacto. Dá três atos.
+       O piso de .3 existe porque o herói é a primeira impressão — não pode
+       ser o momento mais apagado da página. */
+    float heat = mix(.3, 1., smoothstep(.05,.34,s)) * (1.-smoothstep(.72,.96,s)*.7);
+    /* respiração lenta: sem cursor, o campo continua vivo */
+    float breath = .86 + .14*sin(t*.42);
+    /* a cor vem do mesmo sítio que o CSS — nunca dessincroniza */
+    vec3 acc = mix(accCol*0.82, accCol, heat);
+    vec3 col=base+acc*ln*((.19+heat*.10)*breath+glow*.6)+acc*ln2*(.042+heat*.03)+acc*glow*.11;
+    /* o rasto acende: as curvas por onde passou carga ficam brilhantes,
+       e o próprio rasto tem um brilho suave que não tapa o texto */
+    col += acc * ln * dye * 1.35;
+    col += acc * pow(dye, 1.6) * 0.16;
+    col += vec3(1.,.62,.42) * pow(dye, 3.0) * 0.07;
+    /* vinheta invertida: o centro respira, as bordas fecham */
+    col+=vec3(.032,.032,.05)*smoothstep(1.05,.0,length(uv))*.42;
+    col*=1.-smoothstep(.55,1.5,length(uv))*.35;
+    /* grão: película, não ruído digital — pesa mais nas zonas escuras */
+    float gr=h(gl_FragCoord.xy+floor(t*24.));
+    col+=(gr-.5)*.05*(1.-min(col.r*3.,1.));
+    gl_FragColor=vec4(col,1.);}`})));
+
+/* ================= ASSEMBLY: peças que se montam com o scroll ================= */
+const PIECES = REDUCE ? 28 : 84;
+const dummy = new THREE.Object3D();
+
+/* geometria: painel fino — lê como "peça" e não como partícula */
+const pieceGeo = new THREE.BoxGeometry(1, 1, 0.06);
+const pieceMat = new THREE.MeshBasicMaterial({
+  color:0xffffff, transparent:true, opacity:0.055, side:THREE.DoubleSide });
+const edgeMat  = new THREE.LineBasicMaterial({
+  color:0xff5a3c, transparent:true, opacity:0.55 });
+
+const STAGE_SC  = new THREE.Scene();
+STAGE_SC.fog = new THREE.FogExp2(0x08080a, 0.016);
+const STAGE_CAM = new THREE.PerspectiveCamera(52, 1, 0.1, 240);
+STAGE_CAM.position.set(0, 0, 30);
+const stageCv = Q('#stageCanvas');
+const SR = new THREE.WebGLRenderer({canvas:stageCv, antialias:true, alpha:true, powerPreference:'high-performance'});
+SR.setPixelRatio(Math.min(devicePixelRatio,1.5));
+
+const mesh = new THREE.InstancedMesh(pieceGeo, pieceMat, PIECES);
+mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+STAGE_SC.add(mesh);
+
+/* arestas em instâncias separadas (wireframe legível) */
+const edgeGeo = new THREE.EdgesGeometry(pieceGeo);
+const edges = new THREE.LineSegments(edgeGeo, edgeMat);
+const edgeGroup = new THREE.Group();
+const edgeClones = [];
+for(let i=0;i<PIECES;i++){
+  const e = edges.clone();
+  edgeGroup.add(e); edgeClones.push(e);
+}
+STAGE_SC.add(edgeGroup);
+
+/* ---- alvo: a silhueta de um palco de festival ----------------------------
+   Não é o Palco Mundo — não copio estruturas de ninguém. É a gramática
+   partilhada por qualquer palco grande: duas torres de treliça, um arco de
+   cobertura, o estrado, os ecrãs laterais e os line arrays pendurados.
+   As peças voam do escuro e montam-se com o scroll. ------------------------- */
+const STAGE = [];
+{
+  const W = 7.6;              /* meia-largura do palco */
+  const parts = [
+    ['tower',  0.26],
+    ['roof',   0.19],
+    ['deck',   0.16],
+    ['screen', 0.22],
+    ['array',  0.17],
+  ];
+  let cursor = 0;
+  const counts = parts.map(([name,frac],i)=>{
+    const n = (i===parts.length-1) ? PIECES-cursor : Math.max(2, Math.round(PIECES*frac));
+    cursor += n; return [name, n];
+  });
+
+  for(const [name,n] of counts){
+    for(let j=0;j<n;j++){
+      const side = (j%2===0) ? -1 : 1;      /* alterna esquerda/direita */
+      const k = Math.floor(j/2), half = Math.max(1,Math.ceil(n/2));
+      const u = k/half;                      /* 0..1 dentro do lado */
+
+      if(name==='tower'){                    /* torres de treliça */
+        STAGE.push({x:side*W, y:-6.4 + u*13.2, z:0,
+          rx:0, ry:side*Math.PI/2, rz:0, sx:1.5, sy:1.15, sz:1.5});
+      } else if(name==='roof'){              /* arco de cobertura */
+        const a = (j/(n-1||1))*2-1;          /* -1..1 */
+        STAGE.push({x:a*W*1.02, y:7.4 - a*a*1.7, z:0,
+          rx:0, ry:0, rz:-a*0.34, sx:2.3, sy:0.62, sz:1});
+      } else if(name==='deck'){              /* estrado */
+        const a = (j/(n-1||1))*2-1;
+        STAGE.push({x:a*W*0.92, y:-7.3, z:(j%3-1)*1.5,
+          rx:Math.PI/2, ry:0, rz:0, sx:2.2, sy:1.7, sz:1});
+      } else if(name==='screen'){            /* ecrãs laterais */
+        const col = k%2, row = Math.floor(k/2);
+        STAGE.push({x:side*(W+2.5+col*2.1), y:-1.2+row*2.3, z:-0.4,
+          rx:0, ry:side*0.34, rz:0, sx:2.05, sy:2.25, sz:1});
+      } else {                               /* line arrays pendurados */
+        STAGE.push({x:side*(W-2.2), y:5.6-u*4.6, z:1.6,
+          rx:0, ry:0, rz:side*0.09, sx:1.05, sy:0.78, sz:1});
+      }
+    }
+  }
+  while(STAGE.length<PIECES) STAGE.push({x:0,y:0,z:0,rx:0,ry:0,rz:0,sx:1,sy:1,sz:1});
+  STAGE.length = PIECES;
+}
+
+/* ---- chão e feixes de luz: dão escala ao palco e leitura ao movimento ---- */
+const GROUND = new THREE.LineSegments(
+  new THREE.EdgesGeometry(new THREE.PlaneGeometry(96, 96, 24, 24)),
+  new THREE.LineBasicMaterial({color:0xffffff, transparent:true, opacity:0.05}));
+GROUND.rotation.x = -Math.PI/2;
+GROUND.position.y = -7.6;
+STAGE_SC.add(GROUND);
+
+const BEAMS = new THREE.Group();
+const beamGeo = new THREE.ConeGeometry(1, 26, 4, 1, true);
+for(let i=0;i<6;i++){
+  const m = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({
+    color:0xff5a3c, transparent:true, opacity:0.0, side:THREE.DoubleSide,
+    blending:THREE.AdditiveBlending, depthWrite:false}));
+  m.position.set((i-2.5)*2.7, 6.6, 0.4);
+  m.rotation.x = Math.PI;                 /* aponta para baixo */
+  m.userData.ph = i*0.9;
+  BEAMS.add(m);
+}
+STAGE_SC.add(BEAMS);
+
+/* ================= UMA CENA POR PROJETO =================
+   A jogada que a Cartier usa: em vez de um scroll longo, cada peça ganha o seu
+   próprio espaço. Aqui as mesmas 84 peças reconfiguram-se na forma do projeto
+   que abriste, e voltam ao palco quando fechas. Uma estrutura, cinco leituras. */
+function layoutFor(key, i, n){
+  const u = i/n, ang = u*Math.PI*2, side = i%2?1:-1;
+  switch(key){
+    case 'pf':   /* portefólio — treliça esférica */
+      { const ph=Math.acos(1-2*(i+.5)/n), th=Math.PI*(1+Math.sqrt(5))*i, R=7.4;
+        return {x:R*Math.sin(ph)*Math.cos(th), y:R*Math.cos(ph), z:R*Math.sin(ph)*Math.sin(th),
+                rx:ph, ry:th, rz:0, sx:1.5, sy:1.5, sz:1}; }
+    case 'nh':   /* NH Concierge — camadas horizontais que respiram */
+      { const layer=Math.floor(u*7), inLayer=(i%12)/12;
+        return {x:(inLayer-.5)*17, y:-6+layer*2.1, z:Math.sin(inLayer*6.3)*3.4,
+                rx:Math.PI/2, ry:0, rz:0, sx:2.6, sy:2.0, sz:1}; }
+    case 'fl':   /* FL Performance — linhas de velocidade */
+      { const lane=i%9;
+        return {x:(u-.5)*30, y:(lane-4)*1.9, z:side*1.4,
+                rx:0, ry:0, rz:0, sx:3.4+Math.sin(i)*1.6, sy:0.28, sz:1}; }
+    case 'dl':   /* Daylight LA — grelha em perspetiva até ao horizonte */
+      { const col=i%12, row=Math.floor(i/12), d=row/7;
+        return {x:(col-5.5)*(1.7+d*1.9), y:-6.6+d*0.4, z:-row*4.2,
+                rx:-Math.PI/2, ry:0, rz:0, sx:1.5+d, sy:1.5+d, sz:1}; }
+    default:     /* rir — o palco */
+      return STAGE[i];
+  }
+}
+let sceneKey='rir', sceneMix=1, sceneFrom=null, sceneTo=null;
+function setScene(key){
+  if(key===sceneKey) return;
+  sceneFrom = P.map(p=>({...p.target}));
+  sceneTo   = P.map((_,i)=>layoutFor(key,i,PIECES));
+  sceneKey  = key; sceneMix = 0;
+}
+
+const P = [];
+for(let i=0;i<PIECES;i++){
+  const target = STAGE[i];
+
+  /* posição inicial: dispersa, longe, rodada ao acaso */
+  const dir = new THREE.Vector3(
+    (Math.random()-0.5), (Math.random()-0.5)*0.7, (Math.random()-0.5)).normalize();
+  const dist = 26 + Math.random()*30;
+  const start = {
+    x: dir.x*dist, y: dir.y*dist + (Math.random()-0.5)*14, z: dir.z*dist,
+    rx: (Math.random()-0.5)*Math.PI*3,
+    ry: (Math.random()-0.5)*Math.PI*3,
+    rz: (Math.random()-0.5)*Math.PI*3,
+    sx: 0.4+Math.random()*0.9, sy: 0.4+Math.random()*0.9, sz: 0.4+Math.random()*0.9
+  };
+
+  P.push({ start, target,
+    delay: (i/PIECES)*0.46 + Math.random()*0.05,   /* chegam em ondas */
+    wob: Math.random()*Math.PI*2 });
+}
+
+/* progresso 0→1 controlado pelo scroll (declarado no escopo exterior) */
+
+function easeOutBack(x){
+  const c1=1.70158, c3=c1+1;
+  return 1 + c3*Math.pow(x-1,3) + c1*Math.pow(x-1,2);
+}
+
+function updateAssembly(time){
+  const g = assembly.t;
+  /* transição entre cenas: as peças migram de uma forma para a outra */
+  if(sceneMix < 1 && sceneFrom && sceneTo){
+    sceneMix = Math.min(1, sceneMix + 0.022);
+    const e = 1-Math.pow(1-sceneMix, 3);
+    for(let i=0;i<PIECES;i++){
+      const a=sceneFrom[i], b=sceneTo[i], t=P[i].target;
+      for(const k of ['x','y','z','rx','ry','rz','sx','sy','sz'])
+        t[k] = a[k] + (b[k]-a[k])*e;
+    }
+  }
+  for(let i=0;i<PIECES;i++){
+    const p = P[i];
+    /* cada peça tem a sua janela: começa no delay, dura 0.45 */
+    let k = (g - p.delay) / 0.49;
+    k = clamp(k, 0, 1);
+    const e = k<1 ? easeOutBack(k) : 1;
+
+    const drift = Math.sin(time*0.6 + p.wob) * (1-k) * 1.4;
+
+    dummy.position.set(
+      p.start.x + (p.target.x - p.start.x)*e,
+      p.start.y + (p.target.y - p.start.y)*e + drift,
+      p.start.z + (p.target.z - p.start.z)*e
+    );
+    dummy.rotation.set(
+      p.start.rx + (p.target.rx - p.start.rx)*e,
+      p.start.ry + (p.target.ry - p.start.ry)*e,
+      p.start.rz + (p.target.rz - p.start.rz)*e
+    );
+    dummy.scale.set(
+      p.start.sx + (p.target.sx - p.start.sx)*e,
+      p.start.sy + (p.target.sy - p.start.sy)*e,
+      p.start.sz + (p.target.sz - p.start.sz)*e
+    );
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
+
+    const ec = edgeClones[i];
+    ec.position.copy(dummy.position);
+    ec.rotation.copy(dummy.rotation);
+    ec.scale.copy(dummy.scale);
+    ec.material.opacity = 0.18 + k*0.45;
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+  mesh.material.opacity = 0.03 + g*0.05;
+}
+
+/* núcleo que pulsa quando a estrutura fecha */
+const core=new THREE.Mesh(new THREE.IcosahedronGeometry(1.5,1),
+  new THREE.MeshBasicMaterial({color:0xff3d1f,wireframe:true,transparent:true,opacity:0}));
+STAGE_SC.add(core);
+
+/* resize */
+function sizeStage(){
+  if(!HAS_THREE||!stageCv) return;
+  const r=stageCv.getBoundingClientRect();
+  if(!r.width||!r.height) return;
+  SR.setSize(r.width,r.height,false);
+  STAGE_CAM.aspect=r.width/r.height; STAGE_CAM.updateProjectionMatrix();
+}
+addEventListener('resize',()=>{
+  if(HAS_THREE){R.setSize(innerWidth,innerHeight);BU.res.value.set(innerWidth,innerHeight);
+    CAM.aspect=innerWidth/innerHeight;CAM.updateProjectionMatrix();sizeStage()}
+  ScrollTrigger.refresh()});
+sizeStage();
+resizeStage = sizeStage;      /* passa a ser visível de fora do bloco */
+
+/* render loop */
+const CK=new THREE.Clock();
+gsap.ticker.add(()=>{
+  const t=CK.getElapsedTime();
+  vel=lerp(vel,scrollVel,.12);
+  sph=lerp(sph,mx/innerWidth,.045);spv=lerp(spv,1-my/innerHeight,.045);
+  /* --- palco 3D: só renderiza quando está visível --- */
+  checkStage();
+  if(stageVisible){
+    assembly.t = lerp(assembly.t, assembly.target ?? 0, 0.09);
+    updateAssembly(t);
+    mesh.rotation.y = t*0.055 + (sph-.5)*0.7 + assembly.t*0.9;
+    mesh.rotation.x = (spv-.5)*0.25 - assembly.t*0.12;
+    edgeGroup.rotation.copy(mesh.rotation);
+    core.rotation.y=-t*.25; core.rotation.x=t*.16;
+    const closed = clamp((assembly.t-0.72)/0.28, 0, 1);
+    core.scale.setScalar(1 + closed*1.4 + Math.sin(t*1.6)*0.05*closed);
+    core.material.opacity = closed*0.5;
+    /* o palco tem ~25 unidades de largura: em ecrãs estreitos a câmara
+       tem de recuar, senão corta as torres e os ecrãs laterais */
+    const halfV = Math.tan(STAGE_CAM.fov*Math.PI/360);
+    const needW = 13.6 / (halfV * Math.max(STAGE_CAM.aspect, 0.5));
+    const needH = 9.2 / halfV;
+    const fit   = Math.max(needW, needH);
+
+    /* percurso da câmara: chegas de longe e de baixo, como quem entra no
+       recinto pelo meio da multidão; depois sobes e aproximas-te à medida
+       que a estrutura se fecha. O enquadramento mínimo continua a mandar. */
+    const a = assembly.t;
+    const ease = a<0.5 ? 2*a*a : 1-Math.pow(-2*a+2,2)/2;
+    STAGE_CAM.position.z = Math.max(fit*1.06, 40 - ease*19);
+    STAGE_CAM.position.y = -5.2 + ease*6.0 + (spv-.5)*2.0;
+    STAGE_CAM.position.x = (sph-.5)*3.2 + Math.sin(a*Math.PI)*2.6;
+    STAGE_CAM.lookAt(0, -1.6 + ease*2.0, 0);
+
+    /* chão desvanece quando já não acrescenta escala */
+    GROUND.material.opacity = 0.05 + (1-a)*0.05;
+    /* os feixes acendem-se só quando o palco está montado */
+    const lit = clamp((a-0.62)/0.38, 0, 1);
+    for(const b of BEAMS.children){
+      b.material.opacity = lit * (0.05 + Math.abs(Math.sin(t*0.9 + b.userData.ph))*0.05);
+      b.rotation.z = Math.sin(t*0.35 + b.userData.ph)*0.16;
+    }
+    SR.render(STAGE_SC, STAGE_CAM);
+  }
+  CAM.position.z=26-camZ.v*11+Math.sin(t*.25)*.4;
+  CAM.position.x=(sph-.5)*2.6;CAM.position.y=-(spv-.5)*1.6+camZ.v*1.4;
+  CAM.lookAt(0,0,0);
+  hoverBoost=lerp(hoverBoost,hoverTarget,.06);
+  BU.t.value=t;BU.m.value.set(sph,spv);BU.s.value=camZ.v*3.2;BU.v.value=vel+hoverBoost*.35;
+  edgeMat.opacity = 0.55 + hoverBoost*0.4;
+
+  /* ---- passo de fluido: advecta, difunde, injeta no cursor, dissipa ---- */
+  if(FLUID && !document.hidden){
+    MOUSE.dx = lerp(MOUSE.dx, MOUSE.x-MOUSE.px, 0.5);
+    MOUSE.dy = lerp(MOUSE.dy, MOUSE.y-MOUSE.py, 0.5);
+    MOUSE.px = MOUSE.x; MOUSE.py = MOUSE.y;
+    const speed = Math.hypot(MOUSE.dx, MOUSE.dy);
+    simMat.uniforms.prev.value = fA.texture;
+    simMat.uniforms.mouse.value.set(MOUSE.x, MOUSE.y);
+    /* a velocidade do gesto vira transporte no campo, com teto para não explodir */
+    simMat.uniforms.vel.value.set(
+      clamp(MOUSE.dx*0.9, -0.05, 0.05),
+      clamp(MOUSE.dy*0.9, -0.05, 0.05));
+    /* injeção calibrada contra a dissipação (0.972/frame): o regime
+       permanente é amt/(1-0.972) ≈ amt*35. Com o teto em 0.035 o campo
+       estabiliza perto de 1.2 — brilha sem queimar o texto por cima. */
+    simMat.uniforms.amt.value = Math.min(speed*1.2, 0.035)
+                              + Math.min(Math.abs(scrollVel||0)*0.006, 0.006);
+
+    /* durante a porta de entrada, o gesto conta: cada pixel de carga
+       empurrado enche o anel. Só conta com o botão em baixo — tem de ser
+       um gesto deliberado, não o rato a passear. */
+    if(gateOpen && !gateDone){
+      const pulling = MOUSE.down && speed>0.0015;
+      if(pulling){
+        gateP = Math.min(100, gateP + speed*38);
+        clearTimeout(gateIdle); gateIdle=setTimeout(closeGate, 4200);
+      }
+      /* só toca no DOM quando o estado muda — evita layout thrash a 60 fps */
+      if(pulling !== gatePulling){ gatePulling=pulling; gate.classList.toggle('pulling',pulling); }
+      paintGate();
+      if(gateP>=100) closeGate();
+    }
+    const prevRT = R.getRenderTarget();
+    R.setRenderTarget(fB);
+    R.autoClear = true;
+    R.render(simScene, simCam);
+    R.setRenderTarget(prevRT);
+    const sw=fA; fA=fB; fB=sw;                 /* ping-pong */
+    BU.fluid.value = fA.texture;
+  }
+
+  if(!document.hidden){
+    if(stageVisible!==bgLowRes){bgLowRes=stageVisible;
+      R.setPixelRatio(Math.min(devicePixelRatio, stageVisible?1:1.5));}
+    R.autoClear=true;R.render(bgScene,bgCam);
+    R.autoClear=false;R.render(SC,CAM);
+  }
+  const pvOn = pv.classList.contains('on');
+  pvState.open = lerp(pvState.open, pvOn?1:0, 0.12);
+  if(pvOn || pvState.open>0.01) drawPv();
+  checkCards();
+  if(cardsVisible){
+    cardFrame=(cardFrame+1)%2;                    /* ~30fps chega para estes visuais */
+    for(const c of cardCtx){
+      c.hover=lerp(c.hover,c.target,0.08); c.t++;
+      if(c.onScreen && (cardFrame===0 || c.hover>0.02)) drawThumb(c);
+    }
+  }
+});
+document.addEventListener('visibilitychange',()=>{
+  if(!introDone) return;               /* nunca dormir antes do site estar revelado */
+  document.hidden?gsap.ticker.sleep():gsap.ticker.wake()});
+}else{
+  /* no WebGL: keep the hover preview alive, skip the 3D entirely */
+  gsap.ticker.add(()=>{
+    if(document.hidden) return;
+    const on=pv.classList.contains('on');
+    pvState.open=lerp(pvState.open,on?1:0,0.12);
+    if(on||pvState.open>0.01) drawPv();
+  });
+}
+
+/* ================= CARROSSEL DE RECOMENDAÇÕES =================
+   O scroll vertical conduz o deslocamento horizontal. Nada roda sozinho: são
+   citações de pessoas reais, e tirar o controlo a quem as está a ler para
+   cumprir um temporizador é mau serviço. */
+safe('recomendações',()=>{
+  const sec=Q('#recs'); if(!sec) return;
+  const live=RECS.filter(r=>r.quote && r.quote.trim());
+  if(!live.length){ sec.remove(); return; }   /* sem texto real, não há secção */
+
+  sec.hidden=false;
+  const row=Q('.recRow',sec);
+  const initials=n=>n.split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  row.innerHTML = live.map(r=>`
+    <figure class="rec">
+      <q>${r.quote.trim()}</q>
+      <figcaption class="who">
+        <span class="ini" aria-hidden="true">${initials(r.name)}</span>
+        <span><span class="nm">${r.name}</span><span class="rl">${r.role}</span></span>
+      </figcaption>
+    </figure>`).join('');
+
+  const cnt=Q('.recCount',sec); if(cnt) cnt.textContent=`01 / ${String(live.length).padStart(2,'0')}`;
+
+  const coarse=matchMedia('(pointer:coarse)').matches;
+  if(REDUCE||coarse) return;                  /* no telemóvel é scroll nativo com snap */
+
+  const bar=Q('.recBar i',sec), foot=Q('.recFoot',sec);
+  const setX=gsap.quickTo(row,'x',{duration:.6,ease:'power3'});
+  let span=0;
+  const measure=()=>{
+    /* quanto há a percorrer: o que a fila mede a mais do que a janela */
+    span=Math.max(0, row.scrollWidth - Q('.recTrack',sec).clientWidth);
+    /* com duas cartas cabe tudo no ecrã e não há nada a percorrer — nesse caso
+       a barra de progresso mentiria, por isso desaparece */
+    if(foot) foot.style.display = span>12 ? '' : 'none';
+  };
+  measure(); addEventListener('resize',()=>setTimeout(measure,180));
+  /* as cartas centram-se quando não há deslocamento */
+  if(span<=12) row.style.justifyContent='center';
+
+  ScrollTrigger.create({
+    trigger:sec, start:'top bottom', end:'bottom top', scrub:true,
+    onUpdate:st=>{
+      /* usa-se só o troço central do percurso: as pontas ficam para a secção
+         entrar e sair sem já estar a deslizar */
+      const p=clamp((st.progress-0.18)/0.64, 0, 1);
+      setX(-span*p);
+      if(bar) bar.style.width=(p*100).toFixed(1)+'%';
+      if(cnt && live.length>1){
+        const i=Math.min(live.length-1, Math.round(p*(live.length-1)));
+        cnt.textContent=`${String(i+1).padStart(2,'0')} / ${String(live.length).padStart(2,'0')}`;
+      }
+    }
+  });
+
+  /* inclinação subtil na direcção do cursor — dá volume sem virar truque */
+  QA('.rec',sec).forEach(card=>{
+    const rx=gsap.quickTo(card,'rotateX',{duration:.7,ease:'power3'});
+    const ry=gsap.quickTo(card,'rotateY',{duration:.7,ease:'power3'});
+    card.addEventListener('pointermove',e=>{
+      const b=card.getBoundingClientRect();
+      rx(-((e.clientY-b.top)/b.height-.5)*7);
+      ry( ((e.clientX-b.left)/b.width -.5)*9);
+    });
+    card.addEventListener('pointerleave',()=>{rx(0);ry(0)});
+  });
+});
+
+/* ================= MASSA =================
+   Nada nesta página tinha peso: tudo se movia exactamente à velocidade do
+   scroll, como decalques colados ao ecrã. Os elementos grandes passam a ficar
+   um pouco para trás quando se acelera e a recuperar quando se pára — a mesma
+   ideia de inércia que o Lenis dá ao scroll, aplicada ao conteúdo.
+
+   Só entram elementos SEM transform em CSS: o GSAP escreve a propriedade
+   inteira e apagaria o que lá estivesse. E só se mexe no que está no ecrã,
+   com IntersectionObserver, para não pagar leituras de layout a 60 fps. */
+safe('massa',()=>{
+  if(REDUCE || matchMedia('(pointer:coarse)').matches) return;
+  if(typeof IntersectionObserver==='undefined') return;   /* sem IO, não vale o custo */
+
+  /* [selector, deslocamento máximo em px] — quanto maior o elemento na página,
+     mais peso lhe assenta bem */
+  const GROUPS=[['.ghost',80],['.itm .t',20],['.disp',24]];
+  const items=[];
+  for(const [sel,k] of GROUPS){
+    for(const el of QA(sel)){
+      items.push({el, k, on:false,
+        set:gsap.quickTo(el,'y',{duration:.85,ease:'power3'})});
+    }
+  }
+  if(!items.length) return;
+
+  const io=new IntersectionObserver(es=>{
+    for(const e of es){
+      const it=items.find(i=>i.el===e.target);
+      if(it){ it.on=e.isIntersecting; if(!e.isIntersecting) it.set(0); }
+    }
+  },{rootMargin:'25% 0px'});
+  items.forEach(i=>io.observe(i.el));
+
+  /* Velocidade própria, medida em px por frame.
+     Não se reutiliza `scrollVel` porque esse está normalizado com
+     `clamp(velocity/40,-1,1)` e satura em 1 em praticamente qualquer scroll
+     normal — o deslocamento ficaria sempre no máximo, o que não é inércia, é
+     um offset constante. Aqui a resposta é proporcional em toda a gama. */
+  let lastY=scrollY, smooth=0, prev=0;
+  gsap.ticker.add(()=>{
+    if(document.hidden) return;
+    const y=scrollY, dy=y-lastY; lastY=y;
+    smooth += (dy-smooth)*0.35;                 /* tira o tremido do trackpad */
+    const f=clamp(smooth*0.34, -1.6, 1.6);      /* px de scroll → factor */
+    if(Math.abs(f-prev)<0.01) return;           /* nada mudou o suficiente */
+    prev=f;
+    for(const it of items) if(it.on) it.set(clamp(-f*it.k, -it.k, it.k));
+  });
+});
+
+/* ================= WORK ================= */
+const caseEl=Q('#case'),caseIn=Q('.inner',caseEl);
+safe('lista de trabalhos',()=>QA('.itm').forEach((it,i)=>{
+  const seed = +it.dataset.seed || 0;
+  loadMedia(it.dataset.k);                 /* pré-carrega ao construir a lista */
+  it.addEventListener('mouseenter',()=>{
+    pvState.seed = seed;
+    pvState.key  = it.dataset.k;
+    pvState.t = seed*40;
+    pvState.open = 0;
+    pvCap.textContent = Q('.t',it).firstChild.textContent.trim();
+    pv.classList.add('on');
+  });
+  it.addEventListener('mouseleave',()=>pv.classList.remove('on'));
+  /* teclado: quem navega por Tab também vê o preview */
+  it.addEventListener('focus',()=>{pvState.seed=seed;pvCap.textContent=Q('.t',it).firstChild.textContent.trim()});
+  const open=()=>{const c=CASES[it.dataset.k];if(!c)return;
+    const shots = (c.shots||[]).map(([src,alt])=>
+      /* sem loading="lazy": estas <img> só são criadas quando o caso de estudo
+         abre, por isso o adiamento já está garantido. Dentro de um diálogo
+         fixo com scroll próprio, a heurística nativa de lazy-loading pode
+         nunca decidir que a imagem está perto da viewport — e o resultado é
+         uma galeria de legendas sem imagens. */
+      `<figure><img src="${src}" alt="${alt}" decoding="async">`+
+      `<figcaption>${alt}</figcaption></figure>`).join('');
+    caseIn.innerHTML=`<div class="kicker">${c.k}</div><h3>${c.t}</h3>
+      <div class="meta">${c.meta.map(([k,v])=>`<div><b>${k}</b><span>${v}</span></div>`).join('')}</div>
+      ${shots?`<div class="shots">${shots}</div>`:''}
+      <div class="body">${c.body.map(([h,tx])=>`<h4>${h}</h4><p>${tx}</p>`).join('')}</div>`;
+    caseEl.classList.add('on');lenis.stop();pv.classList.remove('on');caseEl.scrollTop=0;
+    /* o palco reconfigura-se na forma deste projeto */
+    if(typeof setScene==='function') setScene(it.dataset.k);
+    document.documentElement.classList.add('caseOpen');
+    if(typeof forceStage!=='undefined') forceStage.on=true;
+    Q('.close',caseEl).focus()};
+  it.addEventListener('click',open);
+  it.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}})}));
+
+/* ============ MINIATURAS POR LINHA (tablet e telemóvel) ============
+   No desktop quem mostra o projeto é o #pv que segue o rato. Abaixo de
+   1200px não há rato para seguir, por isso cada linha ganha a sua própria
+   miniatura — mesmo desenhador, mesmo visual, custo controlado. */
+const cardCtx = [];
+QA('.itm').forEach(it=>{
+  const cv = Q('.thumb', it); if(!cv) return;
+  cardCtx.push({card:it, cv, ctx:cv.getContext('2d'), key:it.dataset.k,
+    seed:+it.dataset.seed||0, hover:0, target:0, t:(+it.dataset.seed||0)*40, open:1});
+});
+/* nas miniaturas a fotografia entra pelo mesmo caminho */
+function drawThumb(c){
+  const md = c.key ? loadMedia(c.key) : null;
+  if(md && md.img){
+    c.ctx.fillStyle='#0a0a0f'; c.ctx.fillRect(0,0,c.w,c.h);
+    if(drawCover(c.ctx, md.img, c.w, c.h)){
+      /* a linha activa ganha um véu de acento por cima */
+      if(c.hover>0.02){
+        c.ctx.fillStyle=`rgba(255,61,31,${(c.hover*0.10).toFixed(3)})`;
+        c.ctx.fillRect(0,0,c.w,c.h);
+      }
+      return;
+    }
+  }
+  drawCard(c);
+}
+
+function sizeCards(){
+  cardCtx.forEach(c=>{
+    const r=c.cv.getBoundingClientRect();
+    if(!r.width||!r.height) return;                 /* escondida no desktop */
+    const dpr=Math.min(devicePixelRatio,1.5);
+    c.cv.width=Math.round(r.width*dpr); c.cv.height=Math.round(r.height*dpr);
+    c.ctx.setTransform(dpr,0,0,dpr,0,0);
+    c.w=r.width; c.h=r.height;
+  });
+}
+sizeCards();
+addEventListener('resize',()=>{clearTimeout(window.__szT);window.__szT=setTimeout(sizeCards,180)});
+
+/* 5 visuais distintos — um por projeto */
+function drawCard(c){
+  const {ctx,w,h,seed,hover}=c; if(!w) return;
+  const t=c.t*0.01;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle='#0a0a0f'; ctx.fillRect(0,0,w,h);
+
+  const acc=`rgba(255,61,31,${0.5+hover*0.45})`;
+  const dim=`rgba(255,255,255,${0.05+hover*0.05})`;
+
+  if(seed===0){            /* Rock in Rio — picos de tráfego */
+    ctx.strokeStyle=dim; ctx.lineWidth=1;
+    for(let x=0;x<w;x+=w/22){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}
+    ctx.strokeStyle=acc; ctx.lineWidth=1.6;
+    for(let l=0;l<3;l++){
+      ctx.beginPath();
+      for(let x=0;x<=w;x+=4){
+        const n=Math.sin(x*0.021+t+l)*0.4+Math.sin(x*0.007-t*0.6)*0.6;
+        const spike=Math.exp(-Math.pow((x/w-0.62)*7,2))*(0.55+hover*0.35);
+        const y=h*(0.72-spike) - n*h*0.11*(1+hover*0.5);
+        x?ctx.lineTo(x,y):ctx.moveTo(x,y);
+      }
+      ctx.globalAlpha=0.35+l*0.28; ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+  } else if(seed===1){     /* Portfolio — malha wireframe */
+    ctx.strokeStyle=acc; ctx.lineWidth=1;
+    const N=9, cx=w/2, cy=h/2, R=Math.min(w,h)*(0.3+hover*0.06);
+    for(let i=0;i<N;i++){
+      const a1=(i/N)*Math.PI*2+t*0.3;
+      for(let j=0;j<N;j++){
+        const a2=(j/N)*Math.PI*2-t*0.2;
+        const x1=cx+Math.cos(a1)*R, y1=cy+Math.sin(a1)*R*0.55;
+        const x2=cx+Math.cos(a2)*R*0.55, y2=cy+Math.sin(a2)*R;
+        if((i+j)%3) continue;
+        ctx.globalAlpha=0.14+hover*0.2; ctx.beginPath();
+        ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+      }
+    }
+    ctx.globalAlpha=1;
+  } else if(seed===2){     /* NH Concierge — camadas suaves */
+    for(let l=0;l<6;l++){
+      ctx.beginPath();
+      for(let x=0;x<=w;x+=6){
+        const y=h*0.35+l*h*0.11+Math.sin(x*0.006+t*0.5+l*0.7)*h*0.05*(1+hover);
+        x?ctx.lineTo(x,y):ctx.moveTo(x,y);
+      }
+      ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath();
+      ctx.fillStyle=`rgba(255,61,31,${0.025+l*0.012+hover*0.02})`; ctx.fill();
+    }
+  } else if(seed===3){     /* FL Performance — movimento / velocidade */
+    ctx.strokeStyle=acc;
+    for(let i=0;i<28;i++){
+      const p=((i/28)+t*0.06)%1;
+      const y=h*p, len=w*(0.12+Math.sin(i*1.7)*0.08+hover*0.18);
+      ctx.globalAlpha=0.1+Math.sin(i)*0.05+hover*0.25;
+      ctx.lineWidth=1+ (i%4===0?1.4:0);
+      ctx.beginPath(); ctx.moveTo(w*0.5-len,y); ctx.lineTo(w*0.5+len,y); ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+  } else {                 /* Daylight LA — grelha em perspetiva */
+    ctx.strokeStyle=acc; ctx.lineWidth=1;
+    const hz=h*0.42;
+    for(let i=-14;i<=14;i++){
+      ctx.globalAlpha=0.08+hover*0.14;
+      ctx.beginPath(); ctx.moveTo(w/2+i*w*0.02,hz); ctx.lineTo(w/2+i*w*0.16,h); ctx.stroke();
+    }
+    for(let i=1;i<10;i++){
+      const p=Math.pow(i/10,2.1), y=hz+(h-hz)*p;
+      ctx.globalAlpha=0.1+hover*0.16;
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
+    }
+    ctx.globalAlpha=0.5+hover*0.4;
+    ctx.fillStyle=acc; ctx.beginPath();
+    ctx.arc(w/2, hz - Math.sin(t*0.4)*h*0.03, Math.min(w,h)*0.035,0,Math.PI*2); ctx.fill();
+    ctx.globalAlpha=1;
+  }
+}
+
+let cardsVisible=false, cardFrame=0;
+const workSec=Q('#work');
+function checkCards(){
+  if(!workSec) return;
+  const r=workSec.getBoundingClientRect();
+  cardsVisible = r.bottom>-300 && r.top<innerHeight+300;
+  if(cardsVisible){
+    for(const c of cardCtx){
+      /* offsetParent nulo = miniatura escondida (estamos em desktop): não desenhar */
+      if(!c.cv.offsetParent){ c.onScreen=false; continue; }
+      if(!c.w) sizeCards();
+      const cr=c.cv.getBoundingClientRect();
+      c.onScreen = cr.bottom>-120 && cr.top<innerHeight+120;
+      /* a linha visível no centro do ecrã "acende" — substitui o hover no toque */
+      const mid = cr.top + cr.height/2;
+      c.target = (mid > innerHeight*0.2 && mid < innerHeight*0.8) ? 1 : 0;
+    }
+  }
+}
+addEventListener('scroll',checkCards,{passive:true});
+checkCards();
+
+/* (os cartões deram lugar à lista .itm — o handler vive lá em cima) */
+
+const caseProg=Q('#caseProg');
+if(caseEl&&caseProg){
+  caseEl.addEventListener('scroll',()=>{
+    const max=caseEl.scrollHeight-caseEl.clientHeight;
+    caseProg.style.width=(max>0?(caseEl.scrollTop/max)*100:0)+'%';
+  },{passive:true});
+}
+function closeCase(){caseEl.classList.remove('on');lenis.start();
+  if(typeof setScene==='function') setScene('rir');   /* volta ao palco */
+  document.documentElement.classList.remove('caseOpen');
+  if(typeof forceStage!=='undefined') forceStage.on=false;
+  if(caseProg)caseProg.style.width='0%'}
+Q('.close',caseEl).addEventListener('click',closeCase);
+addEventListener('keydown',e=>{if(e.key==='Escape'){closeCase();if(menu.classList.contains('on'))closeMenu()}});
+
+/* nav anchors via lenis */
+/* Navegação por âncora.
+   `lenis.scrollTo('#work')` não fazia absolutamente nada — a resolução de
+   selectores desta versão do Lenis não estava a encontrar os alvos, e os links
+   da nav não navegavam. Passa a resolver-se o elemento aqui e a passar um
+   número, que o Lenis aceita sempre. Fica ainda uma rede: se ao fim de 250 ms a
+   página não se tiver mexido, faz-se com o scroll nativo. Um menu que não
+   navega é o defeito mais caro que um site destes pode ter. */
+function anchorY(href){
+  if(!href || href==='#') return 0;
+  const el = document.querySelector(href);
+  if(!el) return null;
+  return Math.max(0, el.getBoundingClientRect().top + window.scrollY - 40);
+}
+function goTo(href){
+  const y = anchorY(href);
+  if(y===null) return;
+  const antes = window.scrollY;
+  const parado = () => Math.abs(window.scrollY - antes) < 4;
+  /* Três degraus, do bonito ao infalível. O Lenis anima em requestAnimationFrame
+     e há situações em que o browser o suspende (separador em segundo plano,
+     janela sem foco, poupança de energia). Nesse estado a viagem suave nunca
+     avança e o link parecia estar avariado. Nunca se usa `behavior:'smooth'`
+     nativo aqui: o Lenis intercepta-o e engole-o. */
+  if(lenis && typeof lenis.scrollTo==='function') lenis.scrollTo(y,{duration:1.15});
+  setTimeout(()=>{ if(parado() && lenis) lenis.scrollTo(y,{immediate:true}); }, 260);
+  setTimeout(()=>{ if(parado()) window.scrollTo(0,y); }, 420);
+  /* quem salta pode aterrar em elementos que nunca cruzaram o limiar do gatilho */
+  setTimeout(()=>{ if(window.revelarVisiveis) window.revelarVisiveis(); }, 1500);
+}
+QA('.mainNav a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{
+  e.preventDefault(); goTo(a.getAttribute('href'));
+}));
+
+/* ---------- palco: visibilidade, fases e progresso ---------- */
+let stageVisible=false, bgLowRes=false;
+const stageEl=Q('#stage'), stageSteps=QA('.stageStep'), stageBars=QA('.stageProg i');
+const forceStage={on:false};
+function checkStage(){
+  if(forceStage.on){stageVisible=true;return}
+  if(!stageEl) return;
+  const r=stageEl.getBoundingClientRect();
+  const was=stageVisible;
+  stageVisible = r.bottom > -200 && r.top < innerHeight + 200;
+  if(stageVisible && !was) resizeStage();
+}
+addEventListener('scroll',()=>safe('checkStage',checkStage),{passive:true});
+safe('checkStage',checkStage);
+
+/* ---------- scroll progress + section counter ---------- */
+const prog=Q('#prog'),sidx=Q('#sidx'),sidxN=Q('b',sidx),sidxL=Q('span',sidx),sidxBar=Q('i',sidx);
+const SECTIONS=[['.hero','Intro'],['.say','Statement'],['.pin','Numbers'],['#stage','Assembly'],['#capabilities','Services'],['#work','Work'],['#process','Process'],['#path','Path'],['#about','About'],['#faq','Questions'],['#contact','Contact']];
+gsap.to(prog,{scaleX:1,ease:'none',
+  scrollTrigger:{trigger:document.body,start:'top top',end:'bottom bottom',scrub:.35}});
+/* atualizado diretamente no ticker — imune a desalinhamentos do ScrollTrigger */
+const SEC_EL=SECTIONS.map(([sel,label])=>({el:Q(sel),label})).filter(o=>o.el);
+let lastIdx=-1, ucLastY=-1;
+function updateCounter(){
+  if(document.hidden) return;
+  const y=window.scrollY||document.documentElement.scrollTop||0;
+  /* getBoundingClientRect por secção em cada frame é caro; só recalcular
+     quando a página se mexeu mesmo */
+  if(y===ucLastY) return; ucLastY=y;
+  const mid=innerHeight*0.45;
+  let idx=0;
+  for(let i=0;i<SEC_EL.length;i++){
+    const top=SEC_EL[i].el.getBoundingClientRect().top;
+    if(top<=mid) idx=i;
+  }
+  if(idx!==lastIdx){
+    lastIdx=idx;
+    sidxN.textContent=String(idx+1).padStart(2,'0');
+    sidxL.textContent=SEC_EL[idx].label;
+    sidx.style.setProperty('--sp',(idx+1)/SEC_EL.length);
+  }
+  /* O #sidx vive no canto inferior esquerdo. A legenda do mosaico
+     ("Rock in Rio Lisboa · 2026 / The night it all arrived at once") vive
+     exactamente no mesmo canto. Enquanto o mosaico estava no ecrã, os dois
+     escreviam-se por cima: "05 SERVICES" atravessado a meio de "arrived at
+     once". Só se via em produção, com o scroll parado nesse ponto.
+     Podia empurrar um dos dois para outro sítio, mas ambos estão alinhados
+     pela margem que governa a página inteira e mexer nisso estragava o
+     alinhamento em todo o lado. Em vez disso, o indicador sai de cena
+     enquanto a legenda está visível — um elemento por canto, de cada vez. */
+  sidx.classList.toggle('on', y>140 && !capVisivel());
+}
+const mosCapEl = Q('.mosCap');
+function capVisivel(){
+  if(!mosCapEl) return false;
+  const r = mosCapEl.getBoundingClientRect();
+  return r.bottom > 0 && r.top < innerHeight;
+}
+gsap.ticker.add(updateCounter);
+addEventListener('scroll',updateCounter,{passive:true});
+if(HAS_LENIS) lenis.on('scroll',updateCounter);
+updateCounter();
+
+/* ---------- menu overlay ---------- */
+const menu=Q('#menu'),menuBtn=Q('#menuBtn'),menuClose=Q('#menuClose');
+function openMenu(){menu.classList.add('on');menuClose.classList.add('on');
+  menu.setAttribute('aria-hidden','false');menuBtn.setAttribute('aria-expanded','true');
+  lenis.stop();menuClose.focus()}
+function closeMenu(){menu.classList.remove('on');menuClose.classList.remove('on');
+  menu.setAttribute('aria-hidden','true');menuBtn.setAttribute('aria-expanded','false');lenis.start()}
+menuBtn.addEventListener('click',openMenu);
+menuClose.addEventListener('click',closeMenu);
+/* mesma correcção no overlay: fecha primeiro, navega quando a cortina sair */
+QA('#menu a').forEach(a=>a.addEventListener('click',e=>{
+  e.preventDefault();const h=a.getAttribute('href');closeMenu();
+  setTimeout(()=>goTo(h),450)}));
+
+/* ---------- work hover tints the shader ---------- */
+let hoverBoost=0,hoverTarget=0;
+QA('.itm').forEach(it=>{
+  it.addEventListener('mouseenter',()=>hoverTarget=1);
+  it.addEventListener('mouseleave',()=>hoverTarget=0);
+});
+
+/* ---------- tom de fundo por secção ---------- */
+const TONES=[['.hero','#070709'],['.say','#08080b'],['.pin','#090910'],
+             ['#stage','#06060a'],['#work','#08080c'],['#process','#0a0a0e'],
+             ['#path','#08080b'],['#about','#090910'],['#faq','#08080c'],['#contact','#070709']];
+TONES.forEach(([sel,col])=>{
+  const el=Q(sel); if(!el) return;
+  ScrollTrigger.create({trigger:el,start:'top 55%',end:'bottom 45%',
+    onEnter:()=>document.body.style.backgroundColor=col,
+    onEnterBack:()=>document.body.style.backgroundColor=col});
+});
+
+/* ---------- revelação letra a letra nos cabeçalhos grandes ---------- */
+QA('.pStep .big, .ct h2').forEach(el=>{
+  if(el.dataset.split) return; el.dataset.split='1';
+  const html=el.innerHTML;
+  if(/<br\s*\/?>/i.test(html)) return;       /* saltar os que têm quebras */
+  el.classList.add('chars');
+  el.innerHTML=[...el.textContent].map(c=>`<i>${c===' '?'&nbsp;':c}</i>`).join('');
+  QA('i',el).forEach((c,i)=>c.style.transitionDelay=(i*0.028)+'s');
+});
+
+/* ================= SISTEMA DE COR ao longo do percurso =================
+   Quatro paragens. Não é decoração: é a curva de um festival.
+   · VÉSPERA  índigo frio — ainda não chegou ninguém
+   · CARGA    o laranja da marca — a plataforma a encher
+   · PICO     âmbar incandescente — o momento de maior tensão
+   · AGUENTOU verde — o site ficou de pé
+   O mesmo valor alimenta o CSS, o shader do fundo e as arestas do palco,
+   para que nada fique dessincronizado. */
+/* Cada paragem foi verificada contra o fundo #080809: o contraste mínimo em
+   toda a viagem é 5.0:1, acima do 4.5:1 da AA. A paragem em chartreuse existe
+   por uma razão prática — interpolar âmbar→verde em sRGB passa por um cinzento
+   sujo, e esta paragem desvia o caminho. */
+const PALETTE = [
+  [0.00, [122, 134, 240]],   /* véspera  — índigo, ainda não chegou ninguém */
+  [0.30, [255,  61,  31]],   /* carga    — o laranja da marca               */
+  [0.60, [255, 155,  52]],   /* pico     — âmbar incandescente              */
+  [0.82, [196, 210,  74]],   /* ponte    — evita o cinzento entre os dois   */
+  [1.00, [ 74, 208, 138]],   /* aguentou — verde, o site ficou de pé        */
+];
+function paletteAt(p){
+  p = clamp(p, 0, 1);
+  for(let i=0;i<PALETTE.length-1;i++){
+    const [a,ca]=PALETTE[i], [b,cb]=PALETTE[i+1];
+    if(p<=b){
+      const k=(p-a)/(b-a||1), s=k*k*(3-2*k);          /* smoothstep */
+      return [0,1,2].map(j=>Math.round(ca[j]+(cb[j]-ca[j])*s));
+    }
+  }
+  return PALETTE[PALETTE.length-1][1];
+}
+{
+  const root=document.documentElement.style;
+  let cur=[255,61,31], shownP=0;
+  gsap.ticker.add(()=>{
+    if(document.hidden) return;
+    const total=document.documentElement.scrollHeight-innerHeight;
+    const p=total>0?clamp((lenis?.scroll??scrollY)/total,0,1):0;
+    shownP=lerp(shownP,p,0.06);
+    const t=paletteAt(shownP);
+    /* suavizar também a cor, para nunca haver saltos visíveis */
+    let moved=false;
+    for(let i=0;i<3;i++){
+      const n=lerp(cur[i],t[i],0.08);
+      if(Math.abs(n-cur[i])>0.4) moved=true;
+      cur[i]=n;
+    }
+    if(!moved) return;
+    const r=Math.round(cur[0]), g=Math.round(cur[1]), b=Math.round(cur[2]);
+    root.setProperty('--acc',`rgb(${r},${g},${b})`);
+    root.setProperty('--acc-soft',`rgba(${r},${g},${b},.14)`);
+    root.setProperty('--acc-glow',`rgba(${r},${g},${b},.45)`);
+    if(typeof BU!=='undefined'&&BU.accCol) BU.accCol.value.setRGB(r/255,g/255,b/255);
+    if(typeof edgeMat!=='undefined') edgeMat.color.setRGB(r/255,g/255,b/255);
+  });
+}
+
+/* ---------- HUD: a agulha e os números seguem o scroll ----------
+   A leitura é uma curva de tráfego real do ciclo de 2026 — chegada, carga,
+   pico e resistência. Os totais no fim são os do Analytics: 1,9 M e 18 M.
+   Nada aqui é inventado nem simulado em tempo real. */
+{
+  const hud=Q('#hud'), needle=Q('.hudNeedle',hud);
+  const hUsers=Q('#hUsers'), hEvents=Q('#hEvents');
+  const labels=QA('.hudLabels span',hud), scaleEl=Q('.hudScale',hud);
+  const fmt=n=>n>=1e6?(n/1e6).toFixed(1).replace(/\.0$/,'')+'M'
+             :n>=1e3?Math.round(n/1e3)+'K':String(Math.round(n));
+  let shown=0;
+  gsap.ticker.add(()=>{
+    if(document.hidden || innerWidth<1100) return;
+    const total=document.documentElement.scrollHeight-innerHeight;
+    const p=total>0?clamp((lenis?.scroll??scrollY)/total,0,1):0;
+    shown=lerp(shown,p,0.1);
+    needle.style.transform=`translateX(${(shown*(scaleEl.clientWidth-1)).toFixed(1)}px)`;
+    /* a curva sobe depressa e depois assenta — como o tráfego de um festival */
+    const k=1-Math.pow(1-shown,2.1);
+    hUsers.textContent=fmt(k*1_900_000);
+    hEvents.textContent=fmt(k*18_000_000);
+    const seg=Math.min(3,Math.floor(shown*4*0.999));
+    for(let i=0;i<labels.length;i++) labels[i].classList.toggle('on',i===seg);
+  });
+}
+
+/* ---------- FAIXA DE STACK: movimento contínuo reativo ao scroll ----------
+   A faixa anda sempre. Quando fazes scroll ela acelera, e ao inverteres a
+   direção do scroll ela inverte também. É o detalhe que separa uma marquee
+   decorativa de uma que responde a quem está a ler. */
+{
+  const tr = Q('#tr2');
+  if(tr && !REDUCE){
+    tr.style.willChange='transform';
+    let x = 0, half = 0;
+    const measure = ()=>{ half = tr.scrollWidth/2 || tr.getBoundingClientRect().width/2; };
+    measure(); addEventListener('resize',()=>setTimeout(measure,200));
+    const band = Q('.stackband');
+    let bandOn = true;
+    const checkBand = ()=>{ if(!band) return;
+      const r = band.getBoundingClientRect();
+      bandOn = r.bottom > -100 && r.top < innerHeight + 100; };
+    addEventListener('scroll', checkBand, {passive:true}); checkBand();
+
+    gsap.ticker.add(()=>{
+      if(!bandOn || document.hidden) return;
+      /* base lenta + contribuição da velocidade de scroll */
+      const speed = 0.55 + Math.abs(vel)*9;
+      x -= speed * (vel < -0.02 ? -1 : 1);
+      if(half){ if(x <= -half) x += half; if(x > 0) x -= half; }
+      /* inclinação ligeira proporcional à velocidade: dá elasticidade */
+      tr.style.transform = `translate3d(${x}px,0,0) skewX(${(-vel*4).toFixed(2)}deg)`;
+    });
+  }
+}
+
+/* ---------- elasticidade nas linhas de trabalho ----------
+   Scroll rápido inclina e comprime ligeiramente as linhas; ao parar,
+   voltam ao sítio. Só no desktop e só com movimento ativado. */
+if(!REDUCE){
+  const rows = QA('.itm');
+  let atRest = true;
+  gsap.ticker.add(()=>{
+    if(!cardsVisible || document.hidden) return;
+    const moving = Math.abs(vel) > 0.012;
+    if(!moving && atRest) return;            /* parado: não toca no DOM */
+    const sk = clamp(vel*2.2, -3.2, 3.2);
+    const sy = 1 - Math.abs(vel)*0.035;
+    const tf = moving ? `skewY(${sk.toFixed(2)}deg) scaleY(${sy.toFixed(3)})` : '';
+    for(const r of rows) r.style.transform = tf;
+    atRest = !moving;
+  });
+}
+
+/* ---------- inclinação do preview ----------
+   O painel que segue o rato inclina-se conforme a posição no ecrã.
+   Dá-lhe peso: parece um objeto na mão, não um rectângulo colado. */
+{
+  const prx=gsap.quickTo(pv,'rotationX',{duration:.9,ease:'power3'});
+  const pry=gsap.quickTo(pv,'rotationY',{duration:.9,ease:'power3'});
+  addEventListener('mousemove',e=>{
+    if(!pv.classList.contains('on')) return;
+    pry((e.clientX/innerWidth-.5)*13);
+    prx(-((e.clientY/innerHeight-.5)*10));
+  },{passive:true});
+}
+
+/* ---------- hora de Lisboa ---------- */
+const lisTime=Q('#lisTime');
+function tickClock(){
+  if(!lisTime) return;
+  lisTime.textContent=new Date().toLocaleTimeString('en-GB',
+    {timeZone:'Europe/Lisbon',hour:'2-digit',minute:'2-digit'});
+}
+tickClock(); setInterval(tickClock,20000);
+
+/* ---------- acordeão FAQ ---------- */
+QA('.q button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const q=btn.parentElement, open=q.classList.contains('open');
+    QA('.q').forEach(o=>{o.classList.remove('open');Q('button',o).setAttribute('aria-expanded','false')});
+    if(!open){q.classList.add('open');btn.setAttribute('aria-expanded','true')}
+    setTimeout(()=>ScrollTrigger.refresh(),750);
+  });
+});
+
+/* ---------- botão de topo ---------- */
+const toTop=Q('#toTop');
+if(toTop){
+  toTop.addEventListener('click',()=>lenis.scrollTo(0,{duration:1.6}));
+  addEventListener('scroll',()=>toTop.classList.toggle('on',scrollY>innerHeight*1.4),{passive:true});
+}
+
+/* magnetic */
+const mag=Q('.mag');
+const magX=gsap.quickTo(mag,'x',{duration:.6,ease:'elastic.out(1,.45)'});
+const magY=gsap.quickTo(mag,'y',{duration:.6,ease:'elastic.out(1,.45)'});
+mag.addEventListener('mousemove',e=>{const r=mag.getBoundingClientRect();
+  magX((e.clientX-r.left-r.width/2)*.32);magY((e.clientY-r.top-r.height/2)*.48)});
+mag.addEventListener('mouseleave',()=>{magX(0);magY(0)});
+
+/* ---------- ajustar o display type à linha mais larga ---------- */
+function widestLine(){
+  let w=0;
+  QA('h1 .ln i').forEach(el=>{
+    const r=document.createRange(); r.selectNodeContents(el);
+    w=Math.max(w, r.getBoundingClientRect().width);
+  });
+  return w;
+}
+function fitH1(){
+  const h1=Q('h1'); if(!h1) return;
+  h1.style.setProperty('--h1s','');            /* estado base do clamp */
+  const avail=h1.getBoundingClientRect().width;
+  let size=parseFloat(getComputedStyle(h1).fontSize);
+  if(!avail||!size) return;
+  /* convergir: medir → escalar → remedir (máx. 6 iterações) */
+  for(let i=0;i<6;i++){
+    const w=widestLine();
+    if(!w) break;
+    if(w<=avail*0.995 && w>=avail*0.93) break;   /* já encaixa bem */
+    size=Math.floor(size*(avail*0.985/w));
+    h1.style.setProperty('--h1s',size+'px');
+  }
+}
+fitH1();
+addEventListener('resize',()=>{fitH1();ScrollTrigger.refresh()});
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fitH1);
+setTimeout(fitH1,900);
+setTimeout(fitH1,2000);
+
+if(REDUCE)gsap.globalTimeline.timeScale(60);
+
+/* dev hook — remover em producao */
+if(location.hostname==='localhost'||location.hostname==='127.0.0.1'){
+  window.__pf={lenis,gsap,ScrollTrigger,assembly,camZ};
+  /* Quem abre a consola de um portefólio de developer costuma ser outro
+     developer — ou alguém a avaliar-me. Vale a pena estar lá alguém. */
+  try{
+    console.log('%cRodrigo Figueiredo','font:800 34px Syne,system-ui;color:#ff3d1f');
+    console.log('%cFullstack web developer · Lisbon','font:13px ui-monospace;color:#888');
+    console.log(
+      '%cBuilt by hand: Three.js · GSAP · Lenis · WebGL fluid sim · no framework, no template.\n'+
+      'The stage assembles from 84 instanced pieces. The background is one fragment shader.\n'+
+      'If you got this far, you probably want to talk: eimaieros@gmail.com',
+      'font:12px ui-monospace;color:#6a6a72;line-height:1.7');
+  }catch(e){}
+}
+})();
+</script>
+</body>
+</html>

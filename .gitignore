@@ -1,0 +1,31 @@
+# Build output
+dist/
+
+# QA copies of the page
+site/_qa.html
+site/_responsive.html
+
+# System
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+
+# Editors
+.vscode/
+.idea/
+
+# Node / Python
+node_modules/
+npm-debug.log*
+__pycache__/
+*.py[cod]
+
+# Local notes and scripts
+*.md
+!README.md
+*.bat
+*.log
+*.xlsx
+*.zip

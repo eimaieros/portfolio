@@ -1,2 +1,133 @@
-# portfolio
-Personal portfolio - one HTML file, no framework, no build step. Three.js + GSAP + Lenis. Live at rodrigofigueiredo.dev
+# Portfolio — Rodrigo Figueiredo
+
+Personal portfolio for a fullstack web developer. One HTML file, no framework,
+no build step, no dependencies to install.
+
+**Live:** <https://rodrigofigueiredo.dev>
+
+---
+
+## Why it's built this way
+
+A portfolio for a web developer is the work sample. If the site is slow or badly
+made, it contradicts the CV — so every decision here had to survive that test.
+
+**No framework.** The site is a single `index.html` with inline CSS and JS. React
+would add a build step, a dependency tree and ~40 KB of runtime to render text
+that never changes. The three libraries that *are* loaded — Three.js, GSAP,
+Lenis — earn their place because hand-rolling a WebGL renderer, a scroll
+choreographer and inertial scrolling is not a good use of anyone's time.
+
+**Motion with a budget.** Capped device pixel ratio, transform-only animation,
+geometry allocated once and interpolated rather than rebuilt, and full
+`prefers-reduced-motion` support. Most award-winning sites score around 40 on
+Lighthouse; the target here is ≥ 90.
+
+**Everything degrades.** No WebGL, no GSAP, no JavaScript at all — the content is
+still readable. Each subsystem is wrapped so a failure in one never takes down
+the page.
+
+---
+
+## What's inside
+
+| | |
+|---|---|
+| Background | One fragment shader — contour field that reacts to cursor and scroll, with a ping-pong fluid simulation layered on top |
+| Stage | 84 instanced meshes assembling in three phases, scroll-driven |
+| Mosaic | A full-bleed image assembling from 144 tiles |
+| Type | Scroll-driven sentence, masked line reveals, character scramble |
+| Cursor | Custom cursor with contextual labels, and a light source that follows it across the display type |
+
+---
+
+## Running it
+
+```bash
+# any static server; the site is site/index.html
+python3 -m http.server 5500
+# → http://localhost:5500/site/index.html
+```
+
+## Building for deployment
+
+```bash
+./tools/build.sh      # produces dist/
+```
+
+`dist/` is what goes to the server. The build rewrites the asset paths
+(`../assets/` → `assets/`), copies the images, and emits host configuration for
+both static hosts (`_headers`, `netlify.toml`) and IIS (`web.config`). It fails
+if any referenced image is missing.
+
+## Verifying before you ship
+
+```bash
+./tools/verificar.sh
+```
+
+Runs everything: executes the page in jsdom with and without WebGL, checks for
+top-level variables used before declaration, audits weight / accessibility / SEO,
+scans for QA code that leaked into the published file, and builds.
+
+---
+
+## Tools
+
+| Script | Purpose |
+|---|---|
+| `tools/verificar.sh` | all checks, in order |
+| `tools/build.sh` | assemble `dist/` |
+| `tools/auditoria.py` | weight, render-blocking resources, a11y, SEO metadata |
+| `tools/check-tdz.py` | top-level `const`/`let` used before declaration |
+| `tools-harness.js` | run the page in jsdom, with and without WebGL |
+| `tools/gerar-visuais.py` | generate the placeholder imagery |
+| `tools/importar-capturas.py` | import real screenshots into the asset slots |
+
+### Why a jsdom harness for a static page
+
+Because syntax-valid JavaScript is not the same as JavaScript that runs. Three
+separate scope bugs shipped here before this existed — a `const` declared inside
+a conditional block and called from outside it, which throws only when that path
+is taken. The harness executes the whole module in both capability modes and
+reports anything that throws. `check-tdz.py` catches the same family statically.
+
+---
+
+## Notes on the animation code
+
+Two rules were learned the hard way and are worth knowing before editing:
+
+**GSAP and CSS must not write the same property.** The hero name reveal is a CSS
+transition on `transform`; the mouse parallax was a GSAP tween on `x`, which
+writes the whole `transform`. Moving the mouse during the 1.3 s reveal made GSAP
+cache a mid-transition value and pin the name off-screen permanently. The two
+systems are now separated: CSS owns the vertical, JS writes a CSS custom
+property for the horizontal.
+
+**Anything that animates *text* needs a non-rAF fallback.** `requestAnimationFrame`
+is suspended in background tabs, unfocused windows and power-saving modes. A
+frozen transform is a visual glitch; a frozen text animation is wrong information
+on screen — the headline counters could freeze reading `0.0M`. Both text
+animations now have a timer that writes the final value regardless.
+
+---
+
+## Structure
+
+```
+site/index.html          the site
+assets/                  images (webp)
+assets/case/             screenshots for the case study
+tools/                   build, verification, image generation
+docs/                    decisions, deployment, session log
+versions/                snapshots — not the site
+dist/                    generated; never edit by hand
+```
+
+---
+
+## Licence
+
+Code under MIT (see `LICENSE`). The written content, imagery and the visual
+design are not — please don't republish those as your own.
