@@ -529,8 +529,27 @@ html.ready .sdown{opacity:1}
 /* work */
 .wlist{border-top:1px solid var(--line);margin-top:34px}
 .itm{border-bottom:1px solid var(--line);padding:clamp(28px,3.4vw,68px) 0;display:grid;
-  grid-template-columns:clamp(48px,4vw,90px) 1fr clamp(200px,16vw,340px) clamp(80px,6vw,130px);gap:22px;align-items:center;position:relative;
+  grid-template-columns:clamp(48px,4vw,90px) 1fr clamp(112px,13vw,232px) clamp(180px,14vw,300px) clamp(80px,6vw,130px);
+  gap:22px;align-items:center;position:relative;
   transition:padding-left .65s var(--e)}
+
+/* PROVA VISUAL NA PRÓPRIA LINHA.
+   Antes disto, a secção mais importante do site — o trabalho — era uma lista de
+   texto. As capturas só apareciam a seguir ao rato. Quem passa os olhos
+   depressa, que é o que um recrutador faz, via cinco linhas e nenhum trabalho.
+   Agora cada linha carrega a sua captura. Entra com um wipe quando a linha
+   chega ao ecrã (não à espera do rato) e ganha cor ao passar por cima.
+   Fica a cinzento em repouso de propósito: a cor é o prémio de parar ali, e
+   evita que cinco imagens ao mesmo tempo compitam com o nome do projeto.
+   Só `clip-path`, `opacity`, `filter` e `transform` — nada refaz layout. */
+.itm .shot{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;
+  border:1px solid var(--line);border-radius:3px;
+  clip-path:inset(0 100% 0 0);opacity:.62;filter:grayscale(.85) contrast(1.06);
+  transition:clip-path .9s var(--e),opacity .6s var(--e),
+             filter .6s var(--e),transform .8s var(--e);
+  pointer-events:none}
+.itm.seen .shot{clip-path:inset(0)}
+.itm:hover .shot,.itm:focus-visible .shot{opacity:1;filter:none;transform:scale(1.05)}
 .itm:hover{padding-left:30px}
 .itm::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--acc);
   transform:scaleY(0);transform-origin:bottom;transition:transform .6s var(--e)}
@@ -600,10 +619,20 @@ html.ready .sdown{opacity:1}
   font-size:var(--t-micro);letter-spacing:.1em;color:var(--faint);line-height:1.7}
 @media(max-width:700px){.shots{grid-template-columns:1fr;gap:calc(var(--u)*1.8)}}
 
+/* O SCROLL DENTRO DESTE DIÁLOGO.
+   Ao abrir um caso de estudo chamava-se `lenis.stop()` e a roda do rato deixava
+   de fazer o que quer que fosse aqui dentro. Não era um bug de CSS: o Lenis
+   escuta `wheel` na janela e, quando está parado, chama `preventDefault()` e
+   engole o evento — a página não anda (é o que se quer) mas o diálogo também
+   não (que não é). O `data-lenis-prevent` no elemento diz ao Lenis para nem
+   sequer tocar em eventos que nasçam aqui dentro, e o scroll nativo volta.
+   `overscroll-behavior:contain` trata do outro lado: ao chegar ao fim do
+   diálogo, o impulso deixa de passar para a página por trás. */
 #case{position:fixed;inset:0;z-index:200;
   background:linear-gradient(to bottom,rgba(8,8,9,.94),rgba(8,8,9,.88));
   backdrop-filter:blur(16px) saturate(.9);-webkit-backdrop-filter:blur(16px) saturate(.9);
-  clip-path:inset(0 0 100% 0);transition:clip-path .9s var(--e);overflow-y:auto;cursor:none}
+  clip-path:inset(0 0 100% 0);transition:clip-path .9s var(--e);
+  overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;cursor:none}
 @supports not (backdrop-filter:blur(1px)){#case{background:rgba(8,8,9,.97)}}
 #case .inner>*{opacity:0;transform:translateY(26px);
   transition:opacity .8s var(--e),transform .9s var(--e)}
@@ -1032,10 +1061,13 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
 @media(max-width:1200px){
   .ab{grid-template-columns:1fr;gap:calc(var(--u)*3)}
   .ab .body{max-width:none}
-  .itm{grid-template-columns:calc(var(--u)*3) 1fr calc(var(--u)*12) calc(var(--u)*7);
+  /* Abaixo dos 1200 px o cursor deixa de ter pré-visualização (#pv), por isso
+     a captura na linha passa a ser a única prova visual — dou-lhe mais espaço
+     e tiro a coluna de meta-dados, que é a menos importante das quatro. */
+  .itm{grid-template-columns:calc(var(--u)*3) 1fr calc(var(--u)*13) calc(var(--u)*7);
     align-items:center}
   .itm .m{display:none}
-  .itm .thumb{display:block}
+  .itm .shot{opacity:.72}
   #pv{display:none}
 }
 /* ---- portátil pequeno ---- */
@@ -1047,8 +1079,12 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
   #sidx{display:none}
   .itm{grid-template-columns:30px 1fr;gap:12px 14px}
   .itm .m,.itm .y{display:none}
-  /* no telemóvel a miniatura passa a ocupar a linha toda, por baixo do título */
-  .itm .thumb{grid-column:1/-1;order:3;margin-top:calc(var(--u)*.7)}
+  /* No telemóvel a captura ocupa a linha toda, por baixo do título, e vai a
+     cores: aqui não há rato, logo não há estado de hover para dar o prémio.
+     O <canvas> gerado deixa de fazer falta — há uma imagem verdadeira. */
+  .itm .thumb{display:none}
+  .itm .shot{grid-column:1/-1;order:3;margin-top:calc(var(--u)*.8);
+    opacity:1;filter:none;aspect-ratio:16/9}
   .ab{grid-template-columns:1fr}
   .pin{height:200svh}
       .pStep .big{font-size:calc(var(--u)*5.2)}
@@ -1126,7 +1162,9 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
 <div class="vig"></div>
 <div id="pv" aria-hidden="true"><canvas aria-hidden="true"></canvas><div class="cap"></div></div>
 
-<div id="case" role="dialog" aria-modal="true" aria-label="Project case study"><button class="close" data-cursor="Close">Close ✕</button><div class="inner"></div></div>
+<!-- data-lenis-prevent NÃO é decorativo. Ver o comentário em #case no CSS:
+     sem ele, a roda do rato não faz nada dentro deste diálogo. -->
+<div id="case" role="dialog" aria-modal="true" aria-label="Project case study" data-lenis-prevent><button class="close" data-cursor="Close">Close ✕</button><div class="inner"></div></div>
 
 <nav class="mainNav" aria-label="Main">
   <a href="#" data-cursor=""><span class="dot"></span>RF</a>
@@ -1276,6 +1314,7 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
         <canvas class="thumb" aria-hidden="true"></canvas>
         <span class="i">01</span>
         <span class="t">Rock in Rio<span class="code">CODE</span></span>
+        <img class="shot" src="../assets/rir-hero.webp" alt="Rock in Rio Lisboa website home page" loading="lazy" decoding="async" width="640" height="400">
         <span class="m">JavaScript · PHP<br>1.9M users · 18M events</span>
         <span class="y">2026</span>
       </div>
@@ -1283,6 +1322,7 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
         <canvas class="thumb" aria-hidden="true"></canvas>
         <span class="i">02</span>
         <span class="t">Portfolio<span class="code">CODE</span></span>
+        <img class="shot" src="../assets/portfolio.webp" alt="This portfolio site" loading="lazy" decoding="async" width="640" height="400">
         <span class="m">Next.js · GSAP<br>WebGL · Three.js</span>
         <span class="y">2026</span>
       </div>
@@ -1290,6 +1330,7 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
         <canvas class="thumb" aria-hidden="true"></canvas>
         <span class="i">03</span>
         <span class="t">NH Concierge</span>
+        <img class="shot" src="../assets/nh.webp" alt="NH Concierge website" loading="lazy" decoding="async" width="640" height="400">
         <span class="m">Design &amp; build<br>SEO · Maintenance</span>
         <span class="y">2022—</span>
       </div>
@@ -1297,6 +1338,7 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
         <canvas class="thumb" aria-hidden="true"></canvas>
         <span class="i">04</span>
         <span class="t">FL Performance</span>
+        <img class="shot" src="../assets/fl.webp" alt="FL Performance website" loading="lazy" decoding="async" width="640" height="400">
         <span class="m">Tuscany, Italy<br>Design · SEO</span>
         <span class="y">2023—</span>
       </div>
@@ -1304,6 +1346,7 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
         <canvas class="thumb" aria-hidden="true"></canvas>
         <span class="i">05</span>
         <span class="t">Daylight LA</span>
+        <img class="shot" src="../assets/daylight.webp" alt="Daylight LA website" loading="lazy" decoding="async" width="640" height="400">
         <span class="m">Brand site<br>Design &amp; build</span>
         <span class="y">2025</span>
       </div>
@@ -2995,6 +3038,34 @@ safe('lista de trabalhos',()=>QA('.itm').forEach((it,i)=>{
     Q('.close',caseEl).focus()};
   it.addEventListener('click',open);
   it.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}})}));
+
+/* O wipe das capturas na lista de trabalhos.
+   IntersectionObserver e não ScrollTrigger de propósito: isto tem de acontecer
+   mesmo que o GSAP falhe a carregar, e é uma classe só — não vale um trigger.
+   `once`, porque uma revelação que se repete a cada passagem cansa.
+   Sem observer (browser antigo, ou reduced-motion) as imagens ficam logo
+   visíveis: o estado por omissão nunca pode ser "escondido para sempre". */
+{
+  const linhas = QA('.itm');
+  if(REDUCE || typeof IntersectionObserver === 'undefined'){
+    linhas.forEach(el=>el.classList.add('seen'));
+  } else {
+    const obs = new IntersectionObserver((entradas,o)=>{
+      entradas.forEach(e=>{
+        if(!e.isIntersecting) return;
+        e.target.classList.add('seen');
+        o.unobserve(e.target);
+      });
+    },{rootMargin:'0px 0px -12% 0px',threshold:0.15});
+    linhas.forEach(el=>obs.observe(el));
+    /* rede de segurança: se alguém chegar por âncora (#work) o observer pode
+       não disparar para linhas já dentro da viewport em alguns browsers */
+    setTimeout(()=>linhas.forEach(el=>{
+      const r = el.getBoundingClientRect();
+      if(r.top < innerHeight && r.bottom > 0) el.classList.add('seen');
+    }), 1200);
+  }
+}
 
 /* ============ MINIATURAS POR LINHA (tablet e telemóvel) ============
    No desktop quem mostra o projeto é o #pv que segue o rato. Abaixo de
