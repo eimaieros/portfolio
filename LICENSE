@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Rodrigo Miguel Vicente Figueiredo
+Copyright (c) 2026 Rodrigo Figueiredo
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,16 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+NOTE ON CONTENT
+
+The MIT licence above covers the source code. It does not cover:
+
+  - the written content of the site
+  - the imagery in assets/ and assets/case/
+  - the screenshots of the Rock in Rio Lisboa website, which document work
+    carried out for that organisation and remain their property
+
+Please don't republish those as your own.
