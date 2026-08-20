@@ -18,7 +18,7 @@ sed 's|\.\./assets/|assets/|g' site/index.html > dist/index.html
 
 # imagens, sem o ficheiro de instruções
 mkdir -p dist/assets
-cp assets/*.webp assets/*.mp4 dist/assets/ 2>/dev/null || true
+cp assets/*.webp assets/*.mp4 assets/*.svg assets/*.jpg dist/assets/ 2>/dev/null || true
 # capturas do caso de estudo
 mkdir -p dist/assets/case
 cp assets/case/*.webp dist/assets/case/ 2>/dev/null || true
