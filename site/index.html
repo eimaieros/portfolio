@@ -44,7 +44,7 @@
 "url":"https://rodrigofigueiredo.dev/",
 "address":{"@type":"PostalAddress","addressLocality":"Seixal","addressRegion":"Lisbon","addressCountry":"PT"},
 "knowsLanguage":["Portuguese","English"],
-"sameAs":["https://linkedin.com/in/rodrigomvfigueiredo","https://github.com/eimaieros"],
+"sameAs":["https://linkedin.com/in/rodrigomvfigueiredo","https://github.com/eimaieros","https://github.com/eimaieros/framebudget"],
 "knowsAbout":["JavaScript","React","Next.js","Node.js","PHP","Python","SQL","WebGL","SEO","UI/UX"]}
 </script>
 <style>
@@ -618,14 +618,24 @@ html.ready .sdown{opacity:1}
   text-transform:uppercase;color:var(--acc);margin-bottom:22px}
 #case h3{font-family:Syne,sans-serif;font-weight:800;font-size:clamp(2.2rem,6.5vw,7.5rem);
   line-height:.9;text-transform:uppercase;letter-spacing:-.035em;margin-bottom:44px}
-/* Ligação para o trabalho ao vivo, no topo do caso de estudo. */
-#case .caseLive{display:inline-flex;align-items:center;gap:.7em;
-  margin-top:calc(var(--u)*1.2);padding:.72em 1.3em;
+/* Ligações para o trabalho ao vivo, no topo do caso de estudo.
+   São uma na maioria dos casos e duas no framebudget — a demo a correr e o
+   código — por isso a margem vive no contentor e não em cada botão: com a
+   margem em cada um, dois botões lado a lado herdavam-na duas vezes. */
+#case .caseLinks{display:flex;flex-wrap:wrap;gap:12px;margin-top:calc(var(--u)*1.2)}
+#case .caseLive{display:inline-flex;align-items:center;gap:.7em;padding:.72em 1.3em;
   font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);
   letter-spacing:.2em;text-transform:uppercase;color:var(--fg);
   border:1px solid var(--line);border-radius:999px;text-decoration:none;
   transition:background .45s var(--e),border-color .45s var(--e),color .45s var(--e)}
 #case .caseLive i{font-style:normal;transition:transform .45s var(--e)}
+/* Quando há duas, a primeira é aquela em que se quer que carreguem.
+   ISTO TEM DE FICAR ANTES DO :hover. `.caseLive.pri` e `.caseLive:hover` têm a
+   mesma especificidade — uma pseudo-classe pesa o mesmo que uma classe — por
+   isso ganha a que estiver escrita depois. Com esta regra em baixo, o hover
+   pintava o fundo de laranja e o `.pri` mantinha o texto laranja por cima:
+   botão ilegível, e só no estado que ninguém revê. */
+#case .caseLive.pri{border-color:var(--acc);color:var(--acc)}
 #case .caseLive:hover{background:var(--acc);border-color:var(--acc);color:#fff}
 #case .caseLive:hover i{transform:translate(2px,-2px)}
 #case .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:30px;
@@ -1294,9 +1304,17 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
         <span class="m">Next.js · GSAP<br>WebGL · Three.js</span>
         <span class="y">2026</span>
       </div>
-      <div class="itm rv" data-cursor="Open" data-k="nh" data-seed="2" role="button" tabindex="0">
+      <div class="itm rv" data-cursor="Open" data-k="fbg" data-seed="5" role="button" tabindex="0">
         <canvas class="thumb" aria-hidden="true"></canvas>
         <span class="i">03</span>
+        <span class="t">framebudget<span class="code">CODE</span></span>
+        <img class="shot" src="../assets/framebudget.webp" alt="framebudget: frame time chart with adaptive quality tiers" loading="lazy" decoding="async" width="640" height="400">
+        <span class="m">Open source · JavaScript<br>Zero dependencies</span>
+        <span class="y">2026</span>
+      </div>
+      <div class="itm rv" data-cursor="Open" data-k="nh" data-seed="2" role="button" tabindex="0">
+        <canvas class="thumb" aria-hidden="true"></canvas>
+        <span class="i">04</span>
         <span class="t">NH Concierge</span>
         <img class="shot" src="../assets/nh.webp" alt="NH Concierge website" loading="lazy" decoding="async" width="640" height="400">
         <span class="m">Design &amp; build<br>SEO · Maintenance</span>
@@ -1304,7 +1322,7 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
       </div>
       <div class="itm rv" data-cursor="Open" data-k="fl" data-seed="3" role="button" tabindex="0">
         <canvas class="thumb" aria-hidden="true"></canvas>
-        <span class="i">04</span>
+        <span class="i">05</span>
         <span class="t">FL Performance</span>
         <img class="shot" src="../assets/fl.webp" alt="FL Performance website" loading="lazy" decoding="async" width="640" height="400">
         <span class="m">Tuscany, Italy<br>Design · SEO</span>
@@ -1312,7 +1330,7 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
       </div>
       <div class="itm rv" data-cursor="Open" data-k="dl" data-seed="4" role="button" tabindex="0">
         <canvas class="thumb" aria-hidden="true"></canvas>
-        <span class="i">05</span>
+        <span class="i">06</span>
         <span class="t">Daylight LA</span>
         <img class="shot" src="../assets/daylight.webp" alt="Daylight LA website" loading="lazy" decoding="async" width="640" height="400">
         <span class="m">Brand site<br>Design &amp; build</span>
@@ -1612,6 +1630,7 @@ const RECS = [
 const MEDIA = {
   rir: {img:'../assets/rir-hero.webp',  video:'../assets/rir-hero.mp4'},
   pf:  {img:'../assets/portfolio.webp', video:null},
+  fbg: {img:'../assets/framebudget.webp', video:null},
   nh:  {img:'../assets/nh.webp',        video:null},
   fl:  {img:'../assets/fl.webp',        video:null},
   dl:  {img:'../assets/daylight.webp',  video:null},
@@ -1690,6 +1709,15 @@ const CASES={
   body:[['Why','For a web developer the portfolio is the work sample. Anything claimed on a CV should be visible in how this site is built.'],
         ['Approach','GSAP with ScrollTrigger for choreography, Lenis for scroll, and a WebGL layer for the background and the scroll-driven particle field. The morphing formations are a single buffer geometry interpolated between three target shapes - no geometry is rebuilt at runtime.'],
         ['The constraint','Most award-winning sites score around 40 on Lighthouse. The goal here was to keep the motion and the WebGL while staying above 90: capped device pixel ratio, transform-only animation, geometry allocated once, and full prefers-reduced-motion support.']]},
+ fbg:{k:'2026 · Open source',t:'framebudget',
+  live:[['/framebudget/','Run the demo'],
+        ['https://github.com/eimaieros/framebudget','See the code']],
+  meta:[['Role','Design & Development'],['Stack','Vanilla JavaScript'],['Size','7.3 KB minified'],['Dependencies','None']],
+  body:[['The gap','Every performance tool we have measures loading - LCP, CLS, TTFB, INP - and then stops. What happens over the next ninety seconds, while someone scrolls through a site, is measured by nothing at all. That is exactly where heavily animated sites fall apart, and it is why most award-winning sites score around 40 on Lighthouse.'],
+        ['What it does','Samples real frame timing in production, detects long tasks, and automatically degrades animation quality before the user feels the stutter - then climbs back when there is headroom. Three tiers, driven by percentiles rather than averages.'],
+        ['Why percentiles','59 frames at 16 ms and one at 400 ms averages to 19 ms, which looks healthy. Nobody perceives an average. They perceive the 400 ms frame and call it stuttering. Smoothness lives in the tail, so the library works in p50 and p95.'],
+        ['The hard part','Adaptive quality oscillates unless you fight it: drop, improve, raise, degrade, drop again. The controller uses asymmetric thresholds, a dwell time, and a regret counter that makes a tier costlier to re-enter after it has failed once. The constructor refuses parameters that would guarantee oscillation.'],
+        ['Where it came from','Every decision in it came out of a bug I shipped first. The library is that experience written down in a form other people can use.']]},
  nh:{k:'2022 - present · Freelance',t:'NH Concierge',
   live:['https://www.nhcs.pt/','nhcs.pt'],
   meta:[['Role','Design · Build · SEO'],['Client','NH Concierge Services'],['Sector','Luxury travel'],['Live','nhcs.pt']],
@@ -2959,8 +2987,14 @@ safe('lista de trabalhos',()=>QA('.itm').forEach((it,i)=>{
     /* Um caso de estudo sem ligação para o trabalho é uma descrição de um
        trabalho. Quem lê tem de poder ir ver. `rel="noopener"` porque abre em
        separador novo e a página de destino não precisa de referência a esta. */
-    const live = c.live
-      ? `<a class="caseLive" href="${c.live[0]}" target="_blank" rel="noopener noreferrer" data-cursor="Open">${c.live[1]} <i aria-hidden="true">↗</i></a>`
+    /* `live` aceita um par ['url','texto'] ou uma lista de pares. Os casos
+       antigos continuam a passar um par só; o framebudget passa dois, porque
+       ver a biblioteca a baixar a qualidade vale mais do que ler o código dela. */
+    const ligacoes = !c.live ? [] : (Array.isArray(c.live[0]) ? c.live : [c.live]);
+    const live = ligacoes.length
+      ? `<div class="caseLinks">${ligacoes.map(([u,t],i)=>
+          `<a class="caseLive${i===0&&ligacoes.length>1?' pri':''}" href="${u}" target="_blank" rel="noopener noreferrer" data-cursor="Open">${t} <i aria-hidden="true">↗</i></a>`
+        ).join('')}</div>`
       : '';
     caseIn.innerHTML=`<div class="kicker">${c.k}</div><h3>${c.t}</h3>${live}
       <div class="meta">${c.meta.map(([k,v])=>`<div><b>${k}</b><span>${v}</span></div>`).join('')}</div>

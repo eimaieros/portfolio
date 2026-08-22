@@ -23,6 +23,21 @@ cp assets/*.webp assets/*.mp4 assets/*.svg assets/*.jpg dist/assets/ 2>/dev/null
 mkdir -p dist/assets/case
 cp assets/case/*.webp dist/assets/case/ 2>/dev/null || true
 
+# A demo do framebudget, servida em rodrigofigueiredo.dev/framebudget/
+#
+# O caso de estudo diz que a biblioteca baixa a qualidade antes de a quebra ser
+# visível. Uma pessoa a avaliar o portefólio pode carregar num botão e ver isso
+# acontecer, em vez de ler que acontece. É por isso que vale a pena os 30 KB.
+#
+# A pasta é uma cópia gerada por tools/sincronizar-framebudget.sh — ver o
+# LEIA-ME lá dentro, e a comparação em verificar.sh que impede que divirja.
+if [ -d framebudget-demo ]; then
+  mkdir -p dist/framebudget
+  cp framebudget-demo/index.html framebudget-demo/LICENSE dist/framebudget/
+  mkdir -p dist/framebudget/src
+  cp framebudget-demo/src/*.js dist/framebudget/src/
+fi
+
 cat > dist/robots.txt <<'EOF'
 User-agent: *
 Allow: /
@@ -38,6 +53,8 @@ cat > dist/_headers <<'EOF'
   Cache-Control: public, max-age=0, must-revalidate
 /assets/*
   Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+/framebudget/src/*
+  Cache-Control: public, max-age=0, must-revalidate
 EOF
 
 cat > dist/netlify.toml <<'EOF'
