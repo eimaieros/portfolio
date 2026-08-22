@@ -80,6 +80,7 @@ scans for QA code that leaked into the published file, and builds.
 | `tools/verificar.sh` | all checks, in order |
 | `tools/build.sh` | assemble `dist/` |
 | `tools/teste-casos.cjs` | open every case study and check it is complete |
+| `tools/teste-titulos.js` | no case-study title breaks mid-word, at any window width |
 | `tools/sincronizar-framebudget.sh` | refresh the vendored framebudget demo |
 | `tools/auditoria.py` | weight, render-blocking resources, a11y, SEO metadata |
 | `tools/check-tdz.py` | top-level `const`/`let` used before declaration |
@@ -100,6 +101,29 @@ JavaScript from an object and never exist until someone clicks a work item, so
 a mistake there doesn't break the page — it breaks one panel, on the one
 interaction nobody re-tests by hand. `teste-casos.cjs` opens all six and checks
 each has a title, body text, and working links.
+
+### The bug no automated test could have caught
+
+Four of the six case-study titles were breaking mid-word — FRAMEB / UDGET,
+PERFORM / ANCE, PORTFOL / IO, CONCIER / GE — at 111px display type. Seven
+characters fit; most of the titles are nine or eleven. The global
+`overflow-wrap: break-word` was doing its job, keeping the text inside the
+panel, but at that size the result reads as a mistake rather than a wrap.
+
+It had been live since the case studies existed. `teste-casos.cjs` opens every
+one of them and never saw it, because jsdom has no layout engine: it can tell
+you the text is there, not how wide it is.
+
+The fix sizes the display type from the longest word in the title, and needs
+two upper bounds rather than one — a viewport-relative term for narrow windows,
+and a `rem` term because the panel stops growing at a fixed `max-width`, so a
+`vw`-only limit reintroduced the break on large monitors.
+
+`teste-titulos.js` now reproduces the CSS arithmetic and checks every title
+against the real panel width from 320px to 3840px. It reads the constants and
+the titles out of `index.html` rather than keeping its own copies — a test that
+stores its own duplicate of the values stops testing the file the moment
+someone changes one.
 
 ### A verification script that lied
 

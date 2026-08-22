@@ -38,13 +38,19 @@ else
   falhou=1
 fi
 
-titulo "3. Variáveis usadas antes de declaradas"
+titulo "3. Os títulos dos casos cabem no painel"
+# O jsdom não tem motor de layout, por isso o teste-casos.cjs não vê larguras.
+# Foi por isso que quatro dos seis títulos estiveram a partir a palavra ao meio
+# durante meses sem ninguém dar por isso.
+node tools/teste-titulos.js || falhou=1
+
+titulo "4. Variáveis usadas antes de declaradas"
 python3 tools/check-tdz.py site/index.html || falhou=1
 
-titulo "4. Peso, acessibilidade, SEO"
+titulo "5. Peso, acessibilidade, SEO"
 python3 tools/auditoria.py || falhou=1
 
-titulo "5. Resíduos de QA no ficheiro publicado"
+titulo "6. Resíduos de QA no ficheiro publicado"
 if grep -qE "LOREM QA|__massa|__dbg|document\.hidden\|\|1|closeGate, 120000" site/index.html; then
   echo "  !! encontrei código de teste no site/index.html"; falhou=1
 else
@@ -56,7 +62,7 @@ else
   echo "  ok  sem ficheiros temporários"
 fi
 
-titulo "6. A cópia do framebudget está a par do original"
+titulo "7. A cópia do framebudget está a par do original"
 # framebudget-demo/ é uma cópia gerada de ../framebudget, versionada aqui porque
 # o Cloudflare só clona este repositório. Uma cópia que ninguém compara é uma
 # segunda versão à espera de divergir, por isso compara-se aqui — no único sítio
@@ -69,16 +75,35 @@ if [ -z "$fb_origem" ]; then
   echo "  --  original não está aqui; nada a comparar (normal no servidor)"
 elif [ ! -d framebudget-demo ]; then
   echo "  !!  falta framebudget-demo/ — corre ./tools/sincronizar-framebudget.sh"; falhou=1
-elif diff -rq "$fb_origem/src" framebudget-demo/src > /dev/null 2>&1; then
-  echo "  ok  as duas cópias do src/ são iguais"
 else
-  echo "  !!  framebudget-demo/src difere de $fb_origem/src"
-  diff -rq "$fb_origem/src" framebudget-demo/src 2>&1 | sed 's|^|      |'
-  echo "      corre ./tools/sincronizar-framebudget.sh"
-  falhou=1
+  fb_dif=0
+  diff -rq "$fb_origem/src" framebudget-demo/src > /dev/null 2>&1 || {
+    echo "  !!  framebudget-demo/src difere de $fb_origem/src"
+    diff -rq "$fb_origem/src" framebudget-demo/src 2>&1 | sed 's|^|      |'
+    fb_dif=1
+  }
+  # O HTML também tem de ser comparado. A primeira versão desta verificação só
+  # olhava para o src/ e deixou passar uma alteração ao demo/index.html: o
+  # guarda dizia "as duas cópias são iguais" enquanto tinham divergido — o
+  # mesmo tipo de silêncio que ele existe para não haver.
+  # A cópia leva o import reescrito (../src/ -> ./src/), por isso normaliza-se
+  # o original da mesma maneira antes de comparar, senão diferiam sempre.
+  fb_tmp=$(mktemp)
+  sed "s|'\.\./src/index\.js'|'./src/index.js'|g" "$fb_origem/demo/index.html" > "$fb_tmp"
+  diff -q "$fb_tmp" framebudget-demo/index.html > /dev/null 2>&1 || {
+    echo "  !!  framebudget-demo/index.html difere de $fb_origem/demo/index.html"
+    fb_dif=1
+  }
+  rm -f "$fb_tmp"
+  if [ "$fb_dif" -eq 0 ]; then
+    echo "  ok  src/ e demo/index.html iguais ao original"
+  else
+    echo "      corre ./tools/sincronizar-framebudget.sh"
+    falhou=1
+  fi
 fi
 
-titulo "7. Build"
+titulo "8. Build"
 ./tools/build.sh > /dev/null && echo "  ok  dist/ gerado e verificado" || falhou=1
 
 if [ "$falhou" -eq 0 ]; then

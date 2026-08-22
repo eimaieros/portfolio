@@ -616,7 +616,34 @@ html.ready .sdown{opacity:1}
 #case .inner{max-width:calc(var(--u)*66);margin:0 auto;padding:calc(var(--u)*9) var(--pad) calc(var(--u)*8)}
 #case .kicker{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);letter-spacing:.28em;
   text-transform:uppercase;color:var(--acc);margin-bottom:22px}
-#case h3{font-family:Syne,sans-serif;font-weight:800;font-size:clamp(2.2rem,6.5vw,7.5rem);
+/* O TAMANHO DO TÍTULO DEPENDE DA PALAVRA MAIS LONGA.
+   Com um `font-size` fixo, quatro dos seis casos partiam a palavra ao meio:
+   FRAMEB / UDGET, PERFORM / ANCE, PORTFOL / IO, CONCIER / GE. A regra global
+   `overflow-wrap:break-word` (linha ~56) estava a fazer o seu trabalho — a
+   impedir que o texto transbordasse — mas num display de 111px o resultado
+   lê-se como erro. Cabiam sete letras e a maioria dos títulos tem nove ou onze.
+
+   `--ch` é escrito pelo JS ao abrir o caso: o número de letras da palavra mais
+   longa, que é a única que não pode quebrar. As constantes vêm de medir o Syne
+   800 em caixa alta no browser — ≈1,2 em por letra — contra a largura real do
+   painel, com 5% de folga.
+
+   São DUAS e não uma. O `.inner` tem `max-width` fixo: acima de certa largura
+   de janela ele pára de crescer, mas um limite só em `vw` continuava a crescer
+   — num monitor grande a palavra voltava a partir-se. O termo em `rem` trava
+   isso.
+
+   O `max()` põe um chão, senão em telemóvel um título longo encolhia até ficar
+   ilegível. 1,25rem e não mais: a 1,5rem, "FRAMEBUDGET" e "PERFORMANCE" ainda
+   transbordavam num ecrã de 320px, que é um telemóvel que existe. Verificado
+   dos 320px aos 3840px em `tools/teste-titulos.js`.
+
+   O `overflow-wrap` global fica como última rede: se um dia entrar um título
+   ainda mais longo, quebra em vez de transbordar o painel. */
+#case h3{font-family:Syne,sans-serif;font-weight:800;
+  font-size:max(1.25rem, min(clamp(2.2rem,6.5vw,7.5rem),
+                             calc(42vw / var(--ch,8)),
+                             calc(46rem / var(--ch,8))));
   line-height:.9;text-transform:uppercase;letter-spacing:-.035em;margin-bottom:44px}
 /* Ligações para o trabalho ao vivo, no topo do caso de estudo.
    São uma na maioria dos casos e duas no framebudget — a demo a correr e o
@@ -2996,7 +3023,10 @@ safe('lista de trabalhos',()=>QA('.itm').forEach((it,i)=>{
           `<a class="caseLive${i===0&&ligacoes.length>1?' pri':''}" href="${u}" target="_blank" rel="noopener noreferrer" data-cursor="Open">${t} <i aria-hidden="true">↗</i></a>`
         ).join('')}</div>`
       : '';
-    caseIn.innerHTML=`<div class="kicker">${c.k}</div><h3>${c.t}</h3>${live}
+    /* A palavra mais longa é a única que não pode quebrar, por isso é ela que
+       manda no tamanho do display. Ver o comentário em `#case h3` no CSS. */
+    const maisLonga = c.t.split(/\s+/).reduce((a,b)=>a.length>=b.length?a:b,'').length || 8;
+    caseIn.innerHTML=`<div class="kicker">${c.k}</div><h3 style="--ch:${maisLonga}">${c.t}</h3>${live}
       <div class="meta">${c.meta.map(([k,v])=>`<div><b>${k}</b><span>${v}</span></div>`).join('')}</div>
       ${shots?`<div class="shots">${shots}</div>`:''}
       <div class="body">${c.body.map(([h,tx])=>`<h4>${h}</h4><p>${tx}</p>`).join('')}</div>`;
