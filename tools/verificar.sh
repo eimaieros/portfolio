@@ -62,46 +62,58 @@ else
   echo "  ok  sem ficheiros temporários"
 fi
 
-titulo "7. A cópia do framebudget está a par do original"
-# framebudget-demo/ é uma cópia gerada de ../framebudget, versionada aqui porque
-# o Cloudflare só clona este repositório. Uma cópia que ninguém compara é uma
-# segunda versão à espera de divergir, por isso compara-se aqui — no único sítio
-# onde as duas pastas existem ao mesmo tempo: a máquina do Rodrigo.
-fb_origem=""
-for t in "../framebudget" "../../framebudget"; do
-  [ -d "$t/src" ] && { fb_origem="$t"; break; }
-done
-if [ -z "$fb_origem" ]; then
-  echo "  --  original não está aqui; nada a comparar (normal no servidor)"
-elif [ ! -d framebudget-demo ]; then
-  echo "  !!  falta framebudget-demo/ — corre ./tools/sincronizar-framebudget.sh"; falhou=1
-else
-  fb_dif=0
-  diff -rq "$fb_origem/src" framebudget-demo/src > /dev/null 2>&1 || {
-    echo "  !!  framebudget-demo/src difere de $fb_origem/src"
-    diff -rq "$fb_origem/src" framebudget-demo/src 2>&1 | sed 's|^|      |'
-    fb_dif=1
+# As demos das bibliotecas (framebudget, glaze) são cópias geradas dos repos
+# irmãos, versionadas aqui porque o Cloudflare só clona ESTE repositório. Uma
+# cópia que ninguém compara é uma segunda versão à espera de divergir, por isso
+# compara-se — no único sítio onde as duas pastas existem ao mesmo tempo: a
+# máquina do Rodrigo.
+#
+# Escrito como função e não duas vezes de propósito: da primeira vez que isto
+# existiu só comparava o src/ e deixou passar uma alteração ao demo/index.html.
+# Com duas cópias do guarda, corrigir uma e esquecer a outra é o resultado
+# provável.
+comparar_copia() {
+  local nome="$1" destino="$2" origem=""
+  for t in "../$nome" "../../$nome"; do
+    [ -d "$t/src" ] && { origem="$t"; break; }
+  done
+
+  if [ -z "$origem" ]; then
+    echo "  --  $nome: original não está aqui; nada a comparar (normal no servidor)"
+    return
+  fi
+  if [ ! -d "$destino" ]; then
+    echo "  !!  falta $destino/ — corre ./tools/sincronizar-$nome.sh"; falhou=1; return
+  fi
+
+  local dif=0
+  diff -rq "$origem/src" "$destino/src" > /dev/null 2>&1 || {
+    echo "  !!  $destino/src difere de $origem/src"
+    diff -rq "$origem/src" "$destino/src" 2>&1 | sed 's|^|      |'
+    dif=1
   }
-  # O HTML também tem de ser comparado. A primeira versão desta verificação só
-  # olhava para o src/ e deixou passar uma alteração ao demo/index.html: o
-  # guarda dizia "as duas cópias são iguais" enquanto tinham divergido — o
-  # mesmo tipo de silêncio que ele existe para não haver.
+
   # A cópia leva o import reescrito (../src/ -> ./src/), por isso normaliza-se
   # o original da mesma maneira antes de comparar, senão diferiam sempre.
-  fb_tmp=$(mktemp)
-  sed "s|'\.\./src/index\.js'|'./src/index.js'|g" "$fb_origem/demo/index.html" > "$fb_tmp"
-  diff -q "$fb_tmp" framebudget-demo/index.html > /dev/null 2>&1 || {
-    echo "  !!  framebudget-demo/index.html difere de $fb_origem/demo/index.html"
-    fb_dif=1
+  local tmp; tmp=$(mktemp)
+  sed "s|'\.\./src/index\.js'|'./src/index.js'|g" "$origem/demo/index.html" > "$tmp"
+  diff -q "$tmp" "$destino/index.html" > /dev/null 2>&1 || {
+    echo "  !!  $destino/index.html difere de $origem/demo/index.html"
+    dif=1
   }
-  rm -f "$fb_tmp"
-  if [ "$fb_dif" -eq 0 ]; then
-    echo "  ok  src/ e demo/index.html iguais ao original"
+  rm -f "$tmp"
+
+  if [ "$dif" -eq 0 ]; then
+    echo "  ok  $nome: src/ e demo/index.html iguais ao original"
   else
-    echo "      corre ./tools/sincronizar-framebudget.sh"
+    echo "      corre ./tools/sincronizar-$nome.sh"
     falhou=1
   fi
-fi
+}
+
+titulo "7. As cópias das bibliotecas estão a par dos originais"
+comparar_copia framebudget framebudget-demo
+comparar_copia glaze glaze-demo
 
 titulo "8. Build"
 ./tools/build.sh > /dev/null && echo "  ok  dist/ gerado e verificado" || falhou=1

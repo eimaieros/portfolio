@@ -38,6 +38,15 @@ if [ -d framebudget-demo ]; then
   cp framebudget-demo/src/*.js dist/framebudget/src/
 fi
 
+# A demo do glaze, servida em rodrigofigueiredo.dev/glaze/. Mesma lógica: a
+# biblioteca promete que a página nunca perde as imagens, e quem estiver a
+# avaliar pode desligar o WebGPU e ver que é verdade em vez de acreditar.
+if [ -d glaze-demo ]; then
+  mkdir -p dist/glaze/src
+  cp glaze-demo/index.html glaze-demo/LICENSE dist/glaze/
+  cp glaze-demo/src/*.js dist/glaze/src/
+fi
+
 cat > dist/robots.txt <<'EOF'
 User-agent: *
 Allow: /
@@ -54,6 +63,8 @@ cat > dist/_headers <<'EOF'
 /assets/*
   Cache-Control: public, max-age=604800, stale-while-revalidate=86400
 /framebudget/src/*
+  Cache-Control: public, max-age=0, must-revalidate
+/glaze/src/*
   Cache-Control: public, max-age=0, must-revalidate
 EOF
 
