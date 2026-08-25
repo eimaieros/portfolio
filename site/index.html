@@ -44,8 +44,8 @@
 "url":"https://rodrigofigueiredo.dev/",
 "address":{"@type":"PostalAddress","addressLocality":"Seixal","addressRegion":"Lisbon","addressCountry":"PT"},
 "knowsLanguage":["Portuguese","English"],
-"sameAs":["https://linkedin.com/in/rodrigomvfigueiredo","https://github.com/eimaieros","https://github.com/eimaieros/framebudget"],
-"knowsAbout":["JavaScript","React","Next.js","Node.js","PHP","Python","SQL","WebGL","SEO","UI/UX"]}
+"sameAs":["https://linkedin.com/in/rodrigomvfigueiredo","https://github.com/eimaieros","https://github.com/eimaieros/framebudget","https://github.com/eimaieros/glaze"],
+"knowsAbout":["JavaScript","React","Next.js","Node.js","PHP","Python","SQL","WebGL","WebGPU","SEO","UI/UX"]}
 </script>
 <style>
 /* fontes carregadas por <link> no <head> — @import bloqueia o CSS */
@@ -646,9 +646,10 @@ html.ready .sdown{opacity:1}
                              calc(46rem / var(--ch,8))));
   line-height:.9;text-transform:uppercase;letter-spacing:-.035em;margin-bottom:44px}
 /* Ligações para o trabalho ao vivo, no topo do caso de estudo.
-   São uma na maioria dos casos e duas no framebudget — a demo a correr e o
-   código — por isso a margem vive no contentor e não em cada botão: com a
-   margem em cada um, dois botões lado a lado herdavam-na duas vezes. */
+   São uma na maioria dos casos e duas nas bibliotecas (framebudget, glaze) —
+   a demo a correr e o código — por isso a margem vive no contentor e não em
+   cada botão: com a margem em cada um, dois botões lado a lado herdavam-na
+   duas vezes. */
 #case .caseLinks{display:flex;flex-wrap:wrap;gap:12px;margin-top:calc(var(--u)*1.2)}
 #case .caseLive{display:inline-flex;align-items:center;gap:.7em;padding:.72em 1.3em;
   font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);
@@ -1339,9 +1340,17 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
         <span class="m">Open source · JavaScript<br>Zero dependencies</span>
         <span class="y">2026</span>
       </div>
-      <div class="itm rv" data-cursor="Open" data-k="nh" data-seed="2" role="button" tabindex="0">
+      <div class="itm rv" data-cursor="Open" data-k="glz" data-seed="6" role="button" tabindex="0">
         <canvas class="thumb" aria-hidden="true"></canvas>
         <span class="i">04</span>
+        <span class="t">glaze<span class="code">CODE</span></span>
+        <img class="shot" src="../assets/glaze.webp" alt="glaze: a contour field warped by the displacement shader" loading="lazy" decoding="async" width="640" height="400">
+        <span class="m">Open source · WebGPU<br>WGSL · Zero dependencies</span>
+        <span class="y">2026</span>
+      </div>
+      <div class="itm rv" data-cursor="Open" data-k="nh" data-seed="2" role="button" tabindex="0">
+        <canvas class="thumb" aria-hidden="true"></canvas>
+        <span class="i">05</span>
         <span class="t">NH Concierge</span>
         <img class="shot" src="../assets/nh.webp" alt="NH Concierge website" loading="lazy" decoding="async" width="640" height="400">
         <span class="m">Design &amp; build<br>SEO · Maintenance</span>
@@ -1349,7 +1358,7 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
       </div>
       <div class="itm rv" data-cursor="Open" data-k="fl" data-seed="3" role="button" tabindex="0">
         <canvas class="thumb" aria-hidden="true"></canvas>
-        <span class="i">05</span>
+        <span class="i">06</span>
         <span class="t">FL Performance</span>
         <img class="shot" src="../assets/fl.webp" alt="FL Performance website" loading="lazy" decoding="async" width="640" height="400">
         <span class="m">Tuscany, Italy<br>Design · SEO</span>
@@ -1357,7 +1366,7 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
       </div>
       <div class="itm rv" data-cursor="Open" data-k="dl" data-seed="4" role="button" tabindex="0">
         <canvas class="thumb" aria-hidden="true"></canvas>
-        <span class="i">06</span>
+        <span class="i">07</span>
         <span class="t">Daylight LA</span>
         <img class="shot" src="../assets/daylight.webp" alt="Daylight LA website" loading="lazy" decoding="async" width="640" height="400">
         <span class="m">Brand site<br>Design &amp; build</span>
@@ -1658,6 +1667,7 @@ const MEDIA = {
   rir: {img:'../assets/rir-hero.webp',  video:'../assets/rir-hero.mp4'},
   pf:  {img:'../assets/portfolio.webp', video:null},
   fbg: {img:'../assets/framebudget.webp', video:null},
+  glz: {img:'../assets/glaze.webp',     video:null},
   nh:  {img:'../assets/nh.webp',        video:null},
   fl:  {img:'../assets/fl.webp',        video:null},
   dl:  {img:'../assets/daylight.webp',  video:null},
@@ -1745,6 +1755,15 @@ const CASES={
         ['Why percentiles','59 frames at 16 ms and one at 400 ms averages to 19 ms, which looks healthy. Nobody perceives an average. They perceive the 400 ms frame and call it stuttering. Smoothness lives in the tail, so the library works in p50 and p95.'],
         ['The hard part','Adaptive quality oscillates unless you fight it: drop, improve, raise, degrade, drop again. The controller uses asymmetric thresholds, a dwell time, and a regret counter that makes a tier costlier to re-enter after it has failed once. The constructor refuses parameters that would guarantee oscillation.'],
         ['Where it came from','Every decision in it came out of a bug I shipped first. The library is that experience written down in a form other people can use.']]},
+ glz:{k:'2026 · Open source',t:'glaze',
+  live:[['/glaze/','Run the demo'],
+        ['https://github.com/eimaieros/glaze','See the code']],
+  meta:[['Role','Design & Development'],['Stack','WebGPU · WGSL'],['Size','12.3 KB minified'],['Dependencies','None']],
+  body:[['The gap','Scroll-driven shader effects are everywhere in award-winning design and almost nowhere in production. Not because they are hard to write - because every implementation starts by hiding your image, then uploading the texture. Between those two steps the visitor sees a hole, and if the decode fails the hole is permanent.'],
+        ['What it does','Point it at an image and it becomes a WebGPU shader driven by scroll - displacement, a torn reveal, chromatic split. One line of JavaScript, three effects, and writing a fourth is a single WGSL function.'],
+        ['The inversion','glaze uploads the texture first and hides the element only once there is something to replace it with. No WebGPU, no adapter, a device lost mid-session, an image that will not decode, prefers-reduced-motion - every failure path ends in the same place: the original page, untouched. Safari only enabled WebGPU by default in version 26, so that is not a hypothetical.'],
+        ['One canvas, not twenty','The obvious design is a canvas per image, and it falls over on a real page: each one is a separate GPU context with its own swap chain and compositing layer, and browsers cap how many a page may hold. So there is one canvas over the viewport and every image is a quad at its own screen rect. The twentieth image costs one more draw call instead of one more context.'],
+        ['The expensive detail','Keeping those quads aligned means reading getBoundingClientRect every frame, which forces a layout flush. Read in a loop with a write between and twelve images become twelve full layout passes per frame - nothing looks slow in a profile and the page crawls. So all the reads happen in one pass, and on a still page there are none at all. There is a test that asserts exactly that, because it is the kind of thing that quietly regresses.']]},
  nh:{k:'2022 - present · Freelance',t:'NH Concierge',
   live:['https://www.nhcs.pt/','nhcs.pt'],
   meta:[['Role','Design · Build · SEO'],['Client','NH Concierge Services'],['Sector','Luxury travel'],['Live','nhcs.pt']],
