@@ -1,0 +1,25 @@
+# Como o site chega ao ar.
+#
+# Isto nao e um Worker com codigo: e um Worker que so serve ficheiros estaticos.
+# Nao ha `main` porque nao ha script - so a pasta de assets.
+#
+# A pasta servida e `dist/`, que NAO esta no repositorio (ver .gitignore). E
+# gerada no build, por `tools/build.sh`, porque em desenvolvimento o HTML vive
+# em `site/` e refere as imagens como `../assets/`; publicado, o index fica na
+# raiz e as imagens em `assets/`. Sem esse passo, o site ia ao ar com as
+# imagens todas partidas. Versionar o `dist/` seria versionar o mesmo conteudo
+# duas vezes e garantir que um dia ficavam dessincronizados.
+#
+# O nome tem de ser exactamente este. Se mudar, o `wrangler deploy` cria um
+# Worker novo em vez de actualizar o que tem o dominio ligado.
+name = "steep-sun-bd4f"
+compatibility_date = "2026-08-15"
+
+[assets]
+directory = "./dist"
+
+# O site e uma pagina so, com ancoras (#work, #about, #contact). Quem escrever
+# um caminho que nao existe - rodrigofigueiredo.dev/about, um link antigo, um
+# erro de escrita - recebe a pagina em vez de um 404 em branco. O `canonical`
+# no <head> aponta sempre para a raiz, por isso o Google nao indexa duplicados.
+not_found_handling = "single-page-application"
