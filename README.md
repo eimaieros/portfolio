@@ -4,6 +4,9 @@ Personal portfolio for a fullstack web developer. One HTML file, no framework,
 no bundler, no dependencies to install. The only build step is a shell script
 that rewrites asset paths for the published layout.
 
+[![CI](https://github.com/eimaieros/portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/eimaieros/portfolio/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **Live:** <https://rodrigofigueiredo.dev>
 
 ---
@@ -77,7 +80,7 @@ scans for QA code that leaked into the published file, and builds.
 
 | Script | Purpose |
 |---|---|
-| `tools/verificar.sh` | all checks, in order |
+| `tools/verificar.sh` | all checks, in order — also what CI runs on every push |
 | `tools/build.sh` | assemble `dist/` |
 | `tools/teste-casos.cjs` | open every case study and check it is complete |
 | `tools/teste-titulos.js` | no case-study title breaks mid-word, at any window width |
@@ -91,6 +94,20 @@ scans for QA code that leaked into the published file, and builds.
 | `tools/gerar-cadence-thumb.py` | render the cadence thumbnail from the scorecard the backend actually returns |
 | `tools/importar-capturas.py` | import real screenshots into the asset slots |
 
+### The pipeline runs on every push
+
+Until August 2026 the eight checks above only ran when someone remembered to
+type the command, which makes "blocks the build on regression" a promise rather
+than a fact. [CI](.github/workflows/ci.yml) runs the same script on every push,
+and uploads the built `dist/` as an artifact — so you can download exactly what
+Cloudflare would serve and diff it against what is live.
+
+Step 7 compares the vendored library demos against the originals in
+`../framebudget` and `../glaze`. Those are separate repositories and are not
+checked out in CI, so that step reports "nothing to compare" and moves on —
+which is also what it does on the Cloudflare builder. It is a guard for the
+machine where both copies exist, not for the server.
+
 ### Why a jsdom harness for a static page
 
 Because syntax-valid JavaScript is not the same as JavaScript that runs. Three
@@ -102,7 +119,7 @@ reports anything that throws. `check-tdz.py` catches the same family statically.
 The case studies needed their own test on top of that. They are built in
 JavaScript from an object and never exist until someone clicks a work item, so
 a mistake there doesn't break the page — it breaks one panel, on the one
-interaction nobody re-tests by hand. `teste-casos.cjs` opens all seven and checks
+interaction nobody re-tests by hand. `teste-casos.cjs` opens all eight and checks
 each has a title, body text, and working links.
 
 ### The bug no automated test could have caught
