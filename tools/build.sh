@@ -66,6 +66,19 @@ cat > dist/_headers <<'EOF'
   Cache-Control: public, max-age=0, must-revalidate
 /glaze/src/*
   Cache-Control: public, max-age=0, must-revalidate
+# As páginas das demos precisam da mesma regra que a raiz, e não a tinham.
+# Sem Cache-Control explícito caem no /* e o browser aplica cache heurística
+# (uma fracção do tempo desde o Last-Modified), servindo HTML antigo com JS
+# novo. Perdemos horas a depurar uma correcção que já estava publicada e que o
+# browser se recusava a ir buscar.
+/framebudget/
+  Cache-Control: public, max-age=0, must-revalidate
+/framebudget/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+/glaze/
+  Cache-Control: public, max-age=0, must-revalidate
+/glaze/index.html
+  Cache-Control: public, max-age=0, must-revalidate
 EOF
 
 cat > dist/netlify.toml <<'EOF'
