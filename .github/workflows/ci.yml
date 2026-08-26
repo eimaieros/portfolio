@@ -9,17 +9,44 @@ on:
 # remembered to type ./tools/verificar.sh, which makes the claim a promise
 # rather than a fact. This job is the difference between the two.
 #
-# Step 7 of the script compares the vendored library demos against the
-# originals in ../framebudget and ../glaze. Those siblings are separate
-# repositories and are not checked out here, so the script reports "original
-# não está aqui; nada a comparar" and moves on — by design, and the same thing
-# it does on the Cloudflare builder.
+# Step 7 compares the vendored library demos against the originals in
+# ../framebudget and ../glaze. It used to skip here, because the siblings are
+# separate repositories and were not checked out — "nada a comparar", by
+# design, the same thing it does on the Cloudflare builder.
+#
+# That design had a hole, and it opened. Both libraries were changed this week
+# and neither vendored copy was re-synced, so /framebudget/ and /glaze/ went
+# live running last week's code. The only guard was a step that silently
+# skipped everywhere except one laptop, on the one command nobody had run.
+#
+# So the siblings are checked out now and step 7 does its job on every push.
+# This is the whole repository in one lesson: a check that can quietly decline
+# to run is not a check.
 
 jobs:
   verificar:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: portfolio
     steps:
+      # Into a subdirectory, so the sibling repositories can sit beside it
+      # exactly as they do on a development machine. actions/checkout refuses
+      # to write outside the workspace, so `path: ../framebudget` is not an
+      # option; this layout is.
       - uses: actions/checkout@v7
+        with:
+          path: portfolio
+
+      - uses: actions/checkout@v7
+        with:
+          repository: eimaieros/framebudget
+          path: framebudget
+
+      - uses: actions/checkout@v7
+        with:
+          repository: eimaieros/glaze
+          path: glaze
 
       - uses: actions/setup-node@v7
         with:
@@ -50,7 +77,7 @@ jobs:
         if: always()
         with:
           name: dist
-          path: dist/
+          path: portfolio/dist/
           retention-days: 7
 
   # ── the number the README used to claim ────────────────────────────────────
