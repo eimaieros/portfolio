@@ -119,10 +119,17 @@ and uploads the built `dist/` as an artifact — so you can download exactly wha
 Cloudflare would serve and diff it against what is live.
 
 Step 7 compares the vendored library demos against the originals in
-`../framebudget` and `../glaze`. Those are separate repositories and are not
-checked out in CI, so that step reports "nothing to compare" and moves on —
-which is also what it does on the Cloudflare builder. It is a guard for the
-machine where both copies exist, not for the server.
+`../framebudget` and `../glaze`. It used to skip in CI, because those are
+separate repositories and were not checked out.
+
+That hole opened almost immediately. Both libraries were changed, neither
+vendored copy was re-synced, and `/framebudget/` and `/glaze/` went live
+running the previous week's code — while the guard designed to catch exactly
+that reported "nothing to compare" and passed. It only ever ran on one laptop,
+on a command nobody had typed since.
+
+CI checks out both siblings now and step 7 does the comparison on every push. A
+check that can quietly decline to run is not a check.
 
 ### Why a jsdom harness for a static page
 
