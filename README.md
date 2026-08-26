@@ -33,10 +33,13 @@ and the first thing that happened when Lighthouse was actually put in CI was
 that the claim failed.
 
 The loading half is fine: FCP and LCP both at 0.7s, CLS at 0.089. What costs
-the score is total blocking time — the particle field and the instanced stage
-are built on the main thread during load, and that is a real cost paid by a
-real visitor, not a measurement artefact. Getting it to 90 means moving that
-work off the critical path, and until it is moved the number here will say 57.
+the score is total blocking time, and the cause turned out to be one number:
+**589 KB of the 715 KB of JavaScript on this page is Three.js**, and most of it
+is there to draw a background that is two full-screen quads.
+
+[PERFORMANCE.md](PERFORMANCE.md) has the measurements, what Three.js is
+actually used for, and the three routes to 90 with the cost of each — including
+the obvious one that does not work and why.
 
 **Everything degrades.** No WebGL, no GSAP, no JavaScript at all — the content is
 still readable. Each subsystem is wrapped so a failure in one never takes down
@@ -104,6 +107,8 @@ scans for QA code that leaked into the published file, and builds.
 | `tools/gerar-glaze-thumb.py` | render the glaze thumbnail by running the actual shader |
 | `tools/gerar-cadence-thumb.py` | render the cadence thumbnail from the scorecard the backend actually returns |
 | `tools/importar-capturas.py` | import real screenshots into the asset slots |
+
+See also [PERFORMANCE.md](PERFORMANCE.md) — where the Lighthouse score goes.
 
 ### The pipeline runs on every push
 

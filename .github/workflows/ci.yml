@@ -88,3 +88,16 @@ jobs:
           configPath: ./lighthouserc.json
           uploadArtifacts: true
           temporaryPublicStorage: true
+
+      # Keep the full JSON, not just the pass/fail. Working out *why* the score
+      # is what it is meant asking PageSpeed Insights, and its free quota ran
+      # out mid-investigation — so the diagnosis stalled on somebody else's
+      # rate limit. The report has mainthread-work-breakdown and bootup-time in
+      # it; there is no reason to go and ask Google for numbers this job
+      # already computed.
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: lighthouse
+          path: .lighthouseci/
+          retention-days: 30
