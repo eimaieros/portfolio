@@ -1,0 +1,72 @@
+{
+  "//": [
+    "MOBILE. The desktop config is the sibling file; this one exists because",
+    "CLAUDE.md says a working mobile experience is not optional, and nothing was",
+    "measuring it. Lighthouse's mobile preset applies a 4x CPU slowdown and a",
+    "slow-4G network on top of a small viewport, which is the closest thing to a",
+    "mid-range phone that CI can produce.",
+    "",
+    "The performance floor here is NOT set yet, on purpose. Setting it before the",
+    "first measurement would mean either inventing a number or copying the",
+    "desktop one, and a threshold picked to be passed is the thing this whole",
+    "repository spent a week learning not to write. So this run asserts only the",
+    "things that should not depend on the device — accessibility, SEO, layout",
+    "shift — and archives the report. The floor goes in on the next push, from",
+    "the number the first run actually produced."
+  ],
+  "ci": {
+    "collect": {
+      "staticDistDir": "./dist",
+      "url": [
+        "http://localhost/index.html"
+      ],
+      "numberOfRuns": 3,
+      "settings": {
+        "preset": "mobile",
+        "skipAudits": [
+          "uses-http2",
+          "canonical",
+          "is-crawlable"
+        ]
+      }
+    },
+    "assert": {
+      "assertions": {
+        "categories:accessibility": [
+          "error",
+          {
+            "minScore": 0.9
+          }
+        ],
+        "categories:seo": [
+          "error",
+          {
+            "minScore": 0.9
+          }
+        ],
+        "cumulative-layout-shift": [
+          "error",
+          {
+            "maxNumericValue": 0.1
+          }
+        ],
+        "total-byte-weight": "off",
+        "unused-javascript": "off",
+        "unminified-javascript": "off",
+        "unminified-css": "off",
+        "unused-css-rules": "off",
+        "legacy-javascript": "off",
+        "uses-long-cache-ttl": "off",
+        "csp-xss": "off",
+        "third-party-cookies": "off",
+        "render-blocking-resources": "off",
+        "non-composited-animations": "off"
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": "./.lighthouseci-mobile",
+      "reportFilenamePattern": "%%PATHNAME%%-report.%%EXTENSION%%"
+    }
+  }
+}

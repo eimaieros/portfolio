@@ -116,6 +116,29 @@ jobs:
           uploadArtifacts: true
           temporaryPublicStorage: true
 
+      # ── mobile ────────────────────────────────────────────────────────────
+      #
+      # CLAUDE.md says a working mobile experience is not optional. Nothing was
+      # measuring it: every Lighthouse run so far has been desktop, and the
+      # mobile preset adds a 4x CPU slowdown on top of everything that already
+      # costs this site its score. The number is unknown, which for a site that
+      # is somebody's work sample is the wrong thing for it to be.
+      #
+      # No performance floor yet — see lighthouserc.mobile.json for why.
+      - name: Lighthouse (mobile)
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: ./lighthouserc.mobile.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: lighthouse-mobile
+          path: .lighthouseci-mobile/
+          retention-days: 30
+
       # Keep the full JSON, not just the pass/fail. Working out *why* the score
       # is what it is meant asking PageSpeed Insights, and its free quota ran
       # out mid-investigation — so the diagnosis stalled on somebody else's
