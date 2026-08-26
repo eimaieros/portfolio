@@ -44,3 +44,10 @@ PROJECTS.md
 PROCURA-ESTADO.md
 RESPONSIVO.md
 3D-E-MONTAGEM.md
+ANIMATIONS.md
+PROMPT-LOVABLE.md
+
+# Os .bat de conveniência vivem uma pasta acima, fora de todos os repositórios:
+# são para esta máquina, tratam de seis repos de uma vez, e não têm nada que
+# fazer no repositório de um deles.
+*.bat

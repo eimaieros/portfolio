@@ -88,6 +88,7 @@ scans for QA code that leaked into the published file, and builds.
 | `tools-harness.js` | run the page in jsdom, with and without WebGL |
 | `tools/gerar-visuais.py` | generate the placeholder imagery |
 | `tools/gerar-glaze-thumb.py` | render the glaze thumbnail by running the actual shader |
+| `tools/gerar-cadence-thumb.py` | render the cadence thumbnail from the scorecard the backend actually returns |
 | `tools/importar-capturas.py` | import real screenshots into the asset slots |
 
 ### Why a jsdom harness for a static page
@@ -196,8 +197,10 @@ Regenerate with `./tools/sincronizar-framebudget.sh` or
 
 ## Licence
 
-Code under MIT (see `LICENSE`). The written content, imagery and the visual
-design are not — please don't republish those as your own.
+Code under MIT (see [`LICENSE`](LICENSE)). The written content, the imagery and
+the visual design are not — [`NOTICE.md`](NOTICE.md) sets out exactly which is
+which, and why the exceptions live in a separate file rather than at the bottom
+of the licence.
 
 ---
 
