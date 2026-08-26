@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push: { branches: [main] }
+  pull_request: { branches: [main] }
+
+# The README claims this site has "a custom verification pipeline that blocks
+# the build on regression". Until now that pipeline only ran when someone
+# remembered to type ./tools/verificar.sh, which makes the claim a promise
+# rather than a fact. This job is the difference between the two.
+#
+# Step 7 of the script compares the vendored library demos against the
+# originals in ../framebudget and ../glaze. Those siblings are separate
+# repositories and are not checked out here, so the script reports "original
+# não está aqui; nada a comparar" and moves on — by design, and the same thing
+# it does on the Cloudflare builder.
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # The harness runs the page in jsdom. NODE_PATH is how verificar.sh
+      # finds it — the script exports /tmp/node_modules, so install there.
+      - name: Install jsdom
+        run: |
+          mkdir -p /tmp
+          npm install --prefix /tmp --no-audit --no-fund --silent jsdom
+
+      # auditoria.py and check-tdz.py use only the standard library. The
+      # PIL/numpy tools in tools/ generate imagery and are not part of
+      # verification, so nothing extra is installed for them.
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Eight checks, in order
+        run: ./tools/verificar.sh
+
+      # verificar.sh already builds dist/ as its last step. Publishing it lets
+      # you download exactly what Cloudflare would serve and diff it against
+      # what is live, which is the fastest way to answer "is the thing at the
+      # address the thing in the repository?"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
