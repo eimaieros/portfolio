@@ -24,8 +24,19 @@ choreographer and inertial scrolling is not a good use of anyone's time.
 
 **Motion with a budget.** Capped device pixel ratio, transform-only animation,
 geometry allocated once and interpolated rather than rebuilt, and full
-`prefers-reduced-motion` support. Most award-winning sites score around 40 on
-Lighthouse; the target here is ≥ 90.
+`prefers-reduced-motion` support.
+
+**Where that lands, measured rather than claimed.** Performance **57**,
+accessibility 96, best practices 100, SEO 100 — desktop, on the live site.
+This paragraph said "the target here is ≥ 90" for as long as the site existed,
+and the first thing that happened when Lighthouse was actually put in CI was
+that the claim failed.
+
+The loading half is fine: FCP and LCP both at 0.7s, CLS at 0.089. What costs
+the score is total blocking time — the particle field and the instanced stage
+are built on the main thread during load, and that is a real cost paid by a
+real visitor, not a measurement artefact. Getting it to 90 means moving that
+work off the critical path, and until it is moved the number here will say 57.
 
 **Everything degrades.** No WebGL, no GSAP, no JavaScript at all — the content is
 still readable. Each subsystem is wrapped so a failure in one never takes down
