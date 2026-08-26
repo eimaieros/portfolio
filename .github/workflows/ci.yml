@@ -52,3 +52,35 @@ jobs:
           name: dist
           path: dist/
           retention-days: 7
+
+  # ── the number the README has been claiming ────────────────────────────────
+  #
+  # The README says "most award-winning sites score around 40 on Lighthouse;
+  # the target here is >= 90". That has been an assertion about a number nobody
+  # measured on a schedule. Three runs, because a single Lighthouse run on a
+  # shared CI runner is noisy enough to fail for reasons that have nothing to
+  # do with the site; the median of three is a number worth arguing with.
+  #
+  # It runs against the built dist/, which is what Cloudflare serves — not
+  # site/index.html, which still has development asset paths in it.
+  lighthouse:
+    runs-on: ubuntu-latest
+    needs: verificar
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # dist/ is generated, not committed, so it has to be built here too. Ten
+      # seconds, and it keeps the two jobs independent.
+      - name: Build dist/
+        run: ./tools/build.sh
+
+      - name: Lighthouse
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: ./lighthouserc.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true
