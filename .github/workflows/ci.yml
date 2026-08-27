@@ -109,12 +109,34 @@ jobs:
       - name: Build dist/
         run: ./tools/build.sh
 
-      - name: Lighthouse
+      # artifactName is not decoration. The action hardcodes its results
+      # directory to $PWD/.lighthouseci and uploads it under a name that
+      # defaults to "lighthouse-results" — so running the action twice in one
+      # job made the second upload collide with the first, and GitHub answers
+      # a duplicate artifact name with a non-retryable 409. The mobile step
+      # collected fine and asserted fine and then failed on the way out.
+      #
+      # Keep the full JSON, not just the pass/fail. Working out *why* the score
+      # is what it is meant asking PageSpeed Insights, and its free quota ran
+      # out mid-investigation — so the diagnosis stalled on somebody else's
+      # rate limit. The report has mainthread-work-breakdown and bootup-time in
+      # it; there is no reason to go and ask Google for numbers this job
+      # already computed.
+      - name: Lighthouse (desktop)
+        id: desktop
         uses: treosh/lighthouse-ci-action@v12
         with:
           configPath: ./lighthouserc.json
           uploadArtifacts: true
+          artifactName: lighthouse-desktop
           temporaryPublicStorage: true
+
+      # Read the number before the next step overwrites it. `lhci collect`
+      # empties .lighthouseci on the way in, and both runs use that same
+      # directory, so the desktop report exists only in this gap.
+      - name: Desktop, in the log
+        if: always()
+        run: node tools/resumo-lighthouse.mjs "${{ steps.desktop.outputs.resultsPath }}" "Desktop"
 
       # ── mobile ────────────────────────────────────────────────────────────
       #
@@ -127,28 +149,14 @@ jobs:
       # No performance floor yet, and no `preset` either — mobile is what
       # Lighthouse does by default. See lighthouserc.mobile.json.
       - name: Lighthouse (mobile)
+        id: mobile
         uses: treosh/lighthouse-ci-action@v12
         with:
           configPath: ./lighthouserc.mobile.json
           uploadArtifacts: true
+          artifactName: lighthouse-mobile
           temporaryPublicStorage: true
 
-      - uses: actions/upload-artifact@v7
+      - name: Mobile, in the log
         if: always()
-        with:
-          name: lighthouse-mobile
-          path: .lighthouseci-mobile/
-          retention-days: 30
-
-      # Keep the full JSON, not just the pass/fail. Working out *why* the score
-      # is what it is meant asking PageSpeed Insights, and its free quota ran
-      # out mid-investigation — so the diagnosis stalled on somebody else's
-      # rate limit. The report has mainthread-work-breakdown and bootup-time in
-      # it; there is no reason to go and ask Google for numbers this job
-      # already computed.
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: lighthouse
-          path: .lighthouseci/
-          retention-days: 30
+        run: node tools/resumo-lighthouse.mjs "${{ steps.mobile.outputs.resultsPath }}" "Mobile"

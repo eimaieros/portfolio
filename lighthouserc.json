@@ -96,11 +96,10 @@
         "render-blocking-resources": "off",
         "non-composited-animations": "off"
       }
-    },
-    "upload": {
-      "target": "filesystem",
-      "outputDir": "./.lighthouseci",
-      "reportFilenamePattern": "%%PATHNAME%%-report.%%EXTENSION%%"
     }
-  }
+  },
+  "//upload": [
+    "No `upload` block on purpose — the sibling mobile config explains why.",
+    "Short version: the action ignores it and uploads on its own terms."
+  ]
 }
