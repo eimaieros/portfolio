@@ -79,7 +79,23 @@ comparar_copia() {
   done
 
   if [ -z "$origem" ]; then
-    echo "  --  $nome: original não está aqui; nada a comparar (normal no servidor)"
+    # Em CI os dois irmãos são clonados de propósito (ver ci.yml), por isso aqui
+    # a ausência não é "normal": é o próprio guarda a desligar-se. Foi assim que
+    # as demos publicadas ficaram uma semana atrás do código — o passo dizia
+    # "nada a comparar" e passava. Uma verificação que se pode calar sozinha
+    # não é uma verificação, e é este `exit` que a impede de se calar.
+    if [ -n "${CI:-}" ]; then
+      echo "  !!  $nome: os irmãos deviam estar clonados em CI e não estão."
+      echo "      ci.yml faz checkout de eimaieros/$nome — vê se o path mudou."
+      falhou=1
+      return
+    fi
+    # Localmente pode faltar de facto (e no Cloudflare falta sempre), mas em voz
+    # alta: correr isto a partir de uma cópia solta, sem os irmãos ao lado, foi
+    # exactamente como o problema passou despercebido.
+    echo "  !!  $nome: original não está em ../$nome nem ../../$nome — NÃO comparado."
+    echo "      Isto passa, mas não verificou nada. Corre-o na pasta a sério,"
+    echo "      com $nome ao lado, antes de acreditares neste 'Tudo passa'."
     return
   fi
   if [ ! -d "$destino" ]; then

@@ -60,11 +60,16 @@
         "render-blocking-resources": "off",
         "non-composited-animations": "off"
       }
-    },
-    "upload": {
-      "target": "filesystem",
-      "outputDir": "./.lighthouseci-mobile",
-      "reportFilenamePattern": "%%PATHNAME%%-report.%%EXTENSION%%"
     }
-  }
+  },
+  "//upload": [
+    "There is deliberately no `upload` block. There was one, pointing at",
+    "./.lighthouseci-mobile, and it never did anything: the GitHub action",
+    "hardcodes its results directory to $PWD/.lighthouseci and runs its own",
+    "`lhci upload --target=filesystem --outputDir=...` without passing this",
+    "config at all. So the setting looked like configuration and was inert,",
+    "and the CI step that archived ./.lighthouseci-mobile archived nothing",
+    "while reporting a warning nobody read. Uploading is the action's job;",
+    "see .github/workflows/ci.yml."
+  ]
 }
