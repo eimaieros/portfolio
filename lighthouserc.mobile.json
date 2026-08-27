@@ -2,17 +2,16 @@
   "//": [
     "MOBILE. The desktop config is the sibling file; this one exists because",
     "CLAUDE.md says a working mobile experience is not optional, and nothing was",
-    "measuring it. Lighthouse's mobile preset applies a 4x CPU slowdown and a",
-    "slow-4G network on top of a small viewport, which is the closest thing to a",
-    "mid-range phone that CI can produce.",
+    "measuring it. There is no preset here on purpose — mobile is what Lighthouse",
+    "does by default: 412x823, simulated slow 4G, and a 4x CPU slowdown on top of",
+    "everything that already costs this site its desktop score.",
     "",
-    "The performance floor here is NOT set yet, on purpose. Setting it before the",
-    "first measurement would mean either inventing a number or copying the",
-    "desktop one, and a threshold picked to be passed is the thing this whole",
-    "repository spent a week learning not to write. So this run asserts only the",
-    "things that should not depend on the device — accessibility, SEO, layout",
-    "shift — and archives the report. The floor goes in on the next push, from",
-    "the number the first run actually produced."
+    "The performance floor is NOT set yet, deliberately. Setting it before the",
+    "first measurement means either inventing a number or copying the desktop",
+    "one, and a threshold picked so that it passes is the habit this repository",
+    "spent a week unlearning. This run asserts only what should not depend on the",
+    "device — accessibility, SEO, layout shift — and archives the report. The",
+    "floor goes in from the number the first run actually produces."
   ],
   "ci": {
     "collect": {
@@ -22,7 +21,6 @@
       ],
       "numberOfRuns": 3,
       "settings": {
-        "preset": "mobile",
         "skipAudits": [
           "uses-http2",
           "canonical",
