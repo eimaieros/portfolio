@@ -1,6 +1,9 @@
-# Why this site scores 57, and what 90 would cost
+# Why this site scores 57
 
-Measured 26 August 2026, desktop, on the live site and reproduced in CI.
+Measured 27 August 2026, on the live site, in Chrome, on a machine with 32
+cores and an AMD Radeon 610M. Method and raw numbers below — every figure here
+came from a measurement run that day, and `tools/medir-arranque.js` reproduces
+all of them.
 
 | | |
 |---|---|
@@ -11,88 +14,174 @@ Measured 26 August 2026, desktop, on the live site and reproduced in CI.
 | First contentful paint | 0.7 s |
 | Largest contentful paint | 0.7 s |
 | Cumulative layout shift | 0.089 |
-| Total blocking time | the problem |
+| Total blocking time | **4242 ms** — the problem |
 
-The loading half is genuinely fast. Paint lands in seven hundred milliseconds
-and nothing moves after it. What costs the score is the main thread being busy
-afterwards, and the reason is not subtle.
+Total blocking time is the noisy one: two runs on the same machine, same day,
+gave 4242 ms and 7688 ms. Treat it as thousands of milliseconds rather than as
+a figure with four significant digits.
 
-## Where the JavaScript goes
+---
 
-| File | Minified | Share |
-|---|---:|---:|
-| `three.min.js` r128 | 589 KB | **82%** |
-| `gsap.min.js` | 71 KB | 10% |
-| `ScrollTrigger.min.js` | 42 KB | 6% |
-| `lenis.min.js` | 13 KB | 2% |
-| | **715 KB** | |
+## The previous version of this page was wrong
 
-Plus 102 KB of inline site code, which is the part I wrote and the smallest
-part of the problem.
+It said this:
 
-Five-sixths of the JavaScript on this site is a 3D engine. Parsing, compiling
-and executing 589 KB is most of the blocking time, and it happens on every
-visit before anything is interactive.
+> Parsing, compiling and executing 589 KB is most of the blocking time, and it
+> happens on every visit before anything is interactive.
 
-## What Three.js is used for
+and concluded that the fix was to rewrite the background in raw WebGL so
+Three.js could be loaded lazily, calling that "the only change on this list big
+enough to move the score by thirty points."
 
-Two things:
+Three.js takes **26 milliseconds** to parse, compile and execute. Out of 4242.
 
-1. **The background.** A full-screen fragment shader with a ping-pong fluid
-   simulation — two render targets, an orthographic camera, two full-screen
-   quads. Above the fold, visible immediately.
-2. **The stage.** 84 instanced meshes plus 84 wireframe clones, assembling in
-   three scroll-driven phases. Far below the fold.
+Two separate runs, hours apart, measured 26.1 ms and 25.7 ms. Total blocking
+time across those same two runs was 4242 ms and 7688 ms. Almost everything about
+this page moves between runs; that ratio does not.
 
-The second genuinely wants a 3D engine. The first does not: it is two quads and
-two shaders, which is a couple of hundred lines of raw WebGL and no dependency
-at all.
+The 589 KB was real — it is the minified size, and it is 82% of the JavaScript
+on the page. Everything about that sentence was true except the part that
+mattered, which was the causal claim. Nobody had timed it. It is a plausible
+story about a big number, and a plausible story about a big number is exactly
+what this repository keeps having to apologise for.
 
-## The three routes to 90, honestly costed
+Worse than being wrong, it was *actionable*. The recommended fix was a few
+hundred lines of hand-written WebGL on the one page that is a work sample. Had
+it been done, it would have removed 26 ms and left the 228 ms shader compile
+exactly where it was — because a raw WebGL background compiles the same shader.
 
-### 1. Raw WebGL for the background, lazy Three.js for the stage
+## Where the time actually goes
 
-Rewrite the background against `WebGLRenderingContext` directly — quads,
-framebuffers, a half-float feature test that already exists in the current
-code — and load Three.js only when the stage section approaches.
+Two things, and neither is JavaScript parsing.
 
-That takes 589 KB off the critical path entirely, which is the only change on
-this list big enough to move the score by thirty points.
+**First, a caveat that the measurements themselves forced.** Running the tool
+twice in the same browser session gave GPU numbers three to five times apart —
+a first WebGL context at 165 ms and then at 50 ms, the background shader at
+228 ms and then at 33 ms. Nothing changed except that the driver's shader cache
+and the GPU process had gone warm. So the GPU figures below are given as
+*cold → warm*, and the cold one is the one that matters: it is what a first-time
+visitor pays, and what Lighthouse measures.
 
-Cost: a few hundred lines, and it has to be right, because the background is
-the first thing anyone sees. The existing code already handles context loss and
-half-float fallback, so the hard parts are understood rather than unknown.
+Writing a single number here would have been tidier and would have been the
+same mistake this page exists to correct.
 
-**This is the one worth doing.**
+### WebGL context creation — 165 ms cold, ~50 ms warm, per context
 
-### 2. Ship a Three.js subset
+Measured in a clean tab with `canvas.getContext('webgl')` and nothing else on
+the page. This is driver and ANGLE initialisation; it is not something you can
+make cheaper by shipping less JavaScript.
 
-The site uses maybe fifteen exports out of several hundred. A tree-shaken
-bundle would be around 150 KB instead of 589.
+The site created **two** of them at load: one for the background, one for the
+stage. The stage starts 5.8 viewports down the page.
 
-Cost: a bundler. The site's stated design is one HTML file with no build step
-beyond a path-rewriting shell script, and adding webpack to save 400 KB trades
-away the thing the README is actually about. Rejected on those grounds, not on
-technical ones.
+### Shader compilation — 228 ms cold for the background, ~33 ms warm
 
-### 3. Defer the library scripts
+Compile, link, and first draw, timed with a `finish()` so the GPU has actually
+finished rather than merely accepted the request. For reference, a fragment
+shader that does nothing but write white costs **27.8 ms cold** to compile and
+link on this machine — that is the fixed price of a program existing, before it
+does any work of its own.
 
-The obvious first idea, and worth writing down as rejected so nobody spends an
-afternoon on it. The four `<script>` tags sit at the very end of `<body>`, so
-everything above them has already parsed and painted — that is why paint is at
-0.7 s. Adding `defer` reorders execution slightly and moves no work off the main
-thread, so it does not touch total blocking time. It would be churn on a live
-work sample in exchange for nothing measurable.
+The fluid simulation shader measured 50 ms and 79 ms across the two runs, which
+is a useful reminder of how noisy this is at the small end.
+
+The background fragment shader is 3031 characters of contour field, fluid
+sampling, vignette and film grain. It costs what it costs, and it would cost
+the same written by hand against the raw API.
+
+### And what does *not* cost anything
+
+Measured, because guessing is how this page went wrong the first time:
+
+| | |
+|---|---:|
+| three.min.js — parse, compile, execute (589 KB) | **26 ms** |
+| gsap.min.js (70 KB) | 5—6 ms |
+| ScrollTrigger.min.js (42 KB) | 1.1 ms |
+| Two 320×320 half-float render targets | 0.3 ms |
+| Stage: 84 instanced meshes + 84 wireframe clones | 2.2 ms |
+| Ground plane `EdgesGeometry` | 22.7 ms |
+| Mosaic: drawing all 144 tiles | 1.3 ms |
+| `ScrollTrigger.refresh()` across all 59 triggers | 1.4 ms |
+| Full document layout (609 DOM nodes) | < 1 ms |
+
+The DOM is small, the geometry is cheap, the mosaic is free. The library sizes
+are the most visible number on the page and the least important one.
+
+### The frame rate is fine
+
+63 fps median at rest, p95 at 33.8 ms, one frame over 50 ms in 120. The long
+tasks that trail through the load are transient — image decode, font swap,
+scroll setup — not a permanently janky render loop. Worth writing down, because
+the long-task timeline *looks* like a broken loop until you measure the frames.
+
+---
+
+## What was changed
+
+**The stage's WebGL context is no longer created at load.** It is created when
+the stage comes within 2.5 viewports, which on this page means after about
+three screens of scrolling. Visits that never reach it never pay for it.
+
+Two margins rather than one, on purpose: the render margin stays at 200 px, and
+the *preparation* margin is 2.5 viewports. Creating the context costs 156 ms and
+a scroll does not have 156 ms to spare — trading half a second of startup for a
+stutter at the exact moment someone arrives at the stage would be moving the
+problem, not fixing it.
+
+Expected effect on TBT: −156 ms on this hardware. Under Lighthouse's mobile
+profile, which applies a 4× CPU slowdown, proportionally more.
+
+## What is left, honestly costed
+
+### 1. Defer the fluid simulation — about 50 ms, low risk
+
+The ping-pong fluid layer reacts to the cursor. Its shader costs 49.6 ms to
+compile and it is doing nothing until the pointer moves. Starting it on first
+pointer movement, with the background sampling a neutral texture until then, is
+a contained change. It is not done yet because the background shader samples the
+fluid target every frame and the fallback path needs writing carefully.
+
+### 2. Compile the background shader without blocking — up to 228 ms, medium risk
+
+`KHR_parallel_shader_compile` lets the driver link off-thread; you poll
+`COMPLETION_STATUS_KHR` and draw when it is ready. Three.js r128 does not use
+it. Doing it by hand means holding the first frames back until the program is
+linked, which is a visible behaviour change on the first thing anyone sees.
+
+### 3. Rewrite the background in raw WebGL — about 26 ms
+
+Kept on the list only so that nobody proposes it again. It removes the Three.js
+parse and keeps the context creation and the shader compile, which are the
+actual costs. The previous version of this page recommended it as the big win.
+
+### 4. Ship a Three.js subset
+
+Would save most of the 26 ms, and needs a bundler. The site's stated design is
+one HTML file with no build step beyond a path-rewriting shell script. Rejected
+on those grounds — and now also because there is nothing worth buying.
+
+### 5. `defer` on the library scripts — nothing
+
+Rejected before and still rejected. The four `<script>` tags sit at the end of
+`<body>`, so everything above them has already parsed and painted, which is why
+paint lands at 0.7 s. `defer` moves no work off the main thread.
+
+---
 
 ## How this is tracked
 
-`lighthouserc.json` asserts a floor just under the current score. It is a
-ratchet: when the number goes up the floor goes up with it, and it never goes
-down to make a badge green. Paint and layout shift are asserted at values the
-site already meets, so a better performance score cannot be bought by making
-the loading worse.
+`lighthouserc.json` asserts a floor just under the current score, as a ratchet:
+when the number goes up the floor goes up with it, and it never goes down to
+make a badge green. Paint and layout shift are asserted at values the site
+already meets, so a better performance score cannot be bought by making the
+loading worse.
 
-Every CI run uploads the full Lighthouse JSON as an artifact, so the
-`mainthread-work-breakdown` and `bootup-time` audits are there to read without
-asking PageSpeed Insights — whose free quota ran out halfway through writing
-this page, which is exactly why the reports are kept.
+Every CI run now prints both scores — desktop and mobile — into the job log and
+the run summary, via `tools/resumo-lighthouse.mjs`. Before that, a green run
+said "All results processed!" and no number at all, which is how a score is
+allowed to drift for months.
+
+`tools/medir-arranque.js` reproduces every measurement on this page. Paste it
+into the console on the live site. If a number here is ever questioned, the
+answer should be a re-run and not an argument.

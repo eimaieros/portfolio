@@ -33,13 +33,23 @@ and the first thing that happened when Lighthouse was actually put in CI was
 that the claim failed.
 
 The loading half is fine: FCP and LCP both at 0.7s, CLS at 0.089. What costs
-the score is total blocking time, and the cause turned out to be one number:
-**589 KB of the 715 KB of JavaScript on this page is Three.js**, and most of it
-is there to draw a background that is two full-screen quads.
+the score is total blocking time — thousands of milliseconds of it — and this
+paragraph used to say the cause was one number: 589 KB of the 715 KB of
+JavaScript on this page is Three.js.
 
-[PERFORMANCE.md](PERFORMANCE.md) has the measurements, what Three.js is
-actually used for, and the three routes to 90 with the cost of each — including
-the obvious one that does not work and why.
+That number is real and it is not the cause. Three.js takes **26 ms** to parse,
+compile and execute; the blocking time is in the thousands. The cost is on the
+GPU, not in the parser: creating a WebGL context is 165 ms cold, and compiling
+the background shader is 228 ms. Both would cost exactly the same with the
+library removed.
+
+Nobody had timed it. It was a plausible story about a big, visible number, and
+it came with a recommendation — rewrite the background by hand against raw
+WebGL — that would have removed 26 ms and left the 228 ms untouched.
+
+[PERFORMANCE.md](PERFORMANCE.md) has the measurements, how far they move between
+runs and why, and what remains worth doing. `tools/medir-arranque.js`
+reproduces all of it in the console.
 
 **Everything degrades.** No WebGL, no GSAP, no JavaScript at all — the content is
 still readable. Each subsystem is wrapped so a failure in one never takes down
@@ -95,6 +105,8 @@ scans for QA code that leaked into the published file, and builds.
 | Script | Purpose |
 |---|---|
 | `tools/verificar.sh` | all checks, in order — also what CI runs on every push |
+| `tools/medir-arranque.js` | paste into the console: where the startup time actually goes |
+| `tools/resumo-lighthouse.mjs` | print both Lighthouse scores into the CI log and run summary |
 | `tools/build.sh` | assemble `dist/` |
 | `tools/teste-casos.cjs` | open every case study and check it is complete |
 | `tools/teste-titulos.js` | no case-study title breaks mid-word, at any window width |

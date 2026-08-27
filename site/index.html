@@ -1755,7 +1755,7 @@ const CASES={
   body:[['Why','For a web developer the portfolio is the work sample. Anything claimed on a CV should be visible in how this site is built.'],
         ['Approach','GSAP with ScrollTrigger for choreography, Lenis for scroll, and a WebGL layer for the background and the scroll-driven particle field. The morphing formations are a single buffer geometry interpolated between three target shapes - no geometry is rebuilt at runtime.'],
         ['The constraint','Capped device pixel ratio, transform-only animation, geometry allocated once rather than rebuilt, and full prefers-reduced-motion support. The loading half of that worked: first and largest contentful paint both land at 0.7s, and layout shift at 0.089.'],
-        ['Where it does not hold up','Performance scores 57 on Lighthouse, not the 90 this page claimed until I measured it properly. Paint is fast; total blocking time is not, because building the particle field and the instanced stage happens on the main thread during load. Accessibility is 96 and SEO 100. I would rather show the number than the sentence I wanted it to support \u2014 and it is now measured on every push rather than asserted, which is how the gap got found in the first place.']]},
+        ['Where it does not hold up','Performance scores 57 on Lighthouse, not the 90 this page claimed until I measured it properly. Paint is fast; total blocking time is not. I then got the cause wrong twice: first I blamed the 589 KB of Three.js, then the cost of building the stage geometry. Timed, those are 26 ms and 2 ms. The real cost is the GPU \u2014 165 ms to create a WebGL context, 228 ms to compile the background shader \u2014 and the page was creating a second context at load for a section five screens down, which now waits until you are heading towards it. Accessibility is 96 and SEO 100. I would rather show the number than the sentence I wanted it to support, and the diagnosis needed an instrument as much as the score did: both wrong versions were confident, and both were found by measuring instead of reasoning.']]},
  cad:{k:'2026 · Personal',t:'cadence',
   live:[['https://github.com/eimaieros/cadence','See the code']],
   meta:[['Role','Design & Development'],['Stack','FastAPI · PostgreSQL · Next.js'],['Tests','44, against real Postgres'],['Setup','docker compose up']],
@@ -2349,6 +2349,9 @@ function buildScrollTriggers(){
    palco a fazer scroll, que matava o Lenis e deixava só a barra nativa.
    Bug antigo (desde a v15). Isto resolve-o sem mexer na estrutura. */
 let resizeStage = ()=>{};
+/* Cria o contexto WebGL do palco. Vazio até o bloco do palco o preencher, e
+   inofensivo se o WebGL não existir — ver garantirPalco(). */
+let prepararPalco = ()=>{};
 
 const mediaCache = new Map();
 function loadMedia(key){
@@ -2576,8 +2579,23 @@ STAGE_SC.fog = new THREE.FogExp2(0x08080a, 0.016);
 const STAGE_CAM = new THREE.PerspectiveCamera(52, 1, 0.1, 240);
 STAGE_CAM.position.set(0, 0, 30);
 const stageCv = Q('#stageCanvas');
-const SR = new THREE.WebGLRenderer({canvas:stageCv, antialias:true, alpha:true, powerPreference:'high-performance'});
-SR.setPixelRatio(Math.min(devicePixelRatio,1.5));
+
+/* O renderer do palco NÃO se cria aqui, e a razão é medida, não estética.
+   Criar um contexto WebGL custa 165 ms no primeiro e 156 ms no segundo — nesta
+   máquina, com uma Radeon 610M, medido em separador limpo. Este é o segundo:
+   o primeiro é o do fundo, que se vê logo. O palco fica dez ecrãs abaixo e há
+   visitas que nunca lá chegam, por isso pagava-se um contexto inteiro no
+   arranque por uma coisa que ninguém está a olhar.
+   Fica para quando o palco se aproxima. Ver prepararPalco(). */
+let SR = null;
+
+function garantirPalco(){
+  if(SR || !HAS_THREE || !stageCv) return SR;
+  SR = new THREE.WebGLRenderer({canvas:stageCv, antialias:true, alpha:true, powerPreference:'high-performance'});
+  SR.setPixelRatio(Math.min(devicePixelRatio,1.5));
+  sizeStage();
+  return SR;
+}
 
 const mesh = new THREE.InstancedMesh(pieceGeo, pieceMat, PIECES);
 mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -2786,7 +2804,7 @@ STAGE_SC.add(core);
 
 /* resize */
 function sizeStage(){
-  if(!HAS_THREE||!stageCv) return;
+  if(!HAS_THREE||!stageCv||!SR) return;   /* sem SR ainda não há nada para dimensionar */
   const r=stageCv.getBoundingClientRect();
   if(!r.width||!r.height) return;
   SR.setSize(r.width,r.height,false);
@@ -2797,7 +2815,11 @@ addEventListener('resize',()=>{
     CAM.aspect=innerWidth/innerHeight;CAM.updateProjectionMatrix();sizeStage()}
   ScrollTrigger.refresh()});
 sizeStage();
-resizeStage = sizeStage;      /* passa a ser visível de fora do bloco */
+/* Fora do bloco chama-se isto quando o palco entra em cena. Tem de garantir o
+   renderer e não só redimensioná-lo, senão o primeiro frame visível não teria
+   com que desenhar. */
+resizeStage = ()=>{ garantirPalco(); sizeStage(); };
+prepararPalco = garantirPalco;
 
 /* render loop */
 const CK=new THREE.Clock();
@@ -2807,7 +2829,12 @@ gsap.ticker.add(()=>{
   sph=lerp(sph,mx/innerWidth,.045);spv=lerp(spv,1-my/innerHeight,.045);
   /* --- palco 3D: só renderiza quando está visível --- */
   checkStage();
-  if(stageVisible){
+  /* garantirPalco() é uma comparação depois da primeira vez. Está aqui e não só
+     no checkStage porque forceStage (o modo de inspecção) põe stageVisible a
+     true e sai antes de chamar o resizeStage — sem isto, esse caminho chegava
+     ao render com SR a null. */
+  if(stageVisible) garantirPalco();
+  if(stageVisible && SR){
     assembly.t = lerp(assembly.t, assembly.target ?? 0, 0.09);
     updateAssembly(t);
     mesh.rotation.y = t*0.055 + (sph-.5)*0.7 + assembly.t*0.9;
@@ -3310,6 +3337,13 @@ function checkStage(){
   const r=stageEl.getBoundingClientRect();
   const was=stageVisible;
   stageVisible = r.bottom > -200 && r.top < innerHeight + 200;
+  /* Duas margens, não uma. A de cima decide se se desenha; esta, muito mais
+     larga, decide quando se cria o contexto WebGL. Criar um contexto custa
+     ~156 ms e um scroll não tem 156 ms para dar: se se criasse na mesma
+     margem em que se começa a desenhar, trocava-se meio segundo de arranque
+     por um solavanco na altura exacta em que a pessoa chega ao palco. Assim
+     nasce com dois ecrãs de antecedência, enquanto ainda ninguém repara. */
+  if(r.top < innerHeight * 2.5 && r.bottom > -innerHeight) prepararPalco();
   if(stageVisible && !was) resizeStage();
 }
 addEventListener('scroll',()=>safe('checkStage',checkStage),{passive:true});
