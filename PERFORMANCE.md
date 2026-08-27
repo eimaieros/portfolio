@@ -134,6 +134,33 @@ profile, which applies a 4× CPU slowdown, proportionally more.
 
 ## What is left, honestly costed
 
+### 0. This site does not use framebudget
+
+Worth saying first because it is the most awkward item on the list.
+`framebudget` is published from the repository next to this one, its README
+describes it as measuring real frame timing in production and dropping
+animation quality before anyone perceives a stutter, and it is item **04** in
+the work list on this very page.
+
+It is not loaded here. Nine mentions of the word in `site/index.html`, and every
+one of them is a link, a case-study title or a comment.
+
+What the site does instead is a hand-rolled version of the same idea, at line
+2882: when the stage becomes visible, the background's pixel ratio drops from
+1.5 to 1. One binary switch, triggered by scroll position rather than by
+measured frame cost — which is precisely the thing the library exists to replace,
+because scroll position does not know whether the machine is coping.
+
+Not done yet, and the reason is the same discipline as the rest of this page:
+wiring in an adaptive quality system changes what the page renders, and I have
+no way to look at the result before it is live. Shipping an unverifiable
+rendering change to a work sample, immediately after writing a document about
+having twice acted on an unverified claim, would be the joke writing itself.
+
+It needs one session with the site open in a browser. The design is not in
+doubt — replace the binary pixel-ratio switch with the library's tier signal
+and let `PIECES`, the fluid simulation and the pixel ratio follow it.
+
 ### 1. Defer the fluid simulation — about 50 ms, low risk
 
 The ping-pong fluid layer reacts to the cursor. Its shader costs 49.6 ms to
