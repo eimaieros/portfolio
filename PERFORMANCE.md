@@ -149,32 +149,30 @@ profile, which applies a 4× CPU slowdown, proportionally more.
 
 ## What is left, honestly costed
 
-### 0. This site does not use framebudget
+### 0. framebudget — done
 
-Worth saying first because it is the most awkward item on the list.
 `framebudget` is published from the repository next to this one, its README
-describes it as measuring real frame timing in production and dropping
-animation quality before anyone perceives a stutter, and it is item **04** in
-the work list on this very page.
+describes it as measuring real frame timing and dropping animation quality
+before anyone perceives a stutter, and it is item **04** in the work list on
+this page. Until the end of 27 August it was not loaded here: nine mentions of
+the word in `site/index.html`, every one a link, a case-study title or a
+comment.
 
-It is not loaded here. Nine mentions of the word in `site/index.html`, and every
-one of them is a link, a case-study title or a comment.
+What stood in for it was a single line — when the stage scrolled into view, the
+background's pixel ratio dropped from 1.5 to 1. A reasonable guess driven by
+scroll position, which does not know whether the machine is coping. That gap
+between guessing and measuring is the entire premise of the library.
 
-What the site does instead is a hand-rolled version of the same idea, at line
-2882: when the stage becomes visible, the background's pixel ratio drops from
-1.5 to 1. One binary switch, triggered by scroll position rather than by
-measured frame cost — which is precisely the thing the library exists to replace,
-because scroll position does not know whether the machine is coping.
+The tier now sets the ceiling: 1.5 at `full`, 1 at `reduced`, 0.75 at
+`minimal`. The library is fed from the GSAP ticker the site already runs rather
+than starting a second `requestAnimationFrame` loop, which is what its own
+README recommends. While the tier is still null — module not loaded yet, import
+failed, `prefers-reduced-motion` — the old scroll heuristic applies, so none of
+those paths can break the page.
 
-Not done yet, and the reason is the same discipline as the rest of this page:
-wiring in an adaptive quality system changes what the page renders, and I have
-no way to look at the result before it is live. Shipping an unverifiable
-rendering change to a work sample, immediately after writing a document about
-having twice acted on an unverified claim, would be the joke writing itself.
-
-It needs one session with the site open in a browser. The design is not in
-doubt — replace the binary pixel-ratio switch with the library's tier signal
-and let `PIECES`, the fluid simulation and the pixel ratio follow it.
+It imports the vendored copy at `/framebudget/src/index.js`, the same build the
+demo runs, which step 7 of `verificar.sh` diffs against `../framebudget` on
+every push. It cannot quietly drift onto a stale copy.
 
 ### 1. Defer the fluid simulation — about 50 ms, low risk
 
