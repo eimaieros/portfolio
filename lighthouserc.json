@@ -7,16 +7,24 @@
     "and PageSpeed Insights against the live site agreed exactly — so it was",
     "the site, not the runner.",
     "",
-    "Lowering the threshold to 0.57 and calling it green would be worse than",
+    "Lowering the threshold to match and calling it green would be worse than",
     "having no check at all: a number nobody can fail is a number nobody reads.",
     "So the floor sits just under the current score, where it stops a",
     "regression, and the goal is written down next to it where it stops being",
     "forgotten. Every time the score moves up, the floor moves up with it.",
     "",
-    "What costs the score is total blocking time — the particle field and the",
-    "instanced stage are built on the main thread during load. Paint is fast:",
-    "FCP and LCP both land at 0.7s and CLS at 0.089, and those three are",
-    "asserted at values the site already meets, so making the score better",
+    "It has moved once. CI #8 measured 59 after the stage's WebGL context was",
+    "made lazy, so the floor went 0.55 -> 0.57. That is the ratchet working;",
+    "it does not go back down.",
+    "",
+    "What costs the score is total blocking time, and this comment used to say",
+    "the cause was building the particle field and the instanced stage on the",
+    "main thread. Timed, that is about 2 ms. The cost is GPU work at load —",
+    "creating WebGL contexts and compiling shaders. See PERFORMANCE.md, and",
+    "tools/medir-arranque.js if you would rather not take its word for it.",
+    "",
+    "Paint is fast: FCP and LCP both land at 0.7s and CLS at 0.05. Those three",
+    "are asserted at values the site already meets, so making the score better",
     "cannot come from making the loading worse."
   ],
   "ci": {
@@ -40,7 +48,7 @@
         "categories:performance": [
           "error",
           {
-            "minScore": 0.55
+            "minScore": 0.57
           }
         ],
         "categories:accessibility": [

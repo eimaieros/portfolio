@@ -1,20 +1,35 @@
-# Why this site scores 57
+# Why this site scores 59 on desktop and 38 on mobile
 
-Measured 27 August 2026, on the live site, in Chrome, on a machine with 32
-cores and an AMD Radeon 610M. Method and raw numbers below — every figure here
-came from a measurement run that day, and `tools/medir-arranque.js` reproduces
-all of them.
+From CI run #8, 27 August 2026 — the first run that measured both and survived
+long enough to report either.
 
-| | |
-|---|---|
-| Performance | **57** |
-| Accessibility | 96 |
-| Best practices | 100 |
-| SEO | 100 |
-| First contentful paint | 0.7 s |
-| Largest contentful paint | 0.7 s |
-| Cumulative layout shift | 0.089 |
-| Total blocking time | **4242 ms** — the problem |
+| | Desktop | Mobile |
+|---|---:|---:|
+| **Performance** | **59** | **38** |
+| Accessibility | 96 | 96 |
+| Best practices | 96 | 96 |
+| SEO | 100 | 100 |
+| First contentful paint | 0.7 s | 1.0 s |
+| Largest contentful paint | 0.7 s | 7.1 s |
+| Cumulative layout shift | 0.05 | 0.014 |
+| Total blocking time | 8,370 ms | **146,790 ms** |
+
+Mobile had never been measured before. Lighthouse's mobile profile adds a 4×
+CPU slowdown and simulated slow 4G on top of everything that already costs this
+site its desktop score, and the result is a two-and-a-half-minute blocking time
+and a largest contentful paint of seven seconds. 38 is a bad score. It is on
+this page because the alternative is not knowing.
+
+Both floors are now ratchets in `lighthouserc.json` and
+`lighthouserc.mobile.json`: 0.57 and 0.35, each just under its measurement,
+each going up when the number does and never coming back down.
+
+## The same page, measured in a browser
+
+The investigation below was run on the live site in Chrome, on a machine with
+32 cores and an AMD Radeon 610M — much faster than the CI runner, which is why
+its blocking time is 4242 ms rather than 8370. `tools/medir-arranque.js`
+reproduces every figure.
 
 Total blocking time is the noisy one: two runs on the same machine, same day,
 gave 4242 ms and 7688 ms. Treat it as thousands of milliseconds rather than as

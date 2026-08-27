@@ -26,16 +26,20 @@ choreographer and inertial scrolling is not a good use of anyone's time.
 geometry allocated once and interpolated rather than rebuilt, and full
 `prefers-reduced-motion` support.
 
-**Where that lands, measured rather than claimed.** Performance **57**,
-accessibility 96, best practices 100, SEO 100 — desktop, on the live site.
-This paragraph said "the target here is ≥ 90" for as long as the site existed,
-and the first thing that happened when Lighthouse was actually put in CI was
-that the claim failed.
+**Where that lands, measured rather than claimed.** Desktop: performance
+**59**, accessibility 96, best practices 96, SEO 100. Mobile: performance
+**38**, accessibility 96, best practices 96, SEO 100. This paragraph said "the
+target here is ≥ 90" for as long as the site existed, and the first thing that
+happened when Lighthouse was actually put in CI was that the claim failed.
 
-The loading half is fine: FCP and LCP both at 0.7s, CLS at 0.089. What costs
-the score is total blocking time — thousands of milliseconds of it — and this
-paragraph used to say the cause was one number: 589 KB of the 715 KB of
-JavaScript on this page is Three.js.
+Mobile had never been measured at all until CI #8. Its blocking time is two and
+a half minutes under Lighthouse's 4× CPU slowdown. Both numbers are ratchets in
+CI now, and both are printed into the run summary so nobody has to go looking.
+
+The loading half is fine on desktop — FCP and LCP both at 0.7s, CLS at 0.05 —
+and much less fine on mobile, where LCP is 7.1s. What costs the score either
+way is total blocking time, and this paragraph used to say the cause was one
+number: 589 KB of the 715 KB of JavaScript on this page is Three.js.
 
 That number is real and it is not the cause. Three.js takes **26 ms** to parse,
 compile and execute; the blocking time is in the thousands. The cost is on the
