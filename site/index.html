@@ -2906,8 +2906,13 @@ gsap.ticker.add(()=>{
   }
 
   if(!document.hidden){
-    if(stageVisible!==bgLowRes){bgLowRes=stageVisible;
-      R.setPixelRatio(Math.min(devicePixelRatio, stageVisible?1:1.5));}
+    /* O pixel ratio vem do framebudget quando ele já opinou, e da posição do
+       scroll enquanto não. Ver ligarFramebudget(): a versão anterior disto era
+       só a segunda metade — baixava a resolução quando o palco aparecia, porque
+       o palco é caro. Adivinhava bem numa máquina e mal em todas as outras, e a
+       biblioteca que existe para não adivinhar é a 04 desta mesma página. */
+    const teto = tetoPixelRatio();
+    if(teto!==pixelRatioAplicado){ pixelRatioAplicado=teto; R.setPixelRatio(teto); }
     R.autoClear=true;R.render(bgScene,bgCam);
     R.autoClear=false;R.render(SC,CAM);
   }
@@ -3328,7 +3333,51 @@ QA('.mainNav a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{
 }));
 
 /* ---------- palco: visibilidade, fases e progresso ---------- */
-let stageVisible=false, bgLowRes=false;
+let stageVisible=false;
+
+/* ---------- framebudget: a biblioteca a correr no site que a mostra ----------
+   O framebudget é o item 04 desta página e, até agora, não corria nela. Estava
+   aqui uma versão à mão da mesma ideia: quando o palco aparecia, o pixel ratio
+   do fundo caía de 1.5 para 1. Accionado pela posição do scroll, que não sabe
+   se a máquina está a aguentar — e é exactamente essa a diferença.
+
+   `tier` fica a null até a biblioteca carregar ou se decidir que não carrega.
+   Enquanto for null usa-se a heurística antiga, por isso nada disto é um ponto
+   único de falha: sem rede, sem módulos, sem rAF, a página comporta-se como
+   antes. É o mesmo princípio do resto do site — cada subsistema embrulhado de
+   forma a que falhar não leve nada consigo. */
+let fbTier = null;
+let pixelRatioAplicado = 0;
+
+function tetoPixelRatio(){
+  const teto = fbTier === 'minimal' ? 0.75
+             : fbTier === 'reduced' ? 1
+             : fbTier === 'full'    ? 1.5
+             : (stageVisible ? 1 : 1.5);   /* sem opinião ainda: o que se fazia antes */
+  return Math.min(devicePixelRatio, teto);
+}
+
+async function ligarFramebudget(){
+  if(REDUCE) return;                       /* já não há movimento para orçamentar */
+  try{
+    /* A cópia versionada da biblioteca, servida em /framebudget/ — a mesma que
+       a demo usa, comparada contra o original pelo passo 7 do verificar.sh. */
+    const { FrameBudget } = await import('/framebudget/src/index.js');
+    const fb = new FrameBudget({
+      target: 60,
+      onTierChange(tier){ fbTier = tier; }
+    });
+    fbTier = fb.tier;                      /* o palpite do dispositivo, antes do 1º frame */
+    /* Não se arranca um segundo rAF: o site já tem um ticker. */
+    gsap.ticker.add(t=>fb.frame(t*1000));
+    window.__fb = fb;                      /* para inspeccionar na consola */
+  }catch(e){
+    /* Fica-se com a heurística. Um site que não consegue carregar a biblioteca
+       de performance não deve ser um site partido por causa disso. */
+    fbTier = null;
+  }
+}
+ligarFramebudget();
 const stageEl=Q('#stage'), stageSteps=QA('.stageStep'), stageBars=QA('.stageProg i');
 const forceStage={on:false};
 function checkStage(){
