@@ -6,15 +6,14 @@
     "does by default: 412x823, simulated slow 4G, and a 4x CPU slowdown on top of",
     "everything that already costs this site its desktop score.",
     "",
-    "The floor was left out until there was a measurement. The first successful",
-    "run — CI #8, 27 August 2026 — produced:",
+    "The latest three-run measurement — CI 33301300434, 30 August 2026 — produced:",
     "",
-    "    performance 38    accessibility 96    best practices 96    SEO 100",
-    "    FCP 1.0s          LCP 7.1s            CLS 0.014           TBT 146,790ms",
+    "    performance 40    accessibility 96    best practices 96    SEO 100",
+    "    FCP 1.02s         LCP 7.07s           CLS 0.015           TBT 12,173ms",
     "",
-    "So the floor is 0.35, three points under the measurement, and it is a",
+    "So the floor is 0.38, two points under the measurement, and it is a",
     "ratchet: it goes up when the number goes up and never comes down to make a",
-    "run green. 38 is a bad score and writing it down is the point.",
+    "run green. 40 is a bad score and writing it down is the point.",
     "",
     "It took three attempts to get this number at all. The first run used a",
     "'mobile' preset that does not exist. The second and third collected and",
@@ -47,7 +46,7 @@
         "categories:performance": [
           "error",
           {
-            "minScore": 0.35
+            "minScore": 0.38
           }
         ],
         "largest-contentful-paint": [

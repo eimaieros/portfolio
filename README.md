@@ -26,15 +26,15 @@ choreographer and inertial scrolling is not a good use of anyone's time.
 geometry allocated once and interpolated rather than rebuilt, and full
 `prefers-reduced-motion` support.
 
-**Where that lands, measured rather than claimed.** Desktop: performance
-**59**, accessibility 96, best practices 96, SEO 100. Mobile: performance
-**38**, accessibility 96, best practices 96, SEO 100. This paragraph said "the
+**Where that lands, measured rather than claimed.** The latest three desktop
+runs scored **57–60** (median 59); all three mobile runs scored **40**.
+Accessibility was 96, best practices 96 and SEO 100. This paragraph said "the
 target here is ≥ 90" for as long as the site existed, and the first thing that
 happened when Lighthouse was actually put in CI was that the claim failed.
 
-Mobile had never been measured at all until CI #8. Its blocking time is two and
-a half minutes under Lighthouse's 4× CPU slowdown. Both numbers are ratchets in
-CI now, and both are printed into the run summary so nobody has to go looking.
+The latest median blocking time is 1.5 s on desktop and 12.2 s under
+Lighthouse's mobile CPU slowdown. Both numbers are ratchets in CI now, and both
+are printed into the run summary so nobody has to go looking.
 
 The loading half is fine on desktop — FCP and LCP both at 0.7s, CLS at 0.05 —
 and much less fine on mobile, where LCP is 7.1s. What costs the score either
@@ -55,10 +55,11 @@ WebGL — that would have removed 26 ms and left the 228 ms untouched.
 runs and why, and what remains worth doing. `tools/medir-arranque.js`
 reproduces all of it in the console.
 
-The fluid simulation is now lazy: its shader and ping-pong render targets are
-created on first pointer movement, not during startup. The published Lighthouse
-scores above remain the last measured values until CI re-runs them; no score is
-claimed from an implementation change alone.
+The fluid simulation is lazy: its shader and ping-pong render targets are
+created on first pointer movement, not during startup. The final audit also
+removed a dead scene draw and per-frame layout reads, and capped the custom GPU
+loop at 30 fps. The scores above remain the last measured baseline until CI
+re-runs; no gain is claimed from an implementation change alone.
 
 **Everything degrades.** No WebGL, no GSAP, no JavaScript at all — the content is
 still readable. Each subsystem is wrapped so a failure in one never takes down

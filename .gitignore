@@ -21,6 +21,8 @@ desktop.ini
 # Node, se algum dia houver
 node_modules/
 npm-debug.log*
+__pycache__/
+*.py[cod]
 
 # ---------------------------------------------------------------------------
 # PRIVADO — o repositório é público. Nada disto pode lá ir.

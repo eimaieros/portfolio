@@ -1,27 +1,26 @@
-# Why this site scores 59 on desktop and 38 on mobile
+# Why this site scores 59 median on desktop and 40 on mobile
 
-From CI run #8, 27 August 2026 — the first run that measured both and survived
-long enough to report either.
+From CI run 33301300434, 30 August 2026. Desktop varied across three runs from
+57 to 60; the table uses the median. All three mobile runs scored 40.
 
 | | Desktop | Mobile |
 |---|---:|---:|
-| **Performance** | **59** | **38** |
+| **Performance** | **59** | **40** |
 | Accessibility | 96 | 96 |
 | Best practices | 96 | 96 |
 | SEO | 100 | 100 |
-| First contentful paint | 0.7 s | 1.0 s |
-| Largest contentful paint | 0.7 s | 7.1 s |
-| Cumulative layout shift | 0.05 | 0.014 |
-| Total blocking time | 8,370 ms | **146,790 ms** |
+| First contentful paint | 0.68 s | 1.02 s |
+| Largest contentful paint | 0.68 s | 7.07 s |
+| Cumulative layout shift | 0.057 | 0.015 |
+| Total blocking time | 1,487 ms | **12,173 ms** |
 
-Mobile had never been measured before. Lighthouse's mobile profile adds a 4×
-CPU slowdown and simulated slow 4G on top of everything that already costs this
-site its desktop score, and the result is a two-and-a-half-minute blocking time
-and a largest contentful paint of seven seconds. 38 is a bad score. It is on
-this page because the alternative is not knowing.
+Lighthouse's mobile profile adds CPU slowdown and simulated slow 4G on top of
+everything that already costs this site its desktop score. The resulting 12.2 s
+of blocking time and seven-second largest contentful paint are still poor. The
+40 is on this page because the alternative is not knowing.
 
 Both floors are now ratchets in `lighthouserc.json` and
-`lighthouserc.mobile.json`: 0.57 and 0.35, each just under its measurement,
+`lighthouserc.mobile.json`: 0.57 and 0.38, each just under its measurement,
 each going up when the number does and never coming back down.
 
 ## The same page, measured in a browser
