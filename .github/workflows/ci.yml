@@ -4,6 +4,9 @@ on:
   push: { branches: [main] }
   pull_request: { branches: [main] }
 
+permissions:
+  contents: read
+
 # The README claims this site has "a custom verification pipeline that blocks
 # the build on regression". Until now that pipeline only ran when someone
 # remembered to type ./tools/verificar.sh, which makes the claim a promise
