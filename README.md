@@ -55,6 +55,11 @@ WebGL — that would have removed 26 ms and left the 228 ms untouched.
 runs and why, and what remains worth doing. `tools/medir-arranque.js`
 reproduces all of it in the console.
 
+The fluid simulation is now lazy: its shader and ping-pong render targets are
+created on first pointer movement, not during startup. The published Lighthouse
+scores above remain the last measured values until CI re-runs them; no score is
+claimed from an implementation change alone.
+
 **Everything degrades.** No WebGL, no GSAP, no JavaScript at all — the content is
 still readable. Each subsystem is wrapped so a failure in one never takes down
 the page.
