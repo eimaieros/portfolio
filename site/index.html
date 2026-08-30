@@ -2455,7 +2455,11 @@ const CAM=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,180);CAM.posi
 const FLUID = !REDUCE;
 const SIM = Math.min(320, Math.round(Math.max(innerWidth,innerHeight)/4));
 let fA=null,fB=null,simScene=null,simCam=null,simMat=null;
-if(FLUID){
+let fluidReady=false,fluidAttempted=false;
+function iniciarFluido(){
+  if(!FLUID || fluidReady || fluidAttempted) return fluidReady;
+  fluidAttempted=true;
+  try{
   /* half-float dá margem para valores acima de 1; onde não existir (GPUs
      antigas, WebGL1 sem a extensão) caímos para 8 bits — o campo satura
      mais cedo mas continua a funcionar em vez de rebentar */
@@ -2498,11 +2502,21 @@ if(FLUID){
         gl_FragColor = vec4(clamp(c.rgb,0.,3.), 1.);
       }`});
   simScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2), simMat));
+  fluidReady=true;
+  BU.hasFluid.value=1;
+  return true;
+  }catch(e){
+    fA?.dispose?.();fB?.dispose?.();simMat?.dispose?.();
+    fA=fB=simScene=simCam=simMat=null;
+    BU.hasFluid.value=0;
+    console.warn('[portfolio] fluid field disabled:',e);
+    return false;
+  }
 }
 
 const BU={t:{value:0},res:{value:new THREE.Vector2(innerWidth,innerHeight)},
           m:{value:new THREE.Vector2(.5,.5)},s:{value:0},v:{value:0},
-          fluid:{value:null},hasFluid:{value:FLUID?1:0},
+          fluid:{value:null},hasFluid:{value:0},
           accCol:{value:new THREE.Color(1,.239,.121)}};
 const bgScene=new THREE.Scene(),bgCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
 bgScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({uniforms:BU,
@@ -2879,7 +2893,10 @@ gsap.ticker.add(()=>{
   edgeMat.opacity = 0.55 + hoverBoost*0.4;
 
   /* ---- passo de fluido: advecta, difunde, injeta no cursor, dissipa ---- */
-  if(FLUID && !document.hidden){
+  /* O shader e os dois render targets só existem depois de interação real.
+     Antes disso o fundo usa hasFluid=0 e nem lê a textura neutra. */
+  if(FLUID && !fluidReady && (MOUSE.x!==MOUSE.px || MOUSE.y!==MOUSE.py)) iniciarFluido();
+  if(fluidReady && !document.hidden){
     MOUSE.dx = lerp(MOUSE.dx, MOUSE.x-MOUSE.px, 0.5);
     MOUSE.dy = lerp(MOUSE.dy, MOUSE.y-MOUSE.py, 0.5);
     MOUSE.px = MOUSE.x; MOUSE.py = MOUSE.y;

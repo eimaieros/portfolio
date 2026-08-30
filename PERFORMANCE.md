@@ -174,13 +174,18 @@ It imports the vendored copy at `/framebudget/src/index.js`, the same build the
 demo runs, which step 7 of `verificar.sh` diffs against `../framebudget` on
 every push. It cannot quietly drift onto a stale copy.
 
-### 1. Defer the fluid simulation — about 50 ms, low risk
+### 1. Defer the fluid simulation — implemented, pending Lighthouse re-measure
 
 The ping-pong fluid layer reacts to the cursor. Its shader costs 49.6 ms to
-compile and it is doing nothing until the pointer moves. Starting it on first
-pointer movement, with the background sampling a neutral texture until then, is
-a contained change. It is not done yet because the background shader samples the
-fluid target every frame and the fallback path needs writing carefully.
+compile and it is doing nothing until the pointer moves. It now starts on first
+pointer movement. Until then `hasFluid=0`, so the background takes its neutral
+branch and the render targets, simulation scene and shader do not exist.
+
+The initializer is one-shot and failure-safe: unsupported allocation restores
+the neutral branch and cannot repeatedly retry in the animation loop. The old
+Lighthouse floors remain unchanged until CI measures this revision; the
+expected saving is about 50 ms on the measured machine, not a score invented
+before the run.
 
 ### 2. Compile the background shader without blocking — up to 228 ms, medium risk
 
