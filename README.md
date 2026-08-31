@@ -27,19 +27,20 @@ geometry allocated once and interpolated rather than rebuilt, and full
 `prefers-reduced-motion` support.
 
 **Where that lands, measured rather than claimed.** The latest three desktop
-runs scored **57–60** (median 59); all three mobile runs scored **40**.
+runs scored **38–60** (median 60); the mobile runs scored **77–80** (median 77).
 Accessibility was 96, best practices 96 and SEO 100. This paragraph said "the
 target here is ≥ 90" for as long as the site existed, and the first thing that
 happened when Lighthouse was actually put in CI was that the claim failed.
 
-The latest median blocking time is 1.5 s on desktop and 12.2 s under
+The latest median blocking time is 1.0 s on desktop and 1.05 s under
 Lighthouse's mobile CPU slowdown. Both numbers are ratchets in CI now, and both
 are printed into the run summary so nobody has to go looking.
 
-The loading half is fine on desktop — FCP and LCP both at 0.7s, CLS at 0.05 —
-and much less fine on mobile, where LCP is 7.1s. What costs the score either
-way is total blocking time, and this paragraph used to say the cause was one
-number: 589 KB of the 715 KB of JavaScript on this page is Three.js.
+FCP and LCP are about 0.7 s on desktop. Mobile FCP is 1.02 s, LCP 1.70 s and
+CLS 0.006. Before the final audit mobile scored 40, LCP was 7.1 s and TBT was
+12.2 s. What cost that score was continuous decorative GPU work and a loader
+in front of the real content — not the most visible number in the repository:
+589 KB of the 715 KB of JavaScript on this page is Three.js.
 
 That number is real and it is not the cause. Three.js takes **26 ms** to parse,
 compile and execute; the blocking time is in the thousands. The cost is on the
@@ -59,9 +60,9 @@ The fluid simulation is lazy: its shader and ping-pong render targets are
 created on first pointer movement, not during startup. The final audit also
 removed a dead scene draw and per-frame layout reads. Third-party scripts are
 deferred, touch devices show the real hero without a loader, and a touch screen
-at rest keeps its last frame instead of driving the GPU forever. The
-scores above remain the last successful baseline until CI re-runs; no gain is
-claimed from an implementation change alone.
+at rest keeps its last frame instead of driving the GPU forever. Those changes
+moved mobile performance from 40 to 77 median; the repository records both the
+failed intermediate run and the final reports rather than inferring a gain.
 
 **Everything degrades.** No WebGL, no GSAP, no JavaScript at all — the content is
 still readable. Each subsystem is wrapped so a failure in one never takes down
