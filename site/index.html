@@ -1589,12 +1589,15 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
   <span><a href="mailto:eimaieros@gmail.com">Email</a> · <a href="https://linkedin.com/in/rodrigomvfigueiredo" target="_blank" rel="noopener">LinkedIn</a> · <a href="https://github.com/eimaieros" target="_blank" rel="noopener">GitHub</a></span>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
-(function(){
+/* The libraries above download while HTML is parsed. Their deferred execution
+   finishes before DOMContentLoaded, so the page can paint its real loading
+   state without a 589 KB synchronous script standing in front of first paint. */
+addEventListener('DOMContentLoaded',()=>{
 'use strict';
 /* Uma excepção a meio do módulo mata tudo o que vem a seguir — foi assim que
    um erro de âmbito apagou vinte sistemas de uma vez. `safe()` isola cada
@@ -1685,6 +1688,7 @@ const MOSAIC_SRC = '../assets/rir-crowd.webp';   /* a imagem que se monta em pe�
 
 const lerp=(a,b,t)=>a+(b-a)*t,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const COARSE=matchMedia('(pointer:coarse)').matches;
 
 /* ---- dependency + capability guards ---- */
 const HAS_GSAP  = typeof gsap!=='undefined' && typeof ScrollTrigger!=='undefined';
@@ -1879,11 +1883,21 @@ addEventListener('mousedown',()=>document.documentElement.classList.remove('kbd'
    Declarado aqui, no topo, para que o handler e a simulação partilhem o mesmo
    objeto — se ficasse dentro do bloco do WebGL, o handler nunca lhe chegava. */
 const MOUSE={x:.5,y:.5,px:.5,py:.5,dx:0,dy:0,down:0};
+/* Touch devices have no cursor to justify a permanently animated background.
+   Render while the page is being touched/scrolled, keep the last canvas frame
+   while idle, and resume on the next interaction. The cheap GSAP callback can
+   remain registered; the GPU and drawing work are what stop. */
+let coarseActivityAt=performance.now();
+const markCoarseActivity=()=>{coarseActivityAt=performance.now()};
+addEventListener('scroll',markCoarseActivity,{passive:true});
+addEventListener('touchstart',markCoarseActivity,{passive:true});
+addEventListener('touchmove',markCoarseActivity,{passive:true});
 /* Arrastar com o botão em baixo faz o browser começar uma selecção de texto.
    Fora de campos de texto e links isso nunca é o que se quer aqui: cancela-se
    o comportamento por omissão e marca-se html.dragging para o CSS desligar a
    selecção enquanto durar o gesto. */
 addEventListener('pointerdown',e=>{
+  markCoarseActivity();
   MOUSE.down=1;
   const t=e.target;
   const editable = t && t.closest && t.closest('input,textarea,select,[contenteditable],a,button');
@@ -2013,14 +2027,12 @@ const pi=setInterval(()=>{
     if(preStat.textContent!==st) preStat.textContent=st;
   }
 },60);
-/* Failsafe. Eram 4,5 s — e 4,5 s de ecrã preto é o custo real quando a rede
-   está má, que é precisamente quando um recrutador desiste. A investigação do
-   Lindgaard dá 50 ms para a primeira impressão; a Nielsen Norman diz para
-   mostrar o conteúdo imediatamente. 2,6 s é o limite que ainda deixa as fontes
-   chegarem na maioria das ligações sem prender ninguém.
-   Nada se perde: o que não tiver carregado entra depois, e os blocos que
-   dependem de bibliotecas estão todos dentro de safe(). */
-setTimeout(()=>{if(!introDone){clearInterval(pi);intro()}},2600);
+/* Failsafe. The former 2.6 s cap was still long enough for a slow font request
+   to become the page's FCP: three mobile traces painted nothing useful until
+   2.45–2.51 s. Fallback fonts are already defined and deferred libraries have
+   executed before this module starts, so 900 ms preserves the transition
+   without making content wait for typography. Late fonts settle afterwards. */
+setTimeout(()=>{if(!introDone){clearInterval(pi);intro()}},900);
 
 const CH='ABCDEFGHIJKLMNOPQRSTUVWXYZ#%&$@*<>/';
 /* O efeito corre em requestAnimationFrame. Se o browser o suspender a meio —
@@ -2834,7 +2846,6 @@ prepararPalco = garantirPalco;
 
 /* render loop */
 const CK=new THREE.Clock();
-const COARSE_POINTER=matchMedia('(pointer:coarse)').matches;
 let customFrameAt=-Infinity;
 gsap.ticker.add(()=>{
   /* The browser/GSAP clock remains at display rate for input and scroll, but
@@ -2842,9 +2853,13 @@ gsap.ticker.add(()=>{
      trace showed this callback dominating mobile main-thread time. */
   const now=performance.now();
   const hz=REDUCE ? 12 : fbTier==='minimal' ? 20 : 30;
-  const interval=1000/(COARSE_POINTER ? Math.min(hz,30) : hz);
+  const interval=1000/(COARSE ? Math.min(hz,15) : hz);
   if(now-customFrameAt<interval) return;
   customFrameAt=now;
+  /* A touch screen at rest keeps the last rendered frame. This removes the
+     continuous work Lighthouse exposed without taking the visual away during
+     the interaction it responds to. */
+  if(COARSE && now-coarseActivityAt>1200) return;
   const t=CK.getElapsedTime();
   vel=lerp(vel,scrollVel,.12);
   sph=lerp(sph,mx/innerWidth,.045);spv=lerp(spv,1-my/innerHeight,.045);
@@ -3372,7 +3387,7 @@ function tetoPixelRatio(){
              : fbTier === 'reduced' ? 1
              : fbTier === 'full'    ? 1.5
              : (stageVisible ? 1 : 1.5);   /* sem opinião ainda: o que se fazia antes */
-  return Math.min(devicePixelRatio, teto);
+  return Math.min(devicePixelRatio, teto, COARSE ? 1 : Infinity);
 }
 
 async function ligarFramebudget(){
@@ -3730,7 +3745,7 @@ if(location.hostname==='localhost'||location.hostname==='127.0.0.1'){
       'font:12px ui-monospace;color:#6a6a72;line-height:1.7');
   }catch(e){}
 }
-})();
+});
 </script>
 </body>
 </html>
