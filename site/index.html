@@ -1127,6 +1127,15 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
   .pin{height:240svh}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important}}
+/* A loader is decoration, not content. Touch devices already get the cheaper
+   interaction path and must never wait behind it: show the real hero from the
+   first paint, keep native scrolling available, then enhance after startup. */
+@media(pointer:coarse){
+  #pre,#pbar{display:none!important}
+  body.lock{overflow-x:hidden;overflow-y:auto;height:auto}
+  html .tag i,html h1 .ln i{transform:none!important}
+  html .hsub,html .sdown,html .hmeta{opacity:1!important}
+}
 </style>
 </head>
 <body class="lock">
@@ -1594,10 +1603,12 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
-/* The libraries above download while HTML is parsed. Their deferred execution
-   finishes before DOMContentLoaded, so the page can paint its real loading
-   state without a 589 KB synchronous script standing in front of first paint. */
-addEventListener('DOMContentLoaded',()=>{
+/* The libraries above download while HTML is parsed and execute in order before
+   DOMContentLoaded. Yield one rendering opportunity before the large inline
+   module initializes WebGL and all scroll systems. The nested timer runs after
+   that paint; without it the DOMContentLoaded task itself still stood in front
+   of FCP even though the external files were correctly deferred. */
+addEventListener('DOMContentLoaded',()=>requestAnimationFrame(()=>setTimeout(()=>{
 'use strict';
 /* Uma excepção a meio do módulo mata tudo o que vem a seguir — foi assim que
    um erro de âmbito apagou vinte sistemas de uma vez. `safe()` isola cada
@@ -2027,12 +2038,10 @@ const pi=setInterval(()=>{
     if(preStat.textContent!==st) preStat.textContent=st;
   }
 },60);
-/* Failsafe. The former 2.6 s cap was still long enough for a slow font request
-   to become the page's FCP: three mobile traces painted nothing useful until
-   2.45–2.51 s. Fallback fonts are already defined and deferred libraries have
-   executed before this module starts, so 900 ms preserves the transition
-   without making content wait for typography. Late fonts settle afterwards. */
-setTimeout(()=>{if(!introDone){clearInterval(pi);intro()}},900);
+/* Desktop keeps the measured entrance but no font may hold it for more than
+   1.5 s. Touch devices never show this layer and call intro as soon as startup
+   completes; the CSS above has already exposed the hero before then. */
+setTimeout(()=>{if(!introDone){clearInterval(pi);intro()}},1500);
 
 const CH='ABCDEFGHIJKLMNOPQRSTUVWXYZ#%&$@*<>/';
 /* O efeito corre em requestAnimationFrame. Se o browser o suspender a meio —
@@ -3729,6 +3738,10 @@ setTimeout(fitH1,900);
 setTimeout(fitH1,2000);
 
 if(REDUCE)gsap.globalTimeline.timeScale(60);
+/* On touch, enhancement begins immediately after initialization. The loader is
+   already absent in CSS, so stopping Lenis earlier in the module never creates
+   a visible freeze between first paint and this task. */
+if(COARSE) setTimeout(intro,0);
 
 /* dev hook — remover em producao */
 if(location.hostname==='localhost'||location.hostname==='127.0.0.1'){
@@ -3745,7 +3758,7 @@ if(location.hostname==='localhost'||location.hostname==='127.0.0.1'){
       'font:12px ui-monospace;color:#6a6a72;line-height:1.7');
   }catch(e){}
 }
-});
+},0)));
 </script>
 </body>
 </html>
