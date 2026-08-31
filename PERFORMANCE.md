@@ -152,12 +152,12 @@ problem, not fixing it.
 Expected effect on TBT: −156 ms on this hardware. Under Lighthouse's mobile
 profile, which applies a 4× CPU slowdown, proportionally more.
 
-**Typeface loading no longer decides when content appears.** The third-party
-libraries are deferred and the inline module starts on `DOMContentLoaded`,
-after those deferred scripts have executed. That gives the already-parsed
-loading state an opportunity to paint without a synchronous 589 KB script in
-front of it. The preloader is capped at 900 ms rather than 2.6 s; fallback
-fonts are already declared, so late fonts can settle without holding the page.
+**Typeface loading no longer decides mobile first paint.** The third-party
+libraries are deferred and the large inline module yields a rendering
+opportunity after `DOMContentLoaded`, once those scripts have executed. On a
+coarse pointer the loader is not rendered at all: the real hero and native
+scrolling are available for that first paint, then the page enhances. Desktop
+keeps the entrance, with a 1.5 s ceiling on font loading.
 
 **A touch screen at rest no longer drives the GPU continuously.** Coarse-pointer
 devices render the decorative layer at at most 15 fps while scrolling or being
@@ -231,10 +231,11 @@ distinction that sentence ignored: parsed is not painted. Under the mobile
 profile the browser reached the synchronous scripts before its first rendering
 opportunity, and the preloader then waited for typefaces until its 2.6 s cap.
 
-`defer` does not make Three.js cheaper and is not described as doing so. It lets
-the document paint before the deferred libraries execute; the inline module
-waits for `DOMContentLoaded`, when their order and availability are guaranteed.
-The 900 ms loader cap separately prevents a slow font from becoming LCP.
+`defer` does not make Three.js cheaper and is not described as doing so. The
+libraries execute in order before `DOMContentLoaded`; the large initializer
+then yields one rendering opportunity before starting. Touch CSS exposes the
+real page rather than the loader for that paint. Desktop still waits for its
+fonts, but never for more than 1.5 seconds.
 
 ---
 
