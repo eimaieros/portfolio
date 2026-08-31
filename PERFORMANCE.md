@@ -23,6 +23,12 @@ Both floors are now ratchets in `lighthouserc.json` and
 `lighthouserc.mobile.json`: 0.57 and 0.38, each just under its measurement,
 each going up when the number does and never coming back down.
 
+A later audit run, [33354855915](https://github.com/eimaieros/portfolio/actions/runs/33354855915),
+kept the desktop median at 59 but scored 36 on mobile. All three mobile traces
+waited 2.45–2.51 s for first paint: the async font request had missed the
+preloader's 2.6 s failsafe, so a network dependency was deciding when content
+appeared. The ratchet correctly failed. Its floor was not lowered.
+
 ## The same page, measured in a browser
 
 The investigation below was run on the live site in Chrome, on a machine with
@@ -146,6 +152,19 @@ problem, not fixing it.
 Expected effect on TBT: −156 ms on this hardware. Under Lighthouse's mobile
 profile, which applies a 4× CPU slowdown, proportionally more.
 
+**Typeface loading no longer decides when content appears.** The third-party
+libraries are deferred and the inline module starts on `DOMContentLoaded`,
+after those deferred scripts have executed. That gives the already-parsed
+loading state an opportunity to paint without a synchronous 589 KB script in
+front of it. The preloader is capped at 900 ms rather than 2.6 s; fallback
+fonts are already declared, so late fonts can settle without holding the page.
+
+**A touch screen at rest no longer drives the GPU continuously.** Coarse-pointer
+devices render the decorative layer at at most 15 fps while scrolling or being
+touched, cap its pixel ratio at 1, and keep the last canvas frame after 1.2 s of
+inactivity. The effect resumes on the next interaction. Desktop pointer motion
+keeps the 30 fps path.
+
 ## What is left, honestly costed
 
 ### 0. framebudget — done
@@ -173,7 +192,7 @@ It imports the vendored copy at `/framebudget/src/index.js`, the same build the
 demo runs, which step 7 of `verificar.sh` diffs against `../framebudget` on
 every push. It cannot quietly drift onto a stale copy.
 
-### 1. Defer the fluid simulation — implemented, pending Lighthouse re-measure
+### 1. Defer the fluid simulation — implemented
 
 The ping-pong fluid layer reacts to the cursor. Its shader costs 49.6 ms to
 compile and it is doing nothing until the pointer moves. It now starts on first
@@ -182,9 +201,8 @@ branch and the render targets, simulation scene and shader do not exist.
 
 The initializer is one-shot and failure-safe: unsupported allocation restores
 the neutral branch and cannot repeatedly retry in the animation loop. The old
-Lighthouse floors remain unchanged until CI measures this revision; the
-expected saving is about 50 ms on the measured machine, not a score invented
-before the run.
+Lighthouse floors remained unchanged. The next run exposed a larger,
+independent paint problem instead of justifying an invented gain.
 
 ### 2. Compile the background shader without blocking — up to 228 ms, medium risk
 
@@ -205,11 +223,18 @@ Would save most of the 26 ms, and needs a bundler. The site's stated design is
 one HTML file with no build step beyond a path-rewriting shell script. Rejected
 on those grounds — and now also because there is nothing worth buying.
 
-### 5. `defer` on the library scripts — nothing
+### 5. `defer` on the library scripts — implemented after the trace disproved us
 
-Rejected before and still rejected. The four `<script>` tags sit at the end of
-`<body>`, so everything above them has already parsed and painted, which is why
-paint lands at 0.7 s. `defer` moves no work off the main thread.
+This used to say that scripts at the end of `<body>` could not delay paint
+because the HTML above them had already parsed. Run 33354855915 showed the
+distinction that sentence ignored: parsed is not painted. Under the mobile
+profile the browser reached the synchronous scripts before its first rendering
+opportunity, and the preloader then waited for typefaces until its 2.6 s cap.
+
+`defer` does not make Three.js cheaper and is not described as doing so. It lets
+the document paint before the deferred libraries execute; the inline module
+waits for `DOMContentLoaded`, when their order and availability are guaranteed.
+The 900 ms loader cap separately prevents a slow font from becoming LCP.
 
 ---
 

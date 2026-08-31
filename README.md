@@ -57,9 +57,11 @@ reproduces all of it in the console.
 
 The fluid simulation is lazy: its shader and ping-pong render targets are
 created on first pointer movement, not during startup. The final audit also
-removed a dead scene draw and per-frame layout reads, and capped the custom GPU
-loop at 30 fps. The scores above remain the last measured baseline until CI
-re-runs; no gain is claimed from an implementation change alone.
+removed a dead scene draw and per-frame layout reads. Third-party scripts are
+deferred, the loader cannot hold content for more than 900 ms, and a touch
+screen at rest keeps its last frame instead of driving the GPU forever. The
+scores above remain the last successful baseline until CI re-runs; no gain is
+claimed from an implementation change alone.
 
 **Everything degrades.** No WebGL, no GSAP, no JavaScript at all — the content is
 still readable. Each subsystem is wrapped so a failure in one never takes down

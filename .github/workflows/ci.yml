@@ -149,8 +149,9 @@ jobs:
       # costs this site its score. The number is unknown, which for a site that
       # is somebody's work sample is the wrong thing for it to be.
       #
-      # No performance floor yet, and no `preset` either — mobile is what
-      # Lighthouse does by default. See lighthouserc.mobile.json.
+      # The performance floor is a ratchet recorded in the sibling config.
+      # There is no `preset` here — mobile is what Lighthouse does by default.
+      # See lighthouserc.mobile.json.
       - name: Lighthouse (mobile)
         id: mobile
         uses: treosh/lighthouse-ci-action@v12
