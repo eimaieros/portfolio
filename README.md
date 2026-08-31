@@ -153,6 +153,13 @@ on a command nobody had typed since.
 CI checks out both siblings now and step 7 does the comparison on every push. A
 check that can quietly decline to run is not a check.
 
+A coordinated release has an order: publish `framebudget` and `glaze` first,
+then publish this repository. Otherwise the portfolio workflow can start during
+the few seconds in which its vendored copy is new but a sibling's `main` is
+still old, and correctly report a mismatch that disappears as soon as the
+library ref advances. The final audit hit that race once; the second run is the
+proof that all three published trees agree.
+
 ### Why a jsdom harness for a static page
 
 Because syntax-valid JavaScript is not the same as JavaScript that runs. Three
