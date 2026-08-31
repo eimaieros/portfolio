@@ -1,33 +1,37 @@
-# Why this site scores 59 median on desktop and 40 on mobile
+# Why this site scores 60 median on desktop and 77 on mobile
 
-From CI run 33301300434, 30 August 2026. Desktop varied across three runs from
-57 to 60; the table uses the median. All three mobile runs scored 40.
+From CI run [33356528193](https://github.com/eimaieros/portfolio/actions/runs/33356528193),
+31 August 2026. Desktop scored 38, 60 and 60; mobile scored 77, 77 and 80.
+The table uses the median of each metric.
 
 | | Desktop | Mobile |
 |---|---:|---:|
-| **Performance** | **59** | **40** |
+| **Performance** | **60** | **77** |
 | Accessibility | 96 | 96 |
 | Best practices | 96 | 96 |
 | SEO | 100 | 100 |
-| First contentful paint | 0.68 s | 1.02 s |
-| Largest contentful paint | 0.68 s | 7.07 s |
-| Cumulative layout shift | 0.057 | 0.015 |
-| Total blocking time | 1,487 ms | **12,173 ms** |
+| First contentful paint | 0.69 s | 1.02 s |
+| Largest contentful paint | 0.69 s | 1.70 s |
+| Cumulative layout shift | 0.062 | 0.006 |
+| Total blocking time | 999 ms | **1,048 ms** |
 
-Lighthouse's mobile profile adds CPU slowdown and simulated slow 4G on top of
-everything that already costs this site its desktop score. The resulting 12.2 s
-of blocking time and seven-second largest contentful paint are still poor. The
-40 is on this page because the alternative is not knowing.
+Lighthouse's mobile profile adds CPU slowdown and simulated slow 4G. Before
+this audit it measured 40 performance, 7.07 s LCP and 12.17 s TBT. Showing the
+real hero without a loader on touch devices, rendering decorative WebGL only
+during interaction and capping its touch resolution/frame rate moved those
+medians to 77, 1.70 s and 1.05 s respectively.
 
-Both floors are now ratchets in `lighthouserc.json` and
-`lighthouserc.mobile.json`: 0.57 and 0.38, each just under its measurement,
+Both floors are ratchets in `lighthouserc.json` and
+`lighthouserc.mobile.json`: 0.58 and 0.75, each just under its measurement,
 each going up when the number does and never coming back down.
 
-A later audit run, [33354855915](https://github.com/eimaieros/portfolio/actions/runs/33354855915),
-kept the desktop median at 59 but scored 36 on mobile. All three mobile traces
-waited 2.45–2.51 s for first paint: the async font request had missed the
-preloader's 2.6 s failsafe, so a network dependency was deciding when content
-appeared. The ratchet correctly failed. Its floor was not lowered.
+The path was not monotonic. Audit run
+[33354855915](https://github.com/eimaieros/portfolio/actions/runs/33354855915)
+kept desktop at 59 but scored 35–36 on mobile. All three traces waited
+2.45–2.51 s for first paint and blocked for 12.76–14.84 s. The 0.38 ratchet
+correctly failed and was not lowered. The next run reached 44–46 by stopping
+idle touch rendering; the final pass removed the touch loader and reached
+77–80. The failed run is kept because it is the evidence that changed the code.
 
 ## The same page, measured in a browser
 
