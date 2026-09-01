@@ -131,6 +131,14 @@ titulo "7. As cópias das bibliotecas estão a par dos originais"
 comparar_copia framebudget framebudget-demo
 comparar_copia glaze glaze-demo
 
+# Cada biblioteca já guarda os seus próprios números — o tamanho do bundle e a
+# contagem de testes falham o CI dela se o README discordar. Esta página depois
+# CITA esses números nos painéis dos casos de estudo, e essa ponte não tinha
+# nada a verificá-la: dizia 10 KB quando eram 11,7 e falava de 83 testes quando
+# já eram 91. Uma cadeia de alegações verificadas vale o que vale o elo que
+# ninguém instrumentou.
+python3 tools/numeros-irmaos.py || falhou=1
+
 titulo "8. Build"
 ./tools/build.sh > /dev/null && echo "  ok  dist/ gerado e verificado" || falhou=1
 
