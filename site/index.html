@@ -3427,10 +3427,21 @@ async function ligarFramebudget(){
     window.__fb = fb;                      /* para inspeccionar na consola */
   }catch(e){
     /* Fica-se com a heurística. Um site que não consegue carregar a biblioteca
-       de performance não deve ser um site partido por causa disso. */
+       de performance não deve ser um site partido por causa disso.
+
+       Mas cala-se para o visitante, não para quem depura. A primeira versão
+       disto engolia o erro por completo, e a biblioteca falhou em produção sem
+       deixar rasto: `window.__fb` a undefined e mais nada. Passei um bom bocado
+       a adivinhar o que já se sabia — pela enésima vez nesta base de código,
+       uma verificação que se cala é uma verificação que mente. */
     fbTier = null;
+    window.__fbErro = (e && (e.message || String(e))) || 'erro sem mensagem';
+    if(window.console && console.warn) console.warn('framebudget nao carregou:', e);
   }
 }
+/* Diagnóstico a partir da consola, sem ter de abrir o código:
+     __fbEstado()  ->  { tier, erro, temInstancia } */
+window.__fbEstado = ()=>({ tier: fbTier, erro: window.__fbErro || null, temInstancia: !!window.__fb });
 ligarFramebudget();
 const stageEl=Q('#stage'), stageSteps=QA('.stageStep'), stageBars=QA('.stageProg i');
 const forceStage={on:false};
