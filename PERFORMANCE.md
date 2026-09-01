@@ -1,107 +1,82 @@
-# Why this site scores 58 on desktop and 71 on mobile
+# Why this site scores 58 on desktop and 66–71 on mobile
 
-From CI run [33515428741](https://github.com/eimaieros/portfolio/actions/runs/33515428741),
-1 September 2026, seven runs each. The table uses the median.
-
-These numbers replace a three-run audit that read 60 desktop and 77 mobile. The
-page did not change between the two — the commits in between were three
-statements in an error handler and a re-synced copy of a demo this page does not
-load. What changed is that it was measured seven times instead of three, and
-three samples of a metric with this much spread flatters whichever day it lands
-on. The floors moved with the estimate: 0.58 → 0.55 and 0.75 → 0.68, each three
-points under its median, each rising again when the median rises.
+Seven runs per profile, on the GitHub runner. Latest:
+[CI #23](https://github.com/eimaieros/portfolio/actions/runs/33556805963),
+1 September 2026.
 
 | | Desktop | Mobile |
 |---|---:|---:|
-| **Performance** | **58** | **71** |
+| **Performance** | **58** | **66** |
 | Accessibility | 96 | 96 |
 | Best practices | 96 | 96 |
 | SEO | 100 | 100 |
-| First contentful paint | 0.7 s | 1.9 s |
-| Largest contentful paint | 0.7 s | 1.9 s |
-| Cumulative layout shift | 0.089 | 0.002 |
-| Total blocking time | 1,940 ms | **1,780 ms** |
+| First contentful paint | 0.7 s | 2.4 s |
+| Largest contentful paint | 0.7 s | 2.7 s |
+| Cumulative layout shift | 0.074 | 0.006 |
+| Total blocking time | 2,050 ms | 1,670 ms |
 
-Lighthouse's mobile profile adds CPU slowdown and simulated slow 4G. Before
-this audit it measured 40 performance, 7.07 s LCP and 12.17 s TBT. Showing the
-real hero without a loader on touch devices, rendering decorative WebGL only
-during interaction and capping its touch resolution/frame rate moved those
-medians to 71, 1.9 s and 1.78 s respectively — a real and large win, stated
-here at the seven-run figure rather than the three-run one.
+Before the mobile work this page scored 40 with a 7.1 s LCP. Showing the real
+hero without a loader on touch devices, drawing decorative WebGL only during
+interaction, and capping its touch resolution and frame rate is what moved it.
+That is a large, real win, and the reports for every stage are linked below —
+including the run that failed.
 
-Both floors are ratchets in `lighthouserc.json` and `lighthouserc.mobile.json`:
-0.55 and 0.68, three points under their seven-run medians, each rising when the
-median rises.
+## What the numbers do in CI, and why they differ
 
-A floor may move down for one reason only, and it happened once, here: the
-estimator improved. It does not move down because a run was inconvenient. The
-test for telling those apart is whether the page changed or the measurement did,
-and it is worth applying honestly, because the second is easy to dress up as the
-first.
-
-The path was not monotonic. Audit run
-[33354855915](https://github.com/eimaieros/portfolio/actions/runs/33354855915)
-kept desktop at 59 but scored 35–36 on mobile. All three traces waited
-2.45–2.51 s for first paint and blocked for 12.76–14.84 s. The 0.38 ratchet
-correctly failed and was not lowered. The next run reached 44–46 by stopping
-idle touch rendering; the final pass removed the touch loader and reached
-77–80. The failed run is kept because it is the evidence that changed the code.
-
-## How noisy this measurement is, and what was done about it
-
-The runner is not a quiet machine. Three numbers, all from the same code:
-
-| Run | Desktop | Mobile |
-|---|---:|---:|
-| audit 33356528193 (three traces) | 38, 60, 60 | 77, 77, 80 |
-| CI #20 | 54 | 68 |
-
-CI #20's only change to the site was three statements inside an error handler.
-It is not plausible that this cost six desktop points and nine mobile points,
-and the 22-point spread inside a single audit says the same thing from the
-other direction: the page is being measured on shared hardware whose load
-nobody controls.
-
-A floor set from one noisy median will fail against the next one for reasons
-nobody can act on, and a check that goes red at random is a check that gets
-ignored. That is the failure mode this repository keeps having to repair, so it
-is not one to introduce deliberately.
-
-**Both configs now collect seven runs instead of three, and both floors stayed
-where they were** — 0.58 desktop, 0.75 mobile. Lowering 0.58 to accommodate a
-54 would have been quicker and would have been the wrong move: what was
-unreliable was the measurement, not the bar. Roughly two extra minutes of CI
-buys a median that a single bad trace cannot drag around.
-
-## Mobile performance is a warning now, and that is the honest answer
-
-Three medians of the same page on the CI runner, nothing between them touching
-the render path:
+Medians of the same page, on the same runner, with nothing between the readings
+that touches the render path:
 
 | Samples | Desktop | Mobile |
 |---|---:|---:|
 | 3 | 54 | 68 |
 | 7 | 58 | 71 |
-| 7 | **58** | **66** |
+| 7 | 58 | 66 |
 
-Desktop with seven samples repeats exactly. Mobile does not: two seven-run
-medians five points apart. Fifteen runs would cost twenty minutes a push and
-narrow that interval rather than close it.
+**Desktop repeats exactly at seven samples**, so it keeps a hard floor of 0.55
+in `lighthouserc.json` — three points under the median, rising when the median
+rises, and never lowered to make a run green.
 
-A gate on a number with that spread fails at random, and a check that fails at
-random gets ignored — worse than no check, because it still looks like
-coverage. So the mobile performance floor became a warning, the number is still
-printed into every run summary, and what hard-fails on mobile is what measured
-stably: accessibility 96, SEO 100, layout shift 0.002–0.006.
+**Mobile does not repeat**: two seven-run medians five points apart. Fifteen
+runs would cost twenty minutes a push and narrow that interval rather than close
+it. So `lighthouserc.mobile.json` makes performance a **warning**. The number is
+still measured seven times and still printed into every run summary; it just
+stops failing a build it cannot reliably judge.
 
-The same mistake was one metric down and had to be fixed too. Mobile FCP was
-asserted at 1.5 s from a run that measured 1.02 s; the next run measured 2.4 s
-and failed on it. The paint ceilings now sit far enough out to catch a
-regression and not a bad afternoon on shared hardware.
+That is the honest version of a floor which would otherwise be lowered every few
+pushes. A check that goes red at random gets ignored, and an ignored check is
+worse than an absent one because it still looks like coverage. The day seven
+runs land within two points of each other, it goes back to being an error.
 
-Desktop keeps its hard floor at 0.55, because seven samples there are
-reproducible. The day mobile lands within two points across seven runs, it goes
-back to being an error.
+**What still hard-fails on mobile** is what measured stably across every run:
+accessibility 96, SEO 100, layout shift 0.002–0.006. None of them near their
+limits, which is the point — they fail only when something real breaks.
+
+The same error existed one metric down and had to go too: mobile FCP was
+asserted at 1.5 s from a run that measured 1.02 s, and the next run measured
+2.4 s and failed on it. A ceiling set from one lucky reading is the performance
+floor's mistake in miniature. The paint bounds now sit far enough out to catch a
+regression rather than an afternoon.
+
+### The floors have moved down once, and the reason matters
+
+0.58 → 0.55 and 0.75 → 0.68, when the sample count went from three to seven. The
+page did not change; the estimate of it did, and three samples of a metric that
+spread 38 to 60 inside a single audit is a biased estimator.
+
+A floor moves down for that reason and no other. Not because a run was
+inconvenient. The test for telling those apart is whether the page changed or
+the measurement did — worth applying honestly, because the second is easy to
+dress up as the first.
+
+### The path was not monotonic
+
+Audit run
+[33354855915](https://github.com/eimaieros/portfolio/actions/runs/33354855915)
+held desktop at 59 and scored 35–36 on mobile: every trace waited 2.45–2.51 s
+for first paint and blocked for 12.76–14.84 s. The 0.38 ratchet in force at the
+time failed correctly and was not lowered. The next run reached 44–46 by
+stopping idle touch rendering; the pass after that removed the touch loader.
+That failed run is kept on purpose — it is the evidence that changed the code.
 
 ## The same page, measured in a browser
 

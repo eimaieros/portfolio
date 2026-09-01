@@ -27,10 +27,14 @@ geometry allocated once and interpolated rather than rebuilt, and full
 `prefers-reduced-motion` support.
 
 **Where that lands, measured rather than claimed.** Seven runs each: desktop
-median **58**, mobile median **71**. Accessibility 96, best practices 96, SEO
-100. An earlier three-run audit read 60 and 77; the page did not change between
-them, the sample count did, and a metric with this much spread flatters a small
-sample.
+median **58**, mobile **66–71**. Accessibility 96, best practices 96, SEO 100.
+
+Desktop repeats exactly at seven samples and holds a hard floor in CI. Mobile
+does not — two seven-run medians five points apart — so its performance score
+is a warning there rather than a gate, still measured and still printed into
+every run summary. A check that goes red at random gets ignored, and an ignored
+check is worse than an absent one. [PERFORMANCE.md](PERFORMANCE.md) has the
+readings.
 
 This paragraph said "the target here is ≥ 90" for as long as the site existed,
 and the first thing that happened when Lighthouse was actually put in CI was
@@ -65,7 +69,7 @@ created on first pointer movement, not during startup. The final audit also
 removed a dead scene draw and per-frame layout reads. Third-party scripts are
 deferred, touch devices show the real hero without a loader, and a touch screen
 at rest keeps its last frame instead of driving the GPU forever. Those changes
-moved mobile performance from 40 to 71 median; the repository records both the
+moved mobile performance from 40 to the mid-60s/low-70s; the repository records both the
 failed intermediate run and the final reports rather than inferring a gain.
 The support check also no longer creates and discards a WebGL context before
 the real renderer; the static audit pins that allocation regression.
