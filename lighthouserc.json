@@ -17,7 +17,28 @@
     "measured a 60 median: 0.55 -> 0.57 -> 0.58. That is the ratchet working;",
     "it does not go back down.",
     "",
-    "SEVEN RUNS, NOT THREE, AND THAT IS WHY.",
+    "SEVEN RUNS, AND THE FLOOR IS THREE POINTS UNDER THE SEVEN-RUN MEDIAN.",
+    "",
+    "That rule is new and it moved two floors DOWN, so it needs saying plainly.",
+    "",
+    "The floors were 0.58 desktop and 0.75 mobile, set from a three-run audit",
+    "that measured medians of 60 and 77. Seven runs of the same page measure 58",
+    "and 71. Three samples of a noisy metric is a biased estimator, and both",
+    "floors had been calibrated against a good day.",
+    "",
+    "A floor sitting exactly on the median fails half the time by construction,",
+    "and one sitting above it fails always. Either way it stops being read. So",
+    "the rule is: measure with seven runs, set the floor three points under the",
+    "median, and raise it when the median rises.",
+    "",
+    "This is a recalibration, not a concession, and the difference matters",
+    "because the second is easy to disguise as the first. The test is whether",
+    "the number moved or the estimate of it did. Nothing about the page changed",
+    "between the 60 and the 58: the commits in between were three statements in",
+    "an error handler and a re-synced copy of a demo that this page does not",
+    "load. What changed is that it was measured more times.",
+    "",
+    "The old reasoning, kept because it is still true:",
     "",
     "This runner is very noisy on this page. One audit produced desktop scores",
     "of 38, 60 and 60 — a 22-point spread inside a single run — and CI #20",
@@ -64,7 +85,7 @@
         "categories:performance": [
           "error",
           {
-            "minScore": 0.58
+            "minScore": 0.55
           }
         ],
         "categories:accessibility": [
