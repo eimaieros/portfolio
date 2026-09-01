@@ -125,6 +125,7 @@ scans for QA code that leaked into the published file, and builds.
 |---|---|
 | `tools/verificar.sh` | all checks, in order — also what CI runs on every push |
 | `tools/medir-arranque.js` | paste into the console: where the startup time actually goes |
+| `tools/numeros-irmaos.py` | the figures this site quotes about framebudget and glaze match theirs |
 | `tools/resumo-lighthouse.mjs` | print both Lighthouse scores into the CI log and run summary |
 | `tools/build.sh` | assemble `dist/` |
 | `tools/teste-casos.cjs` | open every case study and check it is complete |
