@@ -119,16 +119,6 @@ export class Stage {
     this.onLost = null;
     /** @type {Promise<boolean>|null} the one in-flight initialisation */
     this._aArrancar = null;
-    /**
-     * Identifies the lifetime that owns async adapter/device work.
-     *
-     * `GPUDevice.destroy()` resolves `device.lost`. Without a generation
-     * guard, the loss callback from an intentionally destroyed old device can
-     * arrive after a new init() and tear the new canvas back down. The same
-     * guard stops an adapter request that finishes after destroy() from
-     * resurrecting the stage.
-     */
-    this._generation = 0;
   }
 
   /**
@@ -164,17 +154,16 @@ export class Stage {
      * canvases, zero pixels.
      */
     if (this._aArrancar) return this._aArrancar;
-    const generation = ++this._generation;
-    this._aArrancar = this._arrancar(generation);
+    this._aArrancar = this._arrancar();
     return this._aArrancar;
   }
 
-  /** @param {number} generation @returns {Promise<boolean>} */
-  async _arrancar(generation) {
+  /** @returns {Promise<boolean>} */
+  async _arrancar() {
     const nav = this.nav;
     const doc = this.doc;
     if (!nav?.gpu || !doc) {
-      if (generation === this._generation) this.failed = 'no-webgpu';
+      this.failed = 'no-webgpu';
       return false;
     }
 
@@ -182,95 +171,61 @@ export class Stage {
     let device;
     try {
       const adapter = await nav.gpu.requestAdapter({ powerPreference: 'high-performance' });
-      if (generation !== this._generation) return false;
       if (!adapter) { this.failed = 'no-adapter'; return false; }
       device = await adapter.requestDevice();
     } catch (e) {
-      if (generation === this._generation) this.failed = String(e);
-      return false;
-    }
-    if (generation !== this._generation) {
-      releaseDevice(device);
+      this.failed = String(e);
       return false;
     }
     this.device = device;
-    /** @type {HTMLCanvasElement|null} */
-    let c = null;
 
-    try {
-      /**
-       * A device can be lost at any time — driver reset, tab backgrounded on
-       * some mobile GPUs, the OS reclaiming memory. If that happens we tear the
-       * canvas down and let the DOM show through again.
-       */
-      device.lost.then((info) => {
-        // An old device is allowed to finish dying. It is not allowed to report
-        // on, remove the canvas from, or stop a newer lifetime.
-        if (generation !== this._generation || this.device !== device) return;
-        this.failed = `device-lost: ${info.reason}`;
-        this.ready = false;
-        this.canvas?.remove();
-        this.canvas = null;
-        this.context = null;
-        this.device = null;
-        this.format = null;
-        this.pipelines.clear();
-        this._aArrancar = null;
-        this.onLost?.(info);
-      });
-
-      c = doc.createElement('canvas');
-      c.setAttribute('aria-hidden', 'true');
-      c.style.cssText =
-        'position:fixed;inset:0;width:100%;height:100%;' +
-        'pointer-events:none;z-index:1';
-      doc.body.appendChild(c);
-
-      // A context can still come back null — a canvas that is already using a
-      // 2d context, or a browser that reports gpu support and then refuses one.
-      const ctx = c.getContext('webgpu');
-      if (!ctx) {
-        c.remove();
-        this.device = null;
-        releaseDevice(device);
-        this.failed = 'no-context';
-        return false;
-      }
-
-      /** @type {GPUTextureFormat} */
-      const format = nav.gpu.getPreferredCanvasFormat();
-      this.canvas = c;
-      this.context = ctx;
-      this.format = format;
-      ctx.configure({ device, format, alphaMode: 'premultiplied' });
-
-      this.resize();
-      this.ready = true;
-      return true;
-    } catch (error) {
-      // Feature detection cannot predict every browser/driver failure. Once a
-      // device exists, every later setup step must be one failure boundary: no
-      // rejected public promise, canvas leak, or live device left behind.
-      c?.remove();
+    /**
+     * A device can be lost at any time — driver reset, tab backgrounded on some
+     * mobile GPUs, the OS reclaiming memory. If that happens we tear the canvas
+     * down and let the DOM show through again. A frozen last frame stuck over
+     * the real content is worse than no effect at all.
+     */
+    device.lost.then((info) => {
+      this.failed = `device-lost: ${info.reason}`;
       this.ready = false;
-      this.canvas = null;
-      this.context = null;
-      this.device = null;
-      this.format = null;
-      this.pipelines.clear();
-      releaseDevice(device);
-      if (generation === this._generation) this.failed = `initialisation: ${String(error)}`;
+      this.canvas?.remove();
+      this.onLost?.(info);
+    });
+
+    const c = doc.createElement('canvas');
+    c.setAttribute('aria-hidden', 'true');
+    c.style.cssText =
+      'position:fixed;inset:0;width:100%;height:100%;' +
+      'pointer-events:none;z-index:1';
+    doc.body.appendChild(c);
+
+    // A context can still come back null — a canvas that is already using a 2d
+    // context, or a browser that reports gpu support and then refuses one.
+    const ctx = c.getContext('webgpu');
+    if (!ctx) {
+      c.remove();
+      this.failed = 'no-context';
       return false;
     }
+
+    /** @type {GPUTextureFormat} */
+    const format = nav.gpu.getPreferredCanvasFormat();
+    this.canvas = c;
+    this.context = ctx;
+    this.format = format;
+    ctx.configure({ device, format, alphaMode: 'premultiplied' });
+
+    this.resize();
+    this.ready = true;
+    return true;
   }
 
   /** Matches the drawing buffer to the viewport, at the capped pixel ratio. */
   resize() {
     if (!this.canvas) return;
-    const view = this.doc?.defaultView ?? globalThis;
-    const dpr = Math.min(view.devicePixelRatio || 1, this.maxPixelRatio);
-    const w = Math.max(1, Math.floor((view.innerWidth || 1) * dpr));
-    const h = Math.max(1, Math.floor((view.innerHeight || 1) * dpr));
+    const dpr = Math.min(globalThis.devicePixelRatio || 1, this.maxPixelRatio);
+    const w = Math.max(1, Math.floor(globalThis.innerWidth * dpr));
+    const h = Math.max(1, Math.floor(globalThis.innerHeight * dpr));
     if (this.canvas.width !== w || this.canvas.height !== h) {
       this.canvas.width = w;
       this.canvas.height = h;
@@ -342,32 +297,12 @@ export class Stage {
   }
 
   destroy() {
-    // Invalidate callbacks first. destroy() itself resolves device.lost on a
-    // conforming implementation, and that callback belongs to this old life.
-    this._generation++;
-    const canvas = this.canvas;
-    const device = this.device;
-    canvas?.remove();
+    this.canvas?.remove();
     this.pipelines.clear();
+    this.device?.destroy?.();
     this.ready = false;
-    this.failed = null;
-    this.canvas = null;
-    this.context = null;
-    this.device = null;
-    this.format = null;
+    // Without this a destroyed stage would hand out the old resolved promise
+    // and report itself ready with a dead device.
     this._aArrancar = null;
-    releaseDevice(device);
-  }
-}
-
-/**
- * Driver teardown is cleanup; a broken implementation must not make it fail.
- * @param {GPUDevice|null|undefined} device
- */
-function releaseDevice(device) {
-  try {
-    device?.destroy?.();
-  } catch {
-    // The DOM has already been restored and every reference has been cleared.
   }
 }
