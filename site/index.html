@@ -1704,9 +1704,13 @@ const COARSE=matchMedia('(pointer:coarse)').matches;
 /* ---- dependency + capability guards ---- */
 const HAS_GSAP  = typeof gsap!=='undefined' && typeof ScrollTrigger!=='undefined';
 const HAS_LENIS = typeof Lenis!=='undefined';
-const HAS_WEBGL = (()=>{try{const c=document.createElement('canvas');
-  return !!(window.WebGLRenderingContext && (c.getContext('webgl')||c.getContext('experimental-webgl')));
-}catch(e){return false}})();
+/* Do not probe support by calling getContext() on a throwaway canvas. The
+   WebGL specification makes that a real context with a real drawing buffer;
+   on this page it meant paying for one GPU context only to discard it before
+   Three.js created the context that actually draws. Presence is only a cheap
+   hint. The real construction below is the capability test and is contained
+   in try/catch, because support can still be refused at allocation time. */
+const HAS_WEBGL = typeof window.WebGLRenderingContext !== 'undefined';
 const HAS_THREE = typeof THREE!=='undefined' && HAS_WEBGL;
 
 /* If the core libs failed to load, show the site as a plain document and stop. */
@@ -2460,10 +2464,18 @@ function drawPv(){
 }
 
 
+let R=null;
 if(HAS_THREE){
+  try{
+    R=new THREE.WebGLRenderer({canvas:Q('#gl'),antialias:false,alpha:false,powerPreference:'high-performance'});
+  }catch(e){
+    Q('#gl').style.display='none';
+    console.warn('[portfolio] WebGL context unavailable — background disabled.',e);
+  }
+}
+if(R){
 Q('#gl').addEventListener('webglcontextlost',e=>{e.preventDefault();
   Q('#gl').style.display='none';console.warn('[portfolio] WebGL context lost — background disabled.')});
-const R=new THREE.WebGLRenderer({canvas:Q('#gl'),antialias:false,alpha:false,powerPreference:'high-performance'});
 R.setPixelRatio(Math.min(devicePixelRatio,1.5));R.setSize(innerWidth,innerHeight);
 
 /* ============ CAMPO DE FLUIDO (o rato empurra carga pelo sistema) ============

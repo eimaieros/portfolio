@@ -26,6 +26,11 @@ w.IntersectionObserver=class{
 };
 w.ResizeObserver=w.ResizeObserver||class{observe(){}unobserve(){}disconnect(){}};
 if(webgl){
+  /* getContext('webgl') is not the support flag any more: calling it would
+     create the throwaway context the production regression test forbids.
+     Advertise the constructor, then let the fake Three renderer stand in for
+     the one and only real allocation. */
+  w.WebGLRenderingContext=function WebGLRenderingContext(){};
   const V=function(x,y,z){this.x=x||0;this.y=y||0;this.z=z||0;
     this.set=function(){return this};this.copy=function(){return this};this.normalize=function(){return this};
     this.setRGB=function(){return this};this.setScalar=function(){return this}};

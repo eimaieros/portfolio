@@ -63,6 +63,8 @@ deferred, touch devices show the real hero without a loader, and a touch screen
 at rest keeps its last frame instead of driving the GPU forever. Those changes
 moved mobile performance from 40 to 77 median; the repository records both the
 failed intermediate run and the final reports rather than inferring a gain.
+The support check also no longer creates and discards a WebGL context before
+the real renderer; the static audit pins that allocation regression.
 
 **Everything degrades.** No WebGL, no GSAP, no JavaScript at all — the content is
 still readable. Each subsystem is wrapped so a failure in one never takes down
