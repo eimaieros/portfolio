@@ -67,6 +67,19 @@ for m in re.finditer(r'<(script|link)\b[^>]*?(?:src|href)="(https?://[^"]+)"[^>]
     linha(m.group(2)[:60], 'defer/async/preconnect' if seguro else 'BLOQUEIA O RENDER',
           mau=not seguro)
 
+# `canvas.getContext('webgl')` is not a boolean feature query: the WebGL
+# specification creates a context and drawing buffer. A previous capability
+# probe paid that cost on a detached canvas and then created the real renderer,
+# consuming two GPU contexts at startup. The only allowed WebGL allocation in
+# this single-file site is the renderer that actually draws.
+sondagem_webgl = re.search(
+    r"createElement\(\s*['\"]canvas['\"]\s*\).{0,240}?getContext\(\s*['\"](?:webgl|experimental-webgl)['\"]",
+    src,
+    flags=re.S,
+)
+linha('contexto WebGL descartável', 'nenhum' if not sondagem_webgl else 'ENCONTRADO',
+      mau=bool(sondagem_webgl))
+
 print('\n=== ACESSIBILIDADE ===')
 niveis = [int(h) for h in re.findall(r'<h([1-6])[^>]*>', body_limpo)]
 saltos = [f'h{a}->h{b}' for a, b in zip(niveis, niveis[1:]) if b > a + 1]

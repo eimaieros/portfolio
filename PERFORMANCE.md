@@ -169,6 +169,15 @@ touched, cap its pixel ratio at 1, and keep the last canvas frame after 1.2 s of
 inactivity. The effect resumes on the next interaction. Desktop pointer motion
 keeps the 30 fps path.
 
+**The WebGL support check no longer creates a WebGL context.** `getContext()`
+is an allocation, not a boolean feature query: the WebGL specification creates
+a context and drawing buffer when it succeeds. The old check did that on a
+detached canvas, discarded it, and then asked Three.js for the real context.
+The page now uses constructor presence only as a cheap hint and treats the one
+real `WebGLRenderer` construction as the capability test, inside `try/catch`.
+This removes one full context allocation and its context-limit pressure. The
+static audit fails if a throwaway `getContext('webgl')` probe returns.
+
 ## What is left, honestly costed
 
 ### 0. framebudget — done
