@@ -17,6 +17,22 @@
     "measured a 60 median: 0.55 -> 0.57 -> 0.58. That is the ratchet working;",
     "it does not go back down.",
     "",
+    "SEVEN RUNS, NOT THREE, AND THAT IS WHY.",
+    "",
+    "This runner is very noisy on this page. One audit produced desktop scores",
+    "of 38, 60 and 60 — a 22-point spread inside a single run — and CI #20",
+    "measured 54 desktop and 68 mobile off a commit whose only site change was",
+    "three statements in an error handler. Neither of those is the site moving.",
+    "",
+    "With three samples a median can sit on a single bad trace, so a floor set",
+    "from one median fails against the next one for no reason anybody can act",
+    "on. A check that goes red at random gets ignored, and an ignored check is",
+    "the thing this repository keeps having to fix.",
+    "",
+    "So the samples went up and the floor stayed where it was. Lowering 0.58 to",
+    "match a noisy 54 would have been the easy version and the wrong one: the",
+    "measurement was unreliable, not the bar.",
+    "",
     "What costs the score is total blocking time, and this comment used to say",
     "the cause was building the particle field and the instanced stage on the",
     "main thread. Timed, that is about 2 ms. The cost is GPU work at load —",
@@ -33,7 +49,7 @@
       "url": [
         "http://localhost/index.html"
       ],
-      "numberOfRuns": 3,
+      "numberOfRuns": 7,
       "settings": {
         "preset": "desktop",
         "skipAudits": [
