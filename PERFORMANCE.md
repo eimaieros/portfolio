@@ -33,6 +33,32 @@ correctly failed and was not lowered. The next run reached 44–46 by stopping
 idle touch rendering; the final pass removed the touch loader and reached
 77–80. The failed run is kept because it is the evidence that changed the code.
 
+## How noisy this measurement is, and what was done about it
+
+The runner is not a quiet machine. Three numbers, all from the same code:
+
+| Run | Desktop | Mobile |
+|---|---:|---:|
+| audit 33356528193 (three traces) | 38, 60, 60 | 77, 77, 80 |
+| CI #20 | 54 | 68 |
+
+CI #20's only change to the site was three statements inside an error handler.
+It is not plausible that this cost six desktop points and nine mobile points,
+and the 22-point spread inside a single audit says the same thing from the
+other direction: the page is being measured on shared hardware whose load
+nobody controls.
+
+A floor set from one noisy median will fail against the next one for reasons
+nobody can act on, and a check that goes red at random is a check that gets
+ignored. That is the failure mode this repository keeps having to repair, so it
+is not one to introduce deliberately.
+
+**Both configs now collect seven runs instead of three, and both floors stayed
+where they were** — 0.58 desktop, 0.75 mobile. Lowering 0.58 to accommodate a
+54 would have been quicker and would have been the wrong move: what was
+unreliable was the measurement, not the bar. Roughly two extra minutes of CI
+buys a median that a single bad trace cannot drag around.
+
 ## The same page, measured in a browser
 
 The investigation below was run on the live site in Chrome, on a machine with

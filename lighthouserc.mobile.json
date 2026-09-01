@@ -16,6 +16,11 @@
     "run green. The previous 0.38 floor caught a real regression at 35–36; it",
     "was fixed rather than lowered. See PERFORMANCE.md for all three stages.",
     "",
+    "Seven runs, not three. CI #20 measured 68 here and 54 on desktop off a",
+    "commit that changed three statements in an error handler; an earlier",
+    "audit spread 38 to 60 within one run. The samples went up and the floor",
+    "stayed. See lighthouserc.json for the full reasoning.",
+    "",
     "It took three attempts to get this number at all. The first run used a",
     "'mobile' preset that does not exist. The second and third collected and",
     "asserted correctly and then died uploading, because both Lighthouse runs in",
@@ -32,7 +37,7 @@
       "url": [
         "http://localhost/index.html"
       ],
-      "numberOfRuns": 3,
+      "numberOfRuns": 7,
       "settings": {
         "skipAudits": [
           "uses-http2",
