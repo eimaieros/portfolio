@@ -26,11 +26,15 @@ choreographer and inertial scrolling is not a good use of anyone's time.
 geometry allocated once and interpolated rather than rebuilt, and full
 `prefers-reduced-motion` support.
 
-**Where that lands, measured rather than claimed.** The latest three desktop
-runs scored **38–60** (median 60); the mobile runs scored **77–80** (median 77).
-Accessibility was 96, best practices 96 and SEO 100. This paragraph said "the
-target here is ≥ 90" for as long as the site existed, and the first thing that
-happened when Lighthouse was actually put in CI was that the claim failed.
+**Where that lands, measured rather than claimed.** Seven runs each: desktop
+median **58**, mobile median **71**. Accessibility 96, best practices 96, SEO
+100. An earlier three-run audit read 60 and 77; the page did not change between
+them, the sample count did, and a metric with this much spread flatters a small
+sample.
+
+This paragraph said "the target here is ≥ 90" for as long as the site existed,
+and the first thing that happened when Lighthouse was actually put in CI was
+that the claim failed.
 
 The latest median blocking time is 1.0 s on desktop and 1.05 s under
 Lighthouse's mobile CPU slowdown. Both numbers are ratchets in CI now, and both
@@ -61,7 +65,7 @@ created on first pointer movement, not during startup. The final audit also
 removed a dead scene draw and per-frame layout reads. Third-party scripts are
 deferred, touch devices show the real hero without a loader, and a touch screen
 at rest keeps its last frame instead of driving the GPU forever. Those changes
-moved mobile performance from 40 to 77 median; the repository records both the
+moved mobile performance from 40 to 71 median; the repository records both the
 failed intermediate run and the final reports rather than inferring a gain.
 The support check also no longer creates and discards a WebGL context before
 the real renderer; the static audit pins that allocation regression.
