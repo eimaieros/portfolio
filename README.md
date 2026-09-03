@@ -40,9 +40,25 @@ This paragraph said "the target here is ≥ 90" for as long as the site existed,
 and the first thing that happened when Lighthouse was actually put in CI was
 that the claim failed.
 
-The latest median blocking time is 1.0 s on desktop and 1.05 s under
-Lighthouse's mobile CPU slowdown. Both numbers are ratchets in CI now, and both
-are printed into the run summary so nobody has to go looking.
+Blocking time is where this page is slow, and it is also the number this
+repository has been worst at reporting. This paragraph said 1.0 s desktop and
+1.05 s mobile while [PERFORMANCE.md](PERFORMANCE.md)'s own table two clicks away
+said 2,050 ms and 1,670 ms. Three consecutive CI runs, September 3 2026, on a
+page that did not change between them — one commit touched a CI reporting
+script, the next touched a markdown file:
+
+| run | desktop TBT | mobile TBT | desktop perf |
+|---|---:|---:|---:|
+| #27 | 1,410 ms | 1,680 ms | 57 |
+| #28 | 2,040 ms | 1,730 ms | 57 |
+| #29 | 2,470 ms | — | 57 |
+
+Seven samples each. The same page, seventy-five percent apart. The performance
+score sat at 57 through all of it, which is why the score is the ratchet and the
+blocking time is not: a gate on a number that moves that much would go red at
+random, and a check that goes red at random gets ignored. Both numbers are
+printed into every run summary so the spread stays visible instead of being
+averaged into a sentence.
 
 FCP and LCP are about 0.7 s on desktop. Mobile FCP is 1.02 s, LCP 1.70 s and
 CLS 0.006. Before the final audit mobile scored 40, LCP was 7.1 s and TBT was
