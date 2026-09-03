@@ -299,6 +299,15 @@ output alongside its source is how the two end up disagreeing.
 
 ### The Content-Security-Policy is computed, not written
 
+The site had no CSP. That header is what turns an injected `<script>` from a
+catastrophe into a blocked request — which is the whole reason, and not the one
+first written here. The first version of this section claimed a CSP was the one
+audit standing between best practices' 96 and 100. That was never measured, and
+it is wrong: Lighthouse's `csp-xss` audit carries weight zero. Every CI run now
+prints the name of each weighted audit still failing, in all three of
+accessibility, best practices and SEO, so the next such sentence has to come
+from the run summary.
+
 The site is one 112 KB inline script, so the only policy that both works and
 means anything is a hash of that script's bytes. A hash typed into a file is
 the defect this repository keeps removing — except that a stale bundle size is

@@ -4,10 +4,15 @@
  *
  * WHY THIS IS GENERATED AND NOT WRITTEN BY HAND.
  *
- * The site had no CSP, which is the one failing audit in Lighthouse's best
- * practices category — 96 instead of 100 — and, more to the point, is the
- * header that turns an injected `<script>` from a catastrophe into a blocked
- * request.
+ * The site had no CSP. That is the header that turns an injected `<script>`
+ * from a catastrophe into a blocked request, which is reason enough on its own.
+ *
+ * It is NOT, as an earlier version of this comment claimed, "the one failing
+ * audit in Lighthouse's best practices category". That was never measured, and
+ * Lighthouse's `csp-xss` audit is informative — weight zero, it does not move
+ * the 96. Whatever costs those four points is something else, and
+ * `tools/resumo-lighthouse.mjs` now prints the name of every weighted audit
+ * still failing into each CI run summary, instead of leaving it to be guessed.
  *
  * It cannot simply be typed into `_headers`, because this site is a single
  * 112 KB inline script. A policy with no `script-src` allowance kills the whole
