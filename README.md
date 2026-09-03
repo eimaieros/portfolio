@@ -323,11 +323,20 @@ the published site rather than reading the build output:
   `'unsafe-inline'`, which voids the policy, so it stays blocked and the
   client-side bot detections that depend on it do not run.
 
-`CSP_MODO=relatorio` asks for `Content-Security-Policy-Report-Only`. **It did
-not work.** On 3 September 2026 the deploy went out in that mode, `dist/_headers`
-said Report-Only, and the live site enforced: an injected test `<script>` was
-blocked and `securitypolicyviolation` reported `disposition: "enforce"`,
-confirmed independently by a cross-origin `fetch` that `connect-src` refused.
-Why Cloudflare serves the enforcing header for that name is not established.
-Treat the flag as a request, not a guarantee — `/csp-modo.txt` says which build
-is live, and the only real verification is the browser on the published page.
+The policy is enforcing, and that was checked on the published page rather than
+inferred from the build: an injected `<script>` is refused with
+`disposition: "enforce"`, the loader completes, `body` unlocks, `__fbEstado()`
+returns a live framebudget instance, and the scroll systems build a 22,000 px
+document with no violations after startup.
+
+Checking it is the part worth writing down. **The CSP travels with the
+document**, so a page served from cache carries the header from the *previous*
+deploy — on 3 September 2026 that produced two measurements that contradicted
+each other and half an hour spent concluding, wrongly, that Cloudflare was
+ignoring `Content-Security-Policy-Report-Only`. It was not; the browser was
+answering from cache. `not_found_handling = "single-page-application"` makes the
+fix free: any unused path returns the page, so opening
+`/verificacao-csp-<something-new>` forces a load no cache can serve.
+`tools/build.sh` carries the console snippet. `/csp-modo.txt` reports which
+build is published, which is a different fact from which header the browser
+received — both are worth having.

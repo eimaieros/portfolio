@@ -97,17 +97,28 @@ console.log("  ok  "+n+" script(s) inline, todos com hash na politica");
 # CSP_MODO=relatorio pede o cabecalho Report-Only: o browser avisa na consola e
 # nao bloqueia nada.
 #
-# NAO CONFIES NISTO COMO REDE DE SEGURANCA. A 3 de setembro de 2026 publicou-se
-# com CSP_MODO=relatorio, o dist/_headers dizia Content-Security-Policy-Report-
-# Only, e o browser no site a serio devolveu disposition "enforce" e bloqueou um
-# <script> injectado a titulo de teste. Medido duas vezes, por dois caminhos
-# diferentes (evento securitypolicyviolation e um fetch cross-origin travado
-# pelo connect-src). Porque e que a Cloudflare serve o cabecalho a valer com
-# este nome no _headers, nao se apurou.
+# COMO SE VERIFICA QUAL O MODO QUE ESTA MESMO NO AR. Nao se olha para este
+# ficheiro, nem para o dist/_headers: o CSP viaja com o documento, e um
+# documento vindo da cache traz o cabecalho da publicacao anterior. A 3 de
+# setembro de 2026 perdi meia hora a concluir que a Cloudflare ignorava o
+# Report-Only, com duas leituras que se contradiziam uma a outra — as duas
+# feitas em separadores que estavam a ver HTML em cache.
 #
-# O que fica: publica-se dist/csp-modo.txt com o modo deste build, para se poder
-# perguntar ao site qual a versao que esta no ar sem depender de ler cabecalhos.
-# A verificacao a serio e sempre no browser, na pagina publicada.
+# O `not_found_handling = "single-page-application"` do wrangler.toml resolve
+# isto de graca: qualquer caminho que nao exista devolve a pagina. Abre
+# /verificacao-csp-<qualquer-coisa-nova> e nenhuma cache pode responder. Depois,
+# na consola:
+#
+#   const v=[]; document.addEventListener('securitypolicyviolation',
+#     e=>v.push(e.effectiveDirective+'|'+e.disposition));
+#   const s=document.createElement('script'); s.textContent='window.__t=1';
+#   document.head.appendChild(s); setTimeout(()=>console.log(v, !!window.__t),300);
+#
+# disposition "enforce" e __t a false: a politica esta a valer. "report" e __t a
+# true: esta em modo relatorio.
+#
+# dist/csp-modo.txt diz que build esta publicado — e um facto diferente do
+# cabecalho que o browser recebeu, e vale a pena ter os dois.
 CABECALHO="Content-Security-Policy"
 if [ "${CSP_MODO:-}" = "relatorio" ]; then
   CABECALHO="Content-Security-Policy-Report-Only"
