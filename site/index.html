@@ -206,6 +206,22 @@ canvas#gl{position:fixed;inset:0;z-index:1}
 .say .f[data-f="5"]{left:29%; top:51%}
 .say .f[data-f="6"]{left:7%;  top:63%}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* O skip link nunca teve regra nenhuma, e por isso estava sempre visível no
+   canto superior esquerdo, em #0000ee — o azul de omissão do browser — sobre
+   um fundo #080809. Contraste 2,13:1, e a única violação de acessibilidade
+   que o axe encontrava na página inteira. A funcionalidade de acessibilidade
+   era o defeito de acessibilidade.
+   Nada disto era visível de olhar: azul sobre quase-preto lê-se como nada. E
+   a auditoria dizia "skip link: sim" porque procurava o elemento, não a
+   regra. */
+.skip{position:absolute;left:12px;top:-64px;z-index:10001;
+  padding:.6rem 1rem;border:1px solid var(--acc);border-radius:2px;
+  background:var(--bg);color:var(--fg);            /* 14.6:1, muito acima dos 4.5 */
+  font:400 .8rem/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;
+  text-decoration:none;transition:top .18s cubic-bezier(.16,1,.3,1)}
+.skip:focus{top:12px}
+@media(prefers-reduced-motion:reduce){.skip{transition:none}}
 @media(max-width:900px){
   .say{height:185vh}
   .say .f{font-size:calc(var(--u)*1.9);white-space:normal;max-width:78vw}
@@ -1139,7 +1155,7 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
 </style>
 </head>
 <body class="lock">
-<a href="#work" class="skip">Skip to content</a>
+<a href="#smooth" class="skip">Skip to content</a>
 
 <div id="pre" role="status" aria-live="polite" aria-label="Loading">
   <canvas id="preGrid" aria-hidden="true"></canvas>
