@@ -72,6 +72,34 @@ const metricas = [
   ['Speed index', 'speed-index'],
 ];
 
+/**
+ * Que auditorias e que estao a puxar cada categoria para baixo.
+ *
+ * Uma pontuacao de 96 diz que falta alguma coisa e nao diz o que. Escrevi numa
+ * commit que a auditoria em falta nas boas praticas era o CSP; e uma afirmacao
+ * que nunca medi, e a diferenca entre 96 e 100 pode ser mapas de codigo-fonte,
+ * uma imagem com o racio errado ou um aviso na consola. Este repositorio ja
+ * apanhou o mesmo defeito seis vezes: um numero em prosa sem instrumento por
+ * tras. Agora o instrumento imprime os nomes.
+ *
+ * So conta o que tem peso. As auditorias informativas aparecem a vermelho no
+ * relatorio e nao mexem no numero — inclui-las era convidar a "corrigir" coisas
+ * que nao mudam nada.
+ */
+function auditoriasEmFalta(lhr, cat) {
+  const c = lhr.categories?.[cat];
+  if (!c) return [];
+  return c.auditRefs
+    .filter((r) => (r.weight ?? 0) > 0)
+    .map((r) => ({ ref: r, a: lhr.audits?.[r.id] }))
+    .filter(({ a }) => a && a.score !== null && a.score < 1)
+    .sort((x, y) => (y.ref.weight ?? 0) - (x.ref.weight ?? 0))
+    .map(({ ref, a }) => `${a.title} (${ref.id}, peso ${ref.weight})`);
+}
+
+const falhas = ['accessibility', 'best-practices', 'seo']
+  .flatMap((cat) => auditoriasEmFalta(lhr, cat).map((t) => `| ${cat} | ${t} |`));
+
 const linhas = [
   `### ${rotulo}`,
   '',
@@ -80,6 +108,9 @@ const linhas = [
   ...categorias.map(([nome, id]) => `| ${nome} | **${pontuacao(lhr, id)}** |`),
   ...metricas.map(([nome, id]) => `| ${nome} | ${metrica(lhr, id)} |`),
   '',
+  ...(falhas.length
+    ? ['**O que falta para 100** (só auditorias com peso)', '', '| categoria | auditoria |', '|---|---|', ...falhas, '']
+    : ['Accessibility, best practices e SEO sem auditorias com peso em falta.', '']),
 ];
 
 const texto = linhas.join('\n');
