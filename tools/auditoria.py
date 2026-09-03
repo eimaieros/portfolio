@@ -103,8 +103,25 @@ linha(':focus-visible definido', 'sim' if 'focus-visible' in src else 'FALTA',
       mau='focus-visible' not in src)
 linha('prefers-reduced-motion', f'{src.count("prefers-reduced-motion")}x',
       mau=src.count('prefers-reduced-motion') == 0)
+# O skip link tem de EXISTIR e de estar ESTILADO. Esta verificação já disse
+# "sim" durante meses a um link sem uma única regra de CSS: sempre visível no
+# canto do ecrã, no azul de omissão do browser sobre fundo quase preto,
+# contraste 2,13:1 — a única violação de acessibilidade da página, e era a
+# própria funcionalidade de acessibilidade. Procurar o elemento não é procurar
+# o comportamento.
 tem_skip = bool(re.search(r'skip-?link|skip to (main|content)', body[:5000], re.I))
-linha('skip link', 'sim' if tem_skip else 'FALTA', mau=not tem_skip)
+classe_skip = re.search(r'class="([^"]*\bskip\b[^"]*)"', body[:5000])
+nome = classe_skip.group(1).split()[0] if classe_skip else None
+tem_regra = bool(nome and re.search(r'\.' + re.escape(nome) + r'\s*[{,:]', src))
+tem_foco = bool(nome and re.search(r'\.' + re.escape(nome) + r'\s*:focus', src))
+if not tem_skip:
+    linha('skip link', 'FALTA', mau=True)
+elif not tem_regra:
+    linha('skip link', 'existe mas SEM CSS (herda o azul do browser)', mau=True)
+elif not tem_foco:
+    linha('skip link', 'estilado mas sem :focus — nunca aparece', mau=True)
+else:
+    linha('skip link', 'sim, com regra e :focus')
 
 print('\n=== SEO E PARTILHA ===')
 for rotulo, agulha in [
