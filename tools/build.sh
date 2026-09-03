@@ -53,8 +53,35 @@ Allow: /
 EOF
 
 # Netlify: o HTML muda a cada publicação, as imagens têm nome fixo
-cat > dist/_headers <<'EOF'
+# O CSP e calculado a partir do dist/index.html ja construido, porque a pagina
+# e um unico script inline de 112 KB: sem allowance nenhuma o CSP mata a
+# pagina, com 'unsafe-inline' permite exactamente aquilo que o CSP existe para
+# travar, e a unica saida e o hash do script. Um hash escrito a mao seria o
+# mesmo defeito de sempre — certo no dia em que se escreve — excepto que este
+# nao se degrada em silencio: deita o site abaixo inteiro. Ver tools/csp.mjs.
+# Node e nao Python: isto comecou em csp.py e o build falhou na maquina onde
+# tem de correr — o Git Bash do Windows nao tem python3, nem python, nem py. O
+# resto das ferramentas deste projecto ja e Node, e um passo de build nao deve
+# trazer um segundo runtime atras por oitenta linhas de hashing.
+CSP="$(node tools/csp.mjs dist/index.html)"
+if [ -z "$CSP" ]; then
+  echo "  !!  nao consegui calcular o CSP; nao vou publicar sem ele" >&2
+  exit 1
+fi
+
+# CSP_MODO=relatorio publica o cabecalho como Report-Only: o browser avisa na
+# consola e nao bloqueia nada. E assim que uma primeira politica deve ir para o
+# ar — um CSP errado nesta pagina nao degrada nada, apaga-a. Verifica-se que
+# nao ha violacoes e so depois se poe a valer.
+CABECALHO="Content-Security-Policy"
+if [ "${CSP_MODO:-}" = "relatorio" ]; then
+  CABECALHO="Content-Security-Policy-Report-Only"
+  echo "  ..  CSP em modo RELATORIO (nao bloqueia)"
+fi
+
+cat > dist/_headers <<EOF
 /*
+  ${CABECALHO}: ${CSP}
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=()
