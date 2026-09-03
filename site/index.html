@@ -378,18 +378,6 @@ html.dragging *{-webkit-user-select:none!important;user-select:none!important}
 h2.sh,.sh{font-family:'JetBrains Mono',monospace;font-weight:400;margin-top:0;font-size:var(--t-micro);letter-spacing:.28em;
   text-transform:uppercase;color:var(--acc);margin-bottom:24px;display:flex;align-items:center;gap:16px}
 .sh::after{content:'';flex:1;height:1px;background:var(--line)}
-/* O painel claro é a excepção que a rampa de cor não consegue servir.
-   O --acc percorre índigo → laranja → âmbar → verde e a rampa foi verificada
-   contra o fundo escuro: 4.95:1 no ponto mais fraco, acima da AA, e isso está
-   certo. Contra o painel claro (#ececE8) a mesma rampa vai de 2.99:1 no laranja
-   da marca a 1.66:1 no verde. Não há ajuste de rampa que sirva os dois fundos
-   ao mesmo tempo — o que é legível sobre preto é, por construção, o que
-   desaparece sobre branco.
-   Aqui os `.sh` são texto a 12 px, que precisa de 4.5:1. Ficam com um acento
-   fixo e escuro, #be3016, 4.89:1 sobre o painel: continua a ler-se como o
-   vermelho-laranja da marca e deixa de seguir a rampa nesta secção. É uma
-   troca, e é a favor de se conseguir ler o cabeçalho. */
-.invert .sh{color:#be3016}
 .disp{font-family:Syne,sans-serif;font-weight:800;letter-spacing:-.035em;line-height:.86;
   text-transform:uppercase}
 .out{color:transparent;-webkit-text-stroke:1.4px var(--fg)}
@@ -1057,7 +1045,18 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
 .invert{background:#ecece8;color:#0d0d0f;position:relative;z-index:4;
   padding:calc(var(--u)*11) var(--pad);max-width:100vw;width:100%;overflow:hidden}
 .invert .wrapIn{max-width:var(--maxw);margin:0 auto}
-.invert .sh{color:#c8391f}
+/* Esta linha já existia, e já estava certa na ideia: o painel claro é a
+   excepção que a rampa de cor não consegue servir. O --acc percorre índigo →
+   laranja → âmbar → verde e foi verificado contra o fundo escuro — 4.95:1 no
+   ponto mais fraco, acima da AA, e isso continua verdade. Contra este painel
+   (#ececE8) a mesma rampa vai de 2.99:1 no laranja da marca a 1.66:1 no verde.
+   Não há rampa que sirva os dois fundos: o que se lê sobre preto é, por
+   construção, o que desaparece sobre branco.
+   O que estava errado era o valor. #c8391f dá 4.37:1 a 12 px, e o mínimo é
+   4.5:1 — falhava por treze centésimas, que é o tipo de erro que só aparece
+   quando alguém mede em vez de olhar. #c1341a dá 4.70:1 e é praticamente a
+   mesma cor. */
+.invert .sh{color:#c1341a}
 .invert .sh::after{background:rgba(13,13,15,.14)}
 .invert .svc-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));
   gap:calc(var(--u)*2.4);margin-top:calc(var(--u)*3.4)}
