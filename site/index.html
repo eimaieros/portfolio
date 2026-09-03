@@ -380,7 +380,14 @@ h2.sh,.sh{font-family:'JetBrains Mono',monospace;font-weight:400;margin-top:0;fo
 .sh::after{content:'';flex:1;height:1px;background:var(--line)}
 .disp{font-family:Syne,sans-serif;font-weight:800;letter-spacing:-.035em;line-height:.86;
   text-transform:uppercase}
-.out{color:transparent;-webkit-text-stroke:1.4px var(--fg)}
+/* CONTORNO VAZADO, E PORQUE E QUE A COR DEIXOU DE SER `transparent`.
+   O desenho é o mesmo: o glifo não tem enchimento, só traço. Mas `color:
+   transparent` diz a quem lê a página por meios automáticos que este texto tem
+   contraste 1:1 — e é o que o axe, e portanto o Lighthouse, conclui. Não é
+   verdade: o que se vê é o traço, a `--fg`, sobre o fundo escuro.
+   `-webkit-text-fill-color:transparent` tira o enchimento na mesma e deixa o
+   `color` dizer a cor que a página de facto mostra. Zero diferença no ecrã. */
+.out{color:var(--fg);-webkit-text-fill-color:transparent;-webkit-text-stroke:1.4px var(--fg)}
 
 /* ---------- FOCO VISÍVEL ----------
    O site esconde o rato (cursor:none). Sem um anel de foco forte, quem navega
@@ -426,7 +433,7 @@ h1 .ln i{--mx:50%;--my:50%}
    — se o background-clip:text falhar, falha a camada, nunca o nome.
    Erro que cometi antes: pintar o próprio texto com o gradiente. */
 h1 .ln i{color:var(--fg)}
-h1 .ln i.out{color:transparent;-webkit-text-stroke:1.5px var(--fg);
+h1 .ln i.out{color:var(--fg);-webkit-text-fill-color:transparent;-webkit-text-stroke:1.5px var(--fg);
   transition:transform 1.3s var(--e), -webkit-text-stroke-color .7s var(--e)}
 html.ready h1:hover .ln i.out{-webkit-text-stroke-color:var(--acc)}
 
@@ -1091,8 +1098,15 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
   padding:calc(var(--u)*2.6) 0;border-bottom:1px solid var(--line);position:relative;
   transition:background .6s var(--e),padding-left .6s var(--e)}
 .step:hover{background:rgba(255,255,255,.022);padding-left:calc(var(--u)*1.4)}
+/* O contorno estava a .28 de alfa: 2.24:1 contra o fundo, abaixo do 3:1 que
+   texto grande precisa. Subiu para .38, que dá 3.48:1 — continua um numeral
+   fantasma, mas agora vê-se. E leva aria-hidden, como os `.ghost` já levavam:
+   o "01" ao lado de "Understand before building" é ordem visual, e a ordem já
+   está na sequência do documento. Marcar como decorativo é a descrição certa
+   do que ele é; se fosse informação, a correcção seria dar-lhe contraste a
+   sério e não escondê-lo. */
 .step .num{font-family:Syne,sans-serif;font-weight:800;font-size:calc(var(--u)*2.6);
-  color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.28);line-height:.9;
+  color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.38);line-height:.9;
   transition:-webkit-text-stroke-color .5s,color .5s}
 .step:hover .num{-webkit-text-stroke-color:var(--acc);color:rgba(255,61,31,.08)}
 .step h3{font-family:Syne,sans-serif;font-weight:700;font-size:calc(var(--u)*1.6);
@@ -1527,16 +1541,16 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
   <div class="ghost" aria-hidden="true">03</div>
   <h2 class="sh rv drawline">How I work</h2>
   <div class="steps">
-    <div class="step rv"><div class="num">01</div>
+    <div class="step rv"><div class="num" aria-hidden="true">01</div>
       <div><h3>Understand before building</h3>
       <p>Most bad websites are built fast and understood late. I want to know who uses it, what breaks it, and what happens on the worst day — before writing anything.</p></div></div>
-    <div class="step rv"><div class="num">02</div>
+    <div class="step rv"><div class="num" aria-hidden="true">02</div>
       <div><h3>Ship small, ship often</h3>
       <p>Features go out in pieces that can be tested and rolled back. On a festival site during live dates, that isn't a preference — it's the only way to work.</p></div></div>
-    <div class="step rv"><div class="num">03</div>
+    <div class="step rv"><div class="num" aria-hidden="true">03</div>
       <div><h3>Measure, don't assume</h3>
       <p>Analytics on everything that matters. The ticketing page held a 9.3% bounce rate against a 34% site average — I only know that because it was measured.</p></div></div>
-    <div class="step rv"><div class="num">04</div>
+    <div class="step rv"><div class="num" aria-hidden="true">04</div>
       <div><h3>Stay reachable</h3>
       <p>Code is half the job. The other half is being the person marketing and production can call at 11pm on a festival night and get an answer.</p></div></div>
   </div>
