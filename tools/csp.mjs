@@ -33,13 +33,28 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, existsSync } from 'node:fs';
 
-/** Onde o próprio site vai buscar coisas. O que não estiver aqui é bloqueado. */
+/**
+ * Onde o próprio site vai buscar coisas. O que não estiver aqui é bloqueado.
+ *
+ * `static.cloudflareinsights.com` e `cloudflareinsights.com` não estão no HTML
+ * deste repositório: a Cloudflare injecta o beacon do Web Analytics na resposta,
+ * depois do ficheiro sair daqui. A primeira política não os tinha e a analítica
+ * do site morreu em silêncio — o script foi bloqueado, o pedido ficou a zero
+ * bytes, e nada na consola do próprio site o disse. Medido no site a sério, não
+ * deduzido: `performance.getEntriesByType('resource')` mostrava a entrada do
+ * beacon com transferSize e decodedBodySize a 0.
+ */
 const ORIGENS = {
-  script: ["'self'", 'https://cdnjs.cloudflare.com', 'https://cdn.jsdelivr.net'],
+  script: [
+    "'self'",
+    'https://cdnjs.cloudflare.com',
+    'https://cdn.jsdelivr.net',
+    'https://static.cloudflareinsights.com',
+  ],
   style: ["'self'", 'https://fonts.googleapis.com'],
   font: ['https://fonts.gstatic.com', 'data:'],
   img: ["'self'", 'data:', 'blob:'],
-  connect: ["'self'"],
+  connect: ["'self'", 'https://cloudflareinsights.com'],
 };
 
 const sha256 = (texto) => "'sha256-" + createHash('sha256').update(texto, 'utf8').digest('base64') + "'";
@@ -64,6 +79,20 @@ function hashesDeScript(html) {
   return out;
 }
 
+/**
+ * O QUE FICA DE FORA, DE PROPÓSITO.
+ *
+ * A Cloudflare injecta um segundo script inline (~900 bytes, `/cdn-cgi/
+ * challenge-platform/`) em cada resposta. O conteúdo muda a cada pedido, por
+ * isso não há hash possível: só `'unsafe-inline'` o deixava passar, e
+ * `'unsafe-inline'` em `script-src` anula a política inteira — é exactamente o
+ * que este cabeçalho existe para travar.
+ *
+ * Fica bloqueado, e a consequência é conhecida: as detecções de bot que
+ * dependem desse JavaScript deixam de correr. As da Cloudflare que correm no
+ * servidor não dependem dele. Para um site estático de portefólio, trocar uma
+ * política real por uma heurística de bots do lado do cliente seria trocar mal.
+ */
 export function politica(html) {
   const script = [...ORIGENS.script, ...hashesDeScript(html)];
 
