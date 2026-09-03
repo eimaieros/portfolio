@@ -97,8 +97,58 @@ function auditoriasEmFalta(lhr, cat) {
     .map(({ ref, a }) => `${a.title} (${ref.id}, peso ${ref.weight})`);
 }
 
-const falhas = ['accessibility', 'best-practices', 'seo']
+/**
+ * Que elementos, exactamente.
+ *
+ * Nomear a auditoria foi um avanço e nao chegou. `color-contrast` sobreviveu a
+ * cinco correcoes seguidas porque de cada vez eu deduzi qual seria o elemento
+ * em falta — cor sem opacidade, depois com opacidade, depois o contorno vazado
+ * — e de cada vez a deducao foi plausivel, barata de justificar e errada. O
+ * relatorio sabia a resposta desde a primeira execucao.
+ *
+ * O axe devolve, por cada no reprovado, um selector e uma explicacao com os
+ * numeros ("Expected contrast ratio of 4.5:1"). Esta tudo no mesmo JSON que ja
+ * se le aqui para tirar a pontuacao. Imprimir isso custa vinte linhas e poupa
+ * uma execucao de treze minutos por palpite.
+ */
+function nosEmFalta(lhr, id, max = 6) {
+  const itens = lhr.audits?.[id]?.details?.items;
+  if (!Array.isArray(itens)) return [];
+  const linhas = [];
+  for (const it of itens.slice(0, max)) {
+    const no = it.node ?? it.subItems?.items?.[0]?.node ?? {};
+    const sel = (no.selector || no.snippet || '(sem selector)').replace(/\s+/g, ' ').slice(0, 110);
+    const porque = (no.explanation || '').replace(/\s+/g, ' ').slice(0, 130);
+    linhas.push(porque ? `\`${sel}\` — ${porque}` : `\`${sel}\``);
+  }
+  if (itens.length > max) linhas.push(`…e mais ${itens.length - max}`);
+  return linhas;
+}
+
+const CATS_A_DETALHAR = ['accessibility', 'best-practices', 'seo'];
+
+const falhas = CATS_A_DETALHAR
   .flatMap((cat) => auditoriasEmFalta(lhr, cat).map((t) => `| ${cat} | ${t} |`));
+
+/** Os ids que falharam, para depois pedir os nós de cada um. */
+const idsFalhados = CATS_A_DETALHAR.flatMap((cat) =>
+  (lhr.categories?.[cat]?.auditRefs ?? [])
+    .filter((r) => (r.weight ?? 0) > 0)
+    .filter((r) => {
+      const a = lhr.audits?.[r.id];
+      return a && a.score !== null && a.score < 1;
+    })
+    .map((r) => r.id),
+);
+
+const detalhe = [];
+for (const id of [...new Set(idsFalhados)]) {
+  const nos = nosEmFalta(lhr, id);
+  if (!nos.length) continue;
+  detalhe.push(`<details><summary><b>${id}</b> — que elementos</summary>`, '');
+  for (const n of nos) detalhe.push(`- ${n}`);
+  detalhe.push('', '</details>', '');
+}
 
 const linhas = [
   `### ${rotulo}`,
@@ -109,7 +159,7 @@ const linhas = [
   ...metricas.map(([nome, id]) => `| ${nome} | ${metrica(lhr, id)} |`),
   '',
   ...(falhas.length
-    ? ['**O que falta para 100** (só auditorias com peso)', '', '| categoria | auditoria |', '|---|---|', ...falhas, '']
+    ? ['**O que falta para 100** (só auditorias com peso)', '', '| categoria | auditoria |', '|---|---|', ...falhas, '', ...detalhe]
     : ['Accessibility, best practices e SEO sem auditorias com peso em falta.', '']),
 ];
 
