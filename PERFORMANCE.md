@@ -275,6 +275,40 @@ Kept on the list only so that nobody proposes it again. It removes the Three.js
 parse and keeps the context creation and the shader compile, which are the
 actual costs. The previous version of this page recommended it as the big win.
 
+### 3b. Break the initializer into more than one task — likely the largest win left
+
+Measured on the published site, 3 September 2026, with a `PerformanceObserver`
+on `longtask` and `buffered: true`, so the tasks from the load itself are
+included rather than only those after the observer was attached:
+
+| task | duration |
+|---|---:|
+| module initialization | **479 ms** |
+| immediately before it | 113 ms |
+| two later | 75 ms, 64 ms |
+| total | 731 ms across four tasks |
+
+Total blocking time is the sum of each task's duration *above* 50 ms — here
+about 531 ms. Almost all of it is one task. Everything the module does runs
+inside a single `DOMContentLoaded → rAF → setTimeout` callback: the guards, then
+every `safe()` subsystem in sequence, with no yield between them. The browser
+cannot respond to anything for 479 ms because there is no gap to respond in.
+
+Splitting that one task into five of roughly 95 ms would take its contribution
+from 429 ms to about 225 ms, without making the page do a single thing less. The
+work is not the yielding — it is that the `safe()` calls share `const` bindings
+declared in module order, so deferring a subsystem means deciding what it
+depends on. That is a real refactor of the initialization, not a sprinkling of
+`await`, and it should be done with the Lighthouse floors watching.
+
+**Caveat on the reading, because it changes what it is worth.** The tab was
+hidden when the page loaded and was made visible afterwards, so the whole module
+started around 9 s in rather than immediately — `requestAnimationFrame` does not
+fire in a background tab, and the initializer is behind one. The *shape* (one
+dominant task) is trustworthy; the absolute 479 ms is from a warm shader cache
+and a delayed start, and should be re-measured on a normal foreground load
+before anyone quotes it.
+
 ### 4. Ship a Three.js subset
 
 Would save most of the 26 ms, and needs a bundler. The site's stated design is
