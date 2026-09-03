@@ -296,3 +296,38 @@ Worker behind `rodrigofigueiredo.dev`.
 
 `dist/` is not in the repository. It is generated, and versioning generated
 output alongside its source is how the two end up disagreeing.
+
+### The Content-Security-Policy is computed, not written
+
+The site is one 112 KB inline script, so the only policy that both works and
+means anything is a hash of that script's bytes. A hash typed into a file is
+the defect this repository keeps removing — except that a stale bundle size is
+embarrassing and a stale script hash is a white page. So
+[`tools/csp.mjs`](tools/csp.mjs) derives it from `dist/index.html` after the
+build has rewritten the asset paths, and the build refuses to publish if any
+inline script's hash is missing from the policy it just generated.
+
+`style-src` keeps `'unsafe-inline'` and says so: style attributes cannot be
+covered by a hash. `script-src` does not, which is the half that matters.
+
+Two things are deliberately not in the policy, and both were found by measuring
+the published site rather than reading the build output:
+
+- Cloudflare injects the Web Analytics beacon into the response, after the file
+  leaves this repository. The first policy did not allow it, so analytics died
+  silently — script blocked, request at zero bytes, nothing in the site's own
+  console. `static.cloudflareinsights.com` and `cloudflareinsights.com` are
+  allowed now.
+- Cloudflare also injects a ~900-byte inline challenge-platform script whose
+  content changes every request. There is no hash for that. Allowing it means
+  `'unsafe-inline'`, which voids the policy, so it stays blocked and the
+  client-side bot detections that depend on it do not run.
+
+`CSP_MODO=relatorio` asks for `Content-Security-Policy-Report-Only`. **It did
+not work.** On 3 September 2026 the deploy went out in that mode, `dist/_headers`
+said Report-Only, and the live site enforced: an injected test `<script>` was
+blocked and `securitypolicyviolation` reported `disposition: "enforce"`,
+confirmed independently by a cross-origin `fetch` that `connect-src` refused.
+Why Cloudflare serves the enforcing header for that name is not established.
+Treat the flag as a request, not a guarantee — `/csp-modo.txt` says which build
+is live, and the only real verification is the browser on the published page.

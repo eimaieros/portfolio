@@ -69,15 +69,51 @@ if [ -z "$CSP" ]; then
   exit 1
 fi
 
-# CSP_MODO=relatorio publica o cabecalho como Report-Only: o browser avisa na
-# consola e nao bloqueia nada. E assim que uma primeira politica deve ir para o
-# ar — um CSP errado nesta pagina nao degrada nada, apaga-a. Verifica-se que
-# nao ha violacoes e so depois se poe a valer.
+# Guarda: cada script inline executavel do dist/index.html tem de ter o seu hash
+# dentro da politica. O gerador tira-os do mesmo ficheiro, por isso em teoria
+# nao podem divergir — mas "em teoria" e a regex do gerador, e uma regex que
+# deixe de apanhar um <script> nao falha, so devolve menos. O sintoma seria uma
+# pagina em branco em producao. Isto custa milissegundos e transforma isso num
+# build vermelho.
+node -e '
+const {readFileSync}=require("fs"),{createHash}=require("crypto");
+const html=readFileSync("dist/index.html","utf8"), csp=process.argv[1];
+let n=0, mal=0;
+for(const m of html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)){
+  const [,a,c]=m;
+  if(/\bsrc=/.test(a)) continue;
+  const t=a.match(/type\s*=\s*["\x27]([^"\x27]+)/);
+  if(t && /json/i.test(t[1])) continue;
+  if(!c.trim()) continue;
+  n++;
+  const h=createHash("sha256").update(c,"utf8").digest("base64");
+  if(!csp.includes(h)){ mal++; console.error("  !!  script inline de "+c.length+" bytes sem hash na politica"); }
+}
+if(!n){ console.error("  !!  nao encontrei nenhum script inline — a regex do csp.mjs partiu-se"); process.exit(1); }
+if(mal) process.exit(1);
+console.log("  ok  "+n+" script(s) inline, todos com hash na politica");
+' "$CSP" || exit 1
+
+# CSP_MODO=relatorio pede o cabecalho Report-Only: o browser avisa na consola e
+# nao bloqueia nada.
+#
+# NAO CONFIES NISTO COMO REDE DE SEGURANCA. A 3 de setembro de 2026 publicou-se
+# com CSP_MODO=relatorio, o dist/_headers dizia Content-Security-Policy-Report-
+# Only, e o browser no site a serio devolveu disposition "enforce" e bloqueou um
+# <script> injectado a titulo de teste. Medido duas vezes, por dois caminhos
+# diferentes (evento securitypolicyviolation e um fetch cross-origin travado
+# pelo connect-src). Porque e que a Cloudflare serve o cabecalho a valer com
+# este nome no _headers, nao se apurou.
+#
+# O que fica: publica-se dist/csp-modo.txt com o modo deste build, para se poder
+# perguntar ao site qual a versao que esta no ar sem depender de ler cabecalhos.
+# A verificacao a serio e sempre no browser, na pagina publicada.
 CABECALHO="Content-Security-Policy"
 if [ "${CSP_MODO:-}" = "relatorio" ]; then
   CABECALHO="Content-Security-Policy-Report-Only"
-  echo "  ..  CSP em modo RELATORIO (nao bloqueia)"
+  echo "  ..  CSP em modo RELATORIO (pedido; confirma no site que foi respeitado)"
 fi
+printf '%s\n' "${CSP_MODO:-normal}" > dist/csp-modo.txt
 
 cat > dist/_headers <<EOF
 /*
@@ -87,6 +123,8 @@ cat > dist/_headers <<EOF
   Permissions-Policy: geolocation=(), microphone=(), camera=()
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
+/csp-modo.txt
+  Cache-Control: no-store
 /assets/*
   Cache-Control: public, max-age=604800, stale-while-revalidate=86400
 /framebudget/src/*
