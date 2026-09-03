@@ -378,6 +378,18 @@ html.dragging *{-webkit-user-select:none!important;user-select:none!important}
 h2.sh,.sh{font-family:'JetBrains Mono',monospace;font-weight:400;margin-top:0;font-size:var(--t-micro);letter-spacing:.28em;
   text-transform:uppercase;color:var(--acc);margin-bottom:24px;display:flex;align-items:center;gap:16px}
 .sh::after{content:'';flex:1;height:1px;background:var(--line)}
+/* O painel claro é a excepção que a rampa de cor não consegue servir.
+   O --acc percorre índigo → laranja → âmbar → verde e a rampa foi verificada
+   contra o fundo escuro: 4.95:1 no ponto mais fraco, acima da AA, e isso está
+   certo. Contra o painel claro (#ececE8) a mesma rampa vai de 2.99:1 no laranja
+   da marca a 1.66:1 no verde. Não há ajuste de rampa que sirva os dois fundos
+   ao mesmo tempo — o que é legível sobre preto é, por construção, o que
+   desaparece sobre branco.
+   Aqui os `.sh` são texto a 12 px, que precisa de 4.5:1. Ficam com um acento
+   fixo e escuro, #be3016, 4.89:1 sobre o painel: continua a ler-se como o
+   vermelho-laranja da marca e deixa de seguir a rampa nesta secção. É uma
+   troca, e é a favor de se conseguir ler o cabeçalho. */
+.invert .sh{color:#be3016}
 .disp{font-family:Syne,sans-serif;font-weight:800;letter-spacing:-.035em;line-height:.86;
   text-transform:uppercase}
 .out{color:transparent;-webkit-text-stroke:1.4px var(--fg)}
@@ -1016,9 +1028,17 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
   transform:scaleX(var(--p,0));transform-origin:left;transition:transform .35s linear}
 .stageHint{position:absolute;right:var(--pad);bottom:calc(var(--u)*5.5);z-index:4;
   font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);letter-spacing:.24em;
-  text-transform:uppercase;color:var(--faint);opacity:.7;
+  /* A pista pisca, e a piscadela era o problema: com --faint a 0.22 de opacidade
+     isto dava 1.24:1 contra o fundo. Um aviso que diz "mexe o rato" e que não se
+     consegue ler não é subtil, é decorativo — e ninguém o pôs ali para ser
+     decorativo.
+     O --faint não tem folga nenhuma para animar opacidade: a 4.65:1 cheio, já
+     falha a 0.95. Por isso a cor sobe para --fg e a piscadela passa a viver
+     entre .55 e .9, que a 12 px dá 5.37:1 no ponto mais fraco. Continua a ler-se
+     como um cinzento suave; a diferença é que agora lê-se mesmo. */
+  text-transform:uppercase;color:var(--fg);opacity:.55;
   animation:hintPulse 3.4s infinite}
-@keyframes hintPulse{0%,100%{opacity:.22}50%{opacity:.62}}
+@keyframes hintPulse{0%,100%{opacity:.55}50%{opacity:.9}}
 @media(max-width:900px){.stageHint{display:none}}
 @media(max-width:900px){
   .stage{height:260svh}
