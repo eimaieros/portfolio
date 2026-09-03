@@ -63,8 +63,31 @@ h1,h2,h3,p,blockquote,.big{overflow-wrap:break-word}
      não parecia sóbrio, parecia enevoado — e ao mesmo tempo o fundo decorativo
      estava alto. Hierarquia ao contrário.
        --dim   #777782  4.52:1  texto que é para ler
-       --faint #5c5c65  3.03:1  micro-etiquetas em mono, caixa alta, decorativas */
-  --dim:#777782;--faint:#5c5c65;--line:rgba(255,255,255,.07);
+       --faint #797984  4.65:1  micro-etiquetas em mono, caixa alta
+
+     O --faint esteve em #5c5c65, 3.03:1, com o argumento de que as
+     micro-etiquetas eram "decorativas". Não são. Dizem `users`, `events`,
+     `sessions` por baixo dos números do Rock in Rio, e `ARRIVE / LOAD / PEAK /
+     HOLD` no HUD — se são decorativas, então os números por cima delas não têm
+     unidade. Dezassete elementos, a 8 px e 12 px, é onde a página é mais
+     pequena e onde o contraste importa mais.
+
+     Foi o Lighthouse a apanhá-lo, depois de o CI passar a imprimir que
+     auditorias é que estão a custar pontos: `color-contrast`, peso 7, a maior
+     falha das três categorias que não são desempenho.
+
+     O QUE ISTO CUSTA, E O QUE FICA POR DECIDIR. A 4.65:1 o --faint fica
+     praticamente em cima do --dim (4.52:1) — o degrau de tom entre "para ler"
+     e "etiqueta" deixa de existir, porque abaixo de 4.5:1 não há degrau
+     nenhum para ter. A distinção passa a ser só tipográfica: tamanho, caixa
+     alta e letter-spacing, que já era metade dela.
+
+     Se quiseres o degrau de volta, o caminho é subir o --dim, não descer o
+     --faint. #86868f dá 5.46:1 e mantinha dois passos legíveis. Não o fiz
+     porque isso clareia o corpo do texto da página inteira — o About, o
+     subtítulo do herói, as metas dos trabalhos — e isso é uma decisão de
+     desenho tua, não uma correcção de acessibilidade minha. */
+  --dim:#777782;--faint:#797984;--line:rgba(255,255,255,.07);
   /* --acc é escrito por JS ao longo do scroll: a página muda de temperatura
      como muda um festival — véspera fria, carga quente, pico incandescente,
      e o verde de quem aguentou. Este valor é só o ponto de partida. */
@@ -1021,8 +1044,14 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
 .svc{border-top:1px solid rgba(13,13,15,.16);padding-top:calc(var(--u)*1.6);position:relative;
   transition:padding-left .55s var(--e)}
 .svc:hover{padding-left:calc(var(--u)*.9)}
+/* #8a8880 sobre o painel claro (#ececE8) dava 3.00:1 a 12 px, quando o mínimo
+   é 4.5:1. Esta é a outra metade da falha de `color-contrast` — e a que passava
+   mais despercebida, porque é a única cor da página escrita à mão em vez de
+   sair de uma variável, e porque o painel claro convida a assumir que texto
+   escuro sobre fundo claro está sempre bem. #68665f dá 4.85:1 e mantém o tom
+   quente, que era o ponto desta cor. */
 .svc .n{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);letter-spacing:.24em;
-  color:#8a8880;text-transform:uppercase}
+  color:#68665f;text-transform:uppercase}
 /* O tamanho segue a largura da própria coluna, não a da janela: com quatro
    colunas "FULLSTACK DEVELOPMENT" tem de caber sem se partir. */
 .svc{container-type:inline-size}
