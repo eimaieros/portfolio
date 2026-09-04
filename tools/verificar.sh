@@ -131,6 +131,11 @@ titulo "7. As cópias das bibliotecas estão a par dos originais"
 comparar_copia framebudget framebudget-demo
 comparar_copia glaze glaze-demo
 
+# A NHCS não entra no comparar_copia porque não tem a mesma forma: não é um
+# irmão em ../, não é clonada em CI (é privada) e a cópia inclui código gerado
+# a partir do TypeScript da app. O script dela sabe verificar as duas coisas.
+./tools/sincronizar-nhcs.sh --verificar || falhou=1
+
 # Cada biblioteca já guarda os seus próprios números — o tamanho do bundle e a
 # contagem de testes falham o CI dela se o README discordar. Esta página depois
 # CITA esses números nos painéis dos casos de estudo, e essa ponte não tinha

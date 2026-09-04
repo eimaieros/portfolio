@@ -47,6 +47,22 @@ if [ -d glaze-demo ]; then
   cp glaze-demo/src/*.js dist/glaze/src/
 fi
 
+# A app NHCS, servida em rodrigofigueiredo.dev/nhcs/.
+#
+# Protótipo React Native que não corre num browser. O que corre é a mesma
+# lógica: `nhcs-demo/src/*.js` é o TypeScript da app com os tipos retirados
+# (ver o LEIA-ME lá dentro), portanto a página não imita a app, executa-a. Só a
+# camada de desenho é reescrita, porque React Native não desenha em DOM.
+#
+# Cópia gerada por tools/sincronizar-nhcs.sh; o verificar.sh compara-a com o
+# original e recusa deixar passar se divergir.
+if [ -d nhcs-demo ]; then
+  mkdir -p dist/nhcs/src dist/nhcs/assets
+  cp nhcs-demo/index.html nhcs-demo/estilo.css nhcs-demo/vista.js dist/nhcs/
+  cp nhcs-demo/src/*.js dist/nhcs/src/
+  cp nhcs-demo/assets/* dist/nhcs/assets/
+fi
+
 # ORDEM: isto tem de vir ANTES do CSP. O CSP e um hash dos bytes do script
 # inline do dist/index.html; qualquer edicao ao ficheiro depois de o hash
 # estar calculado poe o browser a recusar o script e a pagina fica em branco.
@@ -203,6 +219,21 @@ cat > dist/_headers <<EOF
   Cache-Control: public, max-age=0, must-revalidate
 /glaze/index.html
   Cache-Control: public, max-age=0, must-revalidate
+# A demo da NHCS tem HTML, CSS e módulos JS que mudam juntos. Se o HTML vier da
+# cache e o JS não (ou o contrário), a página parte-se de maneiras difíceis de
+# ler. Os assets é que têm nome fixo e podem ficar guardados.
+/nhcs/
+  Cache-Control: public, max-age=0, must-revalidate
+/nhcs/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+/nhcs/estilo.css
+  Cache-Control: public, max-age=0, must-revalidate
+/nhcs/vista.js
+  Cache-Control: public, max-age=0, must-revalidate
+/nhcs/src/*
+  Cache-Control: public, max-age=0, must-revalidate
+/nhcs/assets/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
 EOF
 
 cat > dist/netlify.toml <<'EOF'
