@@ -32,11 +32,30 @@
  * project's tooling is Node, and a build step should not add a second language
  * runtime for eighty lines of hashing.
  *
- *   node tools/csp.mjs dist/index.html
+ * PORQUE E QUE RECEBE UMA PASTA E NAO UM FICHEIRO.
+ *
+ * A primeira versao lia so o dist/index.html. O cabecalho, esse, aplica-se a
+ * `/*` — a todas as paginas do site. As duas demos vendidas em /framebudget/ e
+ * /glaze/ tem os seus proprios <script> inline, nenhum deles estava na politica,
+ * e ficaram bloqueadas no momento em que o CSP foi publicado. A pagina do glaze
+ * ficou sem imagens (sao geradas em canvas no arranque) e a do framebudget com
+ * a tela preta. Os dois itens 04 e 05 do portefolio, mortos, e verificados a
+ * fundo — na pagina inicial.
+ *
+ * Agora percorre a pasta inteira e junta os hashes de todas as paginas. Uma
+ * politica so, partilhada: cada pagina passa a permitir tambem os scripts das
+ * outras duas, o que e um alargamento de tres hashes conhecidos e nao de uma
+ * classe de coisas. A alternativa — um bloco por caminho no _headers — nao
+ * serve: quando dois blocos coincidem, a Cloudflare junta os valores com
+ * virgula, e duas politicas de CSP no mesmo cabecalho aplicam-se pela
+ * interseccao, o que partia as tres paginas em vez de uma.
+ *
+ *   node tools/csp.mjs dist
  */
 
 import { createHash } from 'node:crypto';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 
 /**
  * Onde o próprio site vai buscar coisas. O que não estiver aqui é bloqueado.
@@ -98,14 +117,22 @@ function hashesDeScript(html) {
  * servidor não dependem dele. Para um site estático de portefólio, trocar uma
  * política real por uma heurística de bots do lado do cliente seria trocar mal.
  */
-export function politica(html) {
-  const script = [...ORIGENS.script, ...hashesDeScript(html)];
+export function politica(paginas) {
+  const htmls = Array.isArray(paginas) ? paginas : [paginas];
 
-  /* 'unsafe-hashes' para o único onload= inline da página, no <link> das
-     fontes. Sem ele o webfont nunca troca de `swap` para carregado. */
-  const onload = [...html.matchAll(/\bonload\s*=\s*"([^"]*)"/g)].map((m) => m[1]);
-  for (const h of new Set(onload)) script.push(sha256(h));
-  if (onload.length) script.push("'unsafe-hashes'");
+  const hashes = new Set();
+  const onload = new Set();
+  for (const html of htmls) {
+    for (const h of hashesDeScript(html)) hashes.add(h);
+    for (const m of html.matchAll(/\bonload\s*=\s*"([^"]*)"/g)) onload.add(m[1]);
+  }
+
+  const script = [...ORIGENS.script, ...hashes];
+
+  /* 'unsafe-hashes' para os onload= inline, no <link> das fontes. Sem ele o
+     webfont nunca troca de `swap` para carregado. */
+  for (const h of onload) script.push(sha256(h));
+  if (onload.size) script.push("'unsafe-hashes'");
 
   /* style-src leva 'unsafe-inline': atributos style="" não podem ser cobertos
      por hash. É uma concessão pequena e declarada — o que este cabeçalho existe
@@ -127,9 +154,27 @@ export function politica(html) {
   ].join('; ');
 }
 
-const caminho = process.argv[2] ?? 'dist/index.html';
+/** Todos os .html sob um caminho, recursivamente. Um ficheiro devolve-se a si. */
+export function paginasHtml(caminho) {
+  if (statSync(caminho).isFile()) return [caminho];
+  const out = [];
+  for (const e of readdirSync(caminho)) {
+    const c = join(caminho, e);
+    if (statSync(c).isDirectory()) out.push(...paginasHtml(c));
+    else if (e.endsWith('.html')) out.push(c);
+  }
+  return out.sort();
+}
+
+const caminho = process.argv[2] ?? 'dist';
 if (!existsSync(caminho)) {
   console.error(`csp: ${caminho} nao existe — corre o build primeiro`);
   process.exit(1);
 }
-console.log(politica(readFileSync(caminho, 'utf8')));
+const ficheiros = paginasHtml(caminho);
+if (!ficheiros.length) {
+  console.error(`csp: nao encontrei nenhum .html em ${caminho}`);
+  process.exit(1);
+}
+if (process.env.CSP_VERBOSO) console.error('csp: ' + ficheiros.join(', '));
+console.log(politica(ficheiros.map((f) => readFileSync(f, 'utf8'))));
