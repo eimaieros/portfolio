@@ -7,8 +7,36 @@ set -u
 cd "$(dirname "$0")/.."
 export NODE_PATH=/tmp/node_modules
 falhou=0
+naoCorreu=""
 
 titulo(){ printf '\n\033[1m%s\033[0m\n' "$1"; }
+
+# UMA VERIFICACAO QUE NAO CORREU NAO E UMA VERIFICACAO QUE PASSOU.
+#
+# Quatro passos deste script estao em Python. O Git Bash do Windows — a unica
+# consola onde isto tem de correr antes de publicar — nao tem python3, nem
+# python, nem py. Resultado: durante semanas este script terminou sempre em
+# "Ha coisas a corrigir acima" na maquina do Rodrigo, por quatro comandos que
+# nem chegaram a arrancar. Um sinal vermelho que esta sempre vermelho deixa de
+# ser lido, e foi isso que aconteceu.
+#
+# Colocar `|| true` calava-o e era pior. O que isto faz e distinguir "correu e
+# falhou" de "nao correu": o primeiro continua a bloquear a publicacao, o
+# segundo aparece num aviso nomeado no fim, com o nome de cada verificacao que
+# ficou por fazer.
+#
+# Nao e desculpa para deixar assim. As quatro correm em CI (o ci.yml instala
+# Python 3.13) e ai falham a build a serio. O caminho certo e passa-las a Node,
+# como ja aconteceu ao csp.py -> csp.mjs pela mesma razao exacta.
+py(){
+  local nome="$1"; shift
+  if ! command -v python3 > /dev/null 2>&1; then
+    echo "  ??  $nome: NAO CORREU — esta maquina nao tem python3"
+    naoCorreu="$naoCorreu\n      - $nome"
+    return 0
+  fi
+  python3 "$@"
+}
 
 titulo "1. Executa em jsdom, com e sem WebGL"
 # `node ... | tail -1` devolve o código do TAIL, não do node — e o tail passa
@@ -45,10 +73,10 @@ titulo "3. Os títulos dos casos cabem no painel"
 node tools/teste-titulos.js || falhou=1
 
 titulo "4. Variáveis usadas antes de declaradas"
-python3 tools/check-tdz.py site/index.html || falhou=1
+py "variaveis antes de declaradas (check-tdz.py)" tools/check-tdz.py site/index.html || falhou=1
 
 titulo "5. Peso, acessibilidade, SEO"
-python3 tools/auditoria.py || falhou=1
+py "peso, acessibilidade e SEO (auditoria.py)" tools/auditoria.py || falhou=1
 
 titulo "6. Resíduos de QA no ficheiro publicado"
 if grep -qE "LOREM QA|__massa|__dbg|document\.hidden\|\|1|closeGate, 120000" site/index.html; then
@@ -142,7 +170,7 @@ comparar_copia glaze glaze-demo
 # nada a verificá-la: dizia 10 KB quando eram 11,7 e falava de 83 testes quando
 # já eram 91. Uma cadeia de alegações verificadas vale o que vale o elo que
 # ninguém instrumentou.
-python3 tools/numeros-irmaos.py || falhou=1
+py "numeros dos irmaos no site (numeros-irmaos.py)" tools/numeros-irmaos.py || falhou=1
 
 # E os números que saem daqui para fora — o CV e os posts do LinkedIn. Não
 # falha a build: o CV vive fora do repositório e o CI não o tem, por isso um
@@ -152,13 +180,22 @@ python3 tools/numeros-irmaos.py || falhou=1
 # Existe porque a 4 de setembro o CV dizia cadence 44 testes, framebudget
 # 7.3 KB e 24 testes, glaze 16.1 KB e 83 testes — cinco números todos
 # verdadeiros no dia em que foram escritos e nenhum verdadeiro nesse dia.
-python3 tools/numeros-publicos.py || true
+py "numeros no CV e nos posts (numeros-publicos.py)" tools/numeros-publicos.py || true
 
 titulo "8. Build"
 ./tools/build.sh > /dev/null && echo "  ok  dist/ gerado e verificado" || falhou=1
 
+if [ -n "$naoCorreu" ]; then
+  printf '\n\033[33mNAO foi tudo verificado.\033[0m Ficaram por correr:%b\n' "$naoCorreu"
+  printf '      Falta python3 nesta consola. Estas quatro correm em CI, no push.\n'
+fi
+
 if [ "$falhou" -eq 0 ]; then
-  printf '\n\033[32mTudo passa.\033[0m Faz `git push` e o Cloudflare publica sozinho.\n\n'
+  if [ -n "$naoCorreu" ]; then
+    printf '\n\033[32mTudo o que correu passa.\033[0m Faz `git push`; o CI corre o resto.\n\n'
+  else
+    printf '\n\033[32mTudo passa.\033[0m Faz `git push` e o Cloudflare publica sozinho.\n\n'
+  fi
 else
   printf '\n\033[31mHá coisas a corrigir acima.\033[0m\n\n'
   exit 1
