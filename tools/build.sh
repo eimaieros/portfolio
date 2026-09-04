@@ -96,35 +96,50 @@ EOF
 # tem de correr — o Git Bash do Windows nao tem python3, nem python, nem py. O
 # resto das ferramentas deste projecto ja e Node, e um passo de build nao deve
 # trazer um segundo runtime atras por oitenta linhas de hashing.
-CSP="$(node tools/csp.mjs dist/index.html)"
+CSP="$(node tools/csp.mjs dist)"
 if [ -z "$CSP" ]; then
   echo "  !!  nao consegui calcular o CSP; nao vou publicar sem ele" >&2
   exit 1
 fi
 
-# Guarda: cada script inline executavel do dist/index.html tem de ter o seu hash
-# dentro da politica. O gerador tira-os do mesmo ficheiro, por isso em teoria
-# nao podem divergir — mas "em teoria" e a regex do gerador, e uma regex que
-# deixe de apanhar um <script> nao falha, so devolve menos. O sintoma seria uma
-# pagina em branco em producao. Isto custa milissegundos e transforma isso num
-# build vermelho.
+# Guarda: cada script inline executavel de CADA pagina do dist/ tem de ter o seu
+# hash dentro da politica.
+#
+# A primeira versao disto verificava so o dist/index.html — a mesma pagina de que
+# o gerador tirava os hashes — por isso concordava sempre consigo mesma. As demos
+# em /framebudget/ e /glaze/ tem os seus proprios <script> inline, ficaram de
+# fora da politica, e estiveram partidas em producao desde o momento em que o CSP
+# foi publicado: o glaze sem imagens, o framebudget com a tela preta. Um guarda
+# que so olha para o ficheiro de onde vieram os dados nao e um guarda.
+#
+# Agora percorre a pasta. O sintoma que isto apanha e uma pagina em branco em
+# producao, e custa milissegundos.
 node -e '
-const {readFileSync}=require("fs"),{createHash}=require("crypto");
-const html=readFileSync("dist/index.html","utf8"), csp=process.argv[1];
+const {readFileSync,readdirSync,statSync}=require("fs"),{join}=require("path");
+const {createHash}=require("crypto");
+const csp=process.argv[1];
+const paginas=(d)=>statSync(d).isFile()?[d]:readdirSync(d).flatMap(e=>{
+  const c=join(d,e); return statSync(c).isDirectory()?paginas(c):(e.endsWith(".html")?[c]:[]);
+});
 let n=0, mal=0;
-for(const m of html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)){
-  const [,a,c]=m;
-  if(/\bsrc=/.test(a)) continue;
-  const t=a.match(/type\s*=\s*["\x27]([^"\x27]+)/);
-  if(t && /json/i.test(t[1])) continue;
-  if(!c.trim()) continue;
-  n++;
-  const h=createHash("sha256").update(c,"utf8").digest("base64");
-  if(!csp.includes(h)){ mal++; console.error("  !!  script inline de "+c.length+" bytes sem hash na politica"); }
+const lista=paginas("dist");
+for(const f of lista){
+  const html=readFileSync(f,"utf8");
+  for(const m of html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)){
+    const [,a,c]=m;
+    if(/\bsrc=/.test(a)) continue;
+    const t=a.match(/type\s*=\s*["\x27]([^"\x27]+)/);
+    if(t && /json/i.test(t[1])) continue;
+    if(!c.trim()) continue;
+    n++;
+    const h=createHash("sha256").update(c,"utf8").digest("base64");
+    if(!csp.includes(h)){ mal++; console.error("  !!  "+f+": script inline de "+c.length+" bytes sem hash na politica"); }
+  }
 }
-if(!n){ console.error("  !!  nao encontrei nenhum script inline — a regex do csp.mjs partiu-se"); process.exit(1); }
+if(!lista.length){ console.error("  !!  nao encontrei nenhuma pagina em dist/"); process.exit(1); }
+if(!n){ console.error("  !!  nenhum script inline em "+lista.length+" pagina(s) — a regex do csp.mjs partiu-se"); process.exit(1); }
 if(mal) process.exit(1);
-console.log("  ok  "+n+" script(s) inline, todos com hash na politica");
+console.log("  ok  "+n+" script(s) inline em "+lista.length+" pagina(s), todos com hash na politica");
 ' "$CSP" || exit 1
 
 # CSP_MODO=relatorio pede o cabecalho Report-Only: o browser avisa na consola e
