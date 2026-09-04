@@ -796,8 +796,18 @@ footer a:hover{color:var(--acc)}
 #sidx i::after{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(var(--sp,0));
   transform-origin:left;transition:transform .5s var(--e)}
 /* ---------- menu overlay ---------- */
+/* O botão do menu é o único controlo de navegação que existe no telemóvel — a
+   `.navr` com os links desaparece abaixo dos 900px. E tinha `padding:0`.
+   Num telefone de 390px de largura o `--u` encosta ao mínimo de 14px, o
+   `--t-micro` fica em 10.5px, e a área de toque da palavra MENU mede cerca de
+   34 x 13 px. O mínimo da WCAG 2.2 AA (2.5.8) é 24 x 24; as recomendações da
+   Apple e do Material são 44 e 48. Treze pixels é um alvo que se falha.
+   Nenhuma auditoria apanhava isto: o Lighthouse não mede tamanho de alvo, e por
+   isso a acessibilidade estava a 100 com o botão principal deste tamanho.
+   O padding cresce a área e a margem negativa igual desfaz o efeito no layout,
+   por isso não se vê diferença nenhuma — só se acerta. */
 #menuBtn{background:none;border:0;color:inherit;font:inherit;letter-spacing:.2em;text-transform:uppercase;
-  cursor:none;display:none;padding:0;opacity:.55;transition:opacity .35s}
+  cursor:none;display:none;padding:16px 12px;margin:-16px -12px;opacity:.55;transition:opacity .35s}
 #menuBtn:hover{opacity:1}
 #menu{position:fixed;inset:0;width:100%;max-width:none;transform:none;
   mix-blend-mode:normal;z-index:150;background:var(--bg);clip-path:inset(0 0 100% 0);
@@ -819,7 +829,7 @@ footer a:hover{color:var(--acc)}
 #menu.on .foot{opacity:1}
 #menuClose{position:fixed;top:calc(var(--u)*2);right:var(--pad);z-index:160;background:none;
   border:1px solid var(--line);color:var(--fg);font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);
-  letter-spacing:.2em;text-transform:uppercase;cursor:none;display:none;padding:12px 22px;
+  letter-spacing:.2em;text-transform:uppercase;cursor:none;display:none;padding:16px 22px;
   transition:.4s var(--e)}
 #menuClose:hover{background:var(--acc);border-color:var(--acc);color:var(--bg)}
 #menuClose.on{display:block}
@@ -917,7 +927,17 @@ html{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.14) transparent}
   opacity:0;pointer-events:none;transition:.5s var(--e)}
 #toTop.on{opacity:1;pointer-events:auto}
 #toTop:hover{background:var(--acc);border-color:var(--acc);color:var(--bg);transform:translateY(-3px)}
-@media(max-width:900px){#toTop{display:none}}
+/* O #toTop estava escondido no telemóvel — sem comentário a dizer porquê.
+   Esta página tem 22 000 px de altura e o telemóvel é onde não há tecla Home
+   nem barra de scroll para arrastar. A nav volta ao fazer scroll para cima e o
+   logótipo leva ao topo, por isso ninguém ficava preso; mas "faz scroll para
+   cima até a nav aparecer e acerta no logótipo" é pior do que um botão onde o
+   polegar já está.
+   48px em vez dos 42 que o `--u` dá num ecrã pequeno, que é o mínimo do
+   Material para alvos de toque. */
+@media(max-width:900px){
+  #toTop{min-width:48px;min-height:48px;bottom:calc(var(--u)*1.6)}
+}
 
 /* ---------- MARQUEE VERTICAL DE STACK ---------- */
 .stackband{border-top:1px solid var(--line);border-bottom:1px solid var(--line);
