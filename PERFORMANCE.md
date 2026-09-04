@@ -339,16 +339,33 @@ Two candidates, and nothing here separates them:
 If it is the second, there is nothing to do that is not "delete the design".
 If it is the first, the loader's duration is a dial.
 
-**The experiment that would tell them apart**, and it has not been run: take a
-desktop Lighthouse run with Chrome's `--force-prefers-reduced-motion`. This page
-honours that flag in five places, so the decorative motion stops while the loader
-still runs. If speed index drops to the low seconds, the background was the cost;
-if it stays at seven, the loader was. One run, one flag, and the answer replaces
-this section.
+**The experiment first written here was wrong, and it never ran.** It said to
+take a desktop Lighthouse run under Chrome's `--force-prefers-reduced-motion`,
+on the reasoning that the motion would stop while the loader kept going. That is
+not what this page does with that flag. `REDUCE` also sets
+`gsap.globalTimeline.timeScale(60)`, and the reduced-motion media query sets
+`animation:none` on everything — so the flag collapses the loader *and* the
+background at once. An experiment that moves two variables answers nothing, and
+this one would have produced a fast number and a confident wrong conclusion.
+
+**The experiment that does work** is [`diagnostico.yml`](.github/workflows/diagnostico.yml),
+run by hand from the Actions tab. The page already contains, and has shipped for
+weeks, a code path that means exactly "no loader, everything else unchanged":
+the `@media(pointer:coarse)` block hides `#pre`, unlocks the body and reveals the
+hero, which is why touch devices never wait behind it. The job builds `dist/`,
+copies `index.html` with that block widened to `@media all`, and measures the
+copy on the desktop profile. The shader still runs. One variable moves.
+
+| speed index there | conclusion |
+|---|---|
+| drops to ~2–3 s | the loader is the cost, and its duration is a dial |
+| stays at ~7 s | the background is, and there is nothing to do short of deleting the design |
 
 Nobody should touch either of them before that run. This file has a section
 titled "The previous version of this page was wrong" for acting on exactly this
-kind of plausible story.
+kind of plausible story — and the first version of *this* section was another
+one of them, caught only because writing the sed command meant reading what
+`REDUCE` actually does.
 
 ### 4. Ship a Three.js subset
 

@@ -1,0 +1,46 @@
+{
+  "porque_e_que_isto_existe": [
+    "Desktop speed index e 7.4-7.9 s enquanto FCP e LCP sao 0.6-0.8 s: a pagina",
+    "pinta quase de imediato e depois continua a mudar durante sete segundos.",
+    "Speed index vale 10% da pontuacao de desempenho, por isso nao e ruido.",
+    "",
+    "Ha dois suspeitos e nada os separava: o loader do desktop, que conta ate",
+    "100 e enche uma grelha de pontos, e o fundo em shader, que nunca chega a",
+    "um fotograma estavel — e speed index mede exactamente estabilidade.",
+    "",
+    "A experiencia que estava escrita no PERFORMANCE.md era correr o Chrome com",
+    "--force-prefers-reduced-motion. ESTAVA ERRADA e nunca chegou a correr: o",
+    "REDUCE desta pagina tambem acelera a globalTimeline do GSAP 60x e a media",
+    "query de reduced-motion mata as animacoes todas, portanto apagava os dois",
+    "suspeitos ao mesmo tempo. Uma experiencia que mexe em duas variaveis nao",
+    "responde a nada.",
+    "",
+    "Esta mexe numa so. O bloco @media(pointer:coarse) do site ja faz",
+    "exactamente 'sem loader, o resto na mesma' — esconde o #pre, desbloqueia o",
+    "body e revela o heroi — e esta em producao no telemovel ha semanas. O job",
+    "de diagnostico gera uma copia do dist/index.html com esse bloco a aplicar-se",
+    "sempre, e mede-a no perfil desktop. O fundo continua a animar.",
+    "",
+    "Se o speed index cair, o loader e o custo e a duracao dele e um botao. Se",
+    "ficar nos sete, e o fundo, e nao ha nada a fazer que nao seja apagar o",
+    "desenho. Uma execucao, uma variavel, uma resposta.",
+    "",
+    "Sem assertions: isto mede, nao guarda. O ficheiro nunca vai ao ar — e",
+    "gerado dentro do job e morre com ele."
+  ],
+  "ci": {
+    "collect": {
+      "staticDistDir": "./dist",
+      "url": ["http://localhost/diagnostico-sem-loader.html"],
+      "numberOfRuns": 7,
+      "settings": {
+        "preset": "desktop",
+        "skipAudits": ["uses-http2", "canonical", "is-crawlable"]
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": "./.lighthouseci"
+    }
+  }
+}
