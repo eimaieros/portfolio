@@ -139,6 +139,16 @@ comparar_copia glaze glaze-demo
 # ninguém instrumentou.
 python3 tools/numeros-irmaos.py || falhou=1
 
+# E os números que saem daqui para fora — o CV e os posts do LinkedIn. Não
+# falha a build: o CV vive fora do repositório e o CI não o tem, por isso um
+# erro aqui seria vermelho por ausência e não por defeito. Avisa, que é o que
+# se quer de uma coisa que se lê antes de mandar uma candidatura.
+#
+# Existe porque a 4 de setembro o CV dizia cadence 44 testes, framebudget
+# 7.3 KB e 24 testes, glaze 16.1 KB e 83 testes — cinco números todos
+# verdadeiros no dia em que foram escritos e nenhum verdadeiro nesse dia.
+python3 tools/numeros-publicos.py || true
+
 titulo "8. Build"
 ./tools/build.sh > /dev/null && echo "  ok  dist/ gerado e verificado" || falhou=1
 

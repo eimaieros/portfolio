@@ -173,6 +173,7 @@ scans for QA code that leaked into the published file, and builds.
 | `tools/verificar.sh` | all checks, in order — also what CI runs on every push |
 | `tools/medir-arranque.js` | paste into the console: where the startup time actually goes |
 | `tools/numeros-irmaos.py` | the figures this site quotes about framebudget and glaze match theirs |
+| `tools/numeros-publicos.py` | the figures the CV and the LinkedIn drafts quote match the repositories |
 | `tools/csp.mjs` | derive the Content-Security-Policy from the built page, hash and all |
 | `.github/workflows/diagnostico.yml` | run by hand: is the desktop speed index the loader or the background? |
 | `tools/resumo-lighthouse.mjs` | print both Lighthouse scores into the CI log and run summary |
