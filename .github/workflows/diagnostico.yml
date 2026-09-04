@@ -1,0 +1,77 @@
+name: Diagnóstico — de onde vem o speed index
+
+# Não corre em nenhum push. Corre quando alguém carrega em "Run workflow",
+# porque é uma pergunta, não um guarda: acrescentar treze minutos a cada push
+# para medir uma coisa que já se sabe é como se perdem os checks que importam.
+#
+# A pergunta está por extenso no lighthouserc.diagnostico.json. Em resumo: o
+# speed index do desktop é 7.5 s com FCP a 0.7 s, e os suspeitos são o loader e
+# o fundo animado. Este job tira o loader e deixa o fundo, que é a única forma
+# de saber qual dos dois é.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sem-loader:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Build dist/
+        run: ./tools/build.sh
+
+      # O bloco @media(pointer:coarse) do site esconde o #pre, desbloqueia o
+      # body e revela o herói — é o caminho que os telemóveis já usam. Passá-lo
+      # a @media all na cópia dá exactamente a mesma página sem o loader.
+      #
+      # A cópia é um ficheiro novo; o index.html não é tocado, para o caso de
+      # alguém correr isto e depois publicar da mesma árvore.
+      - name: Gerar a cópia sem loader
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          n=$(grep -c '@media(pointer:coarse){' dist/index.html)
+          if [ "$n" -ne 1 ]; then
+            echo "!!  esperava exactamente um @media(pointer:coarse), encontrei $n." >&2
+            echo "    O CSS mudou e esta experiência deixou de medir o que diz medir." >&2
+            exit 1
+          fi
+          sed 's/@media(pointer:coarse){/@media all{/' dist/index.html > dist/diagnostico-sem-loader.html
+          grep -q '@media all{' dist/diagnostico-sem-loader.html
+          echo "  ok  dist/diagnostico-sem-loader.html gerado"
+
+      - name: Lighthouse — sem loader, fundo na mesma
+        id: semloader
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: ./lighthouserc.diagnostico.json
+          uploadArtifacts: true
+          artifactName: lighthouse-diagnostico
+          temporaryPublicStorage: true
+
+      - name: Números
+        if: always()
+        run: node tools/resumo-lighthouse.mjs "${{ steps.semloader.outputs.resultsPath }}" "Desktop SEM loader (fundo continua a animar)"
+
+      - name: Como ler isto
+        if: always()
+        run: |
+          {
+            echo ""
+            echo "**Comparar com a última execução normal do CI, perfil desktop.**"
+            echo ""
+            echo "| speed index aqui | conclusão |"
+            echo "|---|---|"
+            echo "| cai para ~2-3 s | o loader é o custo — a duração dele é um botão |"
+            echo "| fica em ~7 s | é o fundo animado, e não há nada a fazer que não seja apagar o desenho |"
+            echo ""
+            echo "Uma variável mudou: o loader. O fundo, o shader, o scroll e o"
+            echo "resto do arranque estão exactamente como estão em produção."
+          } >> "$GITHUB_STEP_SUMMARY"
