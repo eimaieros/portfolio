@@ -282,6 +282,32 @@ Kept on the list only so that nobody proposes it again. It removes the Three.js
 parse and keeps the context creation and the shader compile, which are the
 actual costs. The previous version of this page recommended it as the big win.
 
+### 3a. There is nothing left on Lighthouse's own list
+
+The run summary now prints every performance audit that fails with an estimated
+saving, sorted. On run #45, both profiles, the entire list is:
+
+| audit | estimated |
+|---|---:|
+| Reduce unused JavaScript | 100 ms |
+
+That is the whole of it. No render-blocking resources, no oversized images, no
+legacy JavaScript, no third-party cost worth naming — one audit, a tenth of a
+second, on a page whose blocking time is measured in seconds.
+
+This matters more than it looks. It means the score is not low because of a
+backlog nobody worked through. Everything Lighthouse knows how to suggest has
+either been done or was never the problem. What is left is the two things below,
+both measured, both understood, and neither of them on any tool's list:
+
+- **Total blocking time**, 30% of the score, one task, blocked on a named
+  prerequisite (3b).
+- **Speed index**, 10%, the background shader, a design decision (3c).
+
+A 58 with an empty opportunities list is a different thing from a 58 with a long
+one, and worth saying out loud before someone goes looking for easy points that
+are not there.
+
 ### 3b. The initializer cannot be split until two things move — tried, reverted
 
 Total blocking time is 30% of the score and this page spends 1,400–2,700 ms of
