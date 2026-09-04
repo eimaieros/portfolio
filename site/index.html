@@ -1696,7 +1696,7 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
    module initializes WebGL and all scroll systems. The nested timer runs after
    that paint; without it the DOMContentLoaded task itself still stood in front
    of FCP even though the external files were correctly deferred. */
-addEventListener('DOMContentLoaded',()=>requestAnimationFrame(()=>setTimeout(async ()=>{
+addEventListener('DOMContentLoaded',()=>requestAnimationFrame(()=>setTimeout(()=>{
 'use strict';
 
 /* MARCOS DE ARRANQUE — 13 linhas, inertes, e a unica forma de saber onde e que
@@ -1710,20 +1710,6 @@ addEventListener('DOMContentLoaded',()=>requestAnimationFrame(()=>setTimeout(asy
    este ficheiro chegou a recomendar reescrever o fundo para poupar 26 ms. */
 const M = (n)=>{ try{ performance.mark('arr:'+n); }catch(e){} };
 M('inicio');
-/* CEDER — devolve o fio ao browser entre secções do arranque.
-   O modulo corria todo dentro de uma tarefa so: no CI isso e 1,4-2,7 s em que
-   a pagina nao consegue responder a nada, e total blocking time e 30% da
-   pontuacao. Blocking time conta o que cada tarefa passa dos 50 ms, por isso
-   o mesmo trabalho partido em pedacos custa muito menos sem fazer menos.
-   Os cortes nao foram escolhidos a olho: sairam dos marcos acima, medidos no
-   site publicado. `scheduler.yield` quando existe, porque volta ao mesmo sitio
-   na fila em vez de ir para o fim dela. */
-const CEDER = (typeof scheduler!=='undefined' && scheduler.yield)
-  ? ()=>scheduler.yield()
-  : (typeof scheduler!=='undefined' && scheduler.postTask)
-    ? ()=>scheduler.postTask(()=>{},{priority:'user-visible'})
-    : ()=>new Promise(r=>setTimeout(r,0));
-const P = async (n)=>{ await CEDER(); M(n); };
 window.__arranque = ()=>{
   const ms = performance.getEntriesByType('mark').filter(m=>m.name.startsWith('arr:'));
   const out = []; let ant = null;
@@ -1745,13 +1731,6 @@ function safe(name, fn){
 }
 addEventListener('error',e=>{
   console.error('[portfolio] erro não apanhado:', e.message, '@', e.filename+':'+e.lineno);
-});
-/* O arranque passou a ser uma funcao async, e uma excepcao dentro dela deixa de
-   chegar ao listener acima: vira uma promessa rejeitada que ninguem apanha e
-   desaparece sem uma linha na consola. Este e o mesmo defeito do catch vazio
-   que este ficheiro ja teve uma vez. */
-addEventListener('unhandledrejection',e=>{
-  console.error('[portfolio] promessa rejeitada no arranque:', e.reason);
 });
 
 const Q=(s,c)=>(c||document).querySelector(s),QA=(s,c)=>[...(c||document).querySelectorAll(s)];
@@ -2504,7 +2483,7 @@ function buildScrollTriggers(){
     onUpdate:s=>Q('.mainNav').classList.toggle('hide',s.direction===1)});
 }
 
-await P('webgl');
+M('webgl');
 /* ================= WEBGL ================= */
 /* Ponteiro para o redimensionamento do palco.
    sizeStage() vive dentro de if(HAS_THREE){...} e é block-scoped; checkStage()
@@ -2747,7 +2726,7 @@ bgScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial
     col+=(gr-.5)*.05*(1.-min(col.r*3.,1.));
     gl_FragColor=vec4(col,1.);}`})));
 
-await P('assembly');
+M('assembly');
 /* ================= ASSEMBLY: peças que se montam com o scroll ================= */
 const PIECES = REDUCE ? 28 : 84;
 const dummy = new THREE.Object3D();
@@ -3135,7 +3114,7 @@ document.addEventListener('visibilitychange',()=>{
   });
 }
 
-await P('recomendacoes');
+M('recomendacoes');
 /* ================= CARROSSEL DE RECOMENDAÇÕES =================
    O scroll vertical conduz o deslocamento horizontal. Nada roda sozinho: são
    citações de pessoas reais, e tirar o controlo a quem as está a ler para
@@ -3255,7 +3234,7 @@ safe('massa',()=>{
   });
 });
 
-await P('work');
+M('work');
 /* ================= WORK ================= */
 const caseEl=Q('#case'),caseIn=Q('.inner',caseEl);
 safe('lista de trabalhos',()=>QA('.itm').forEach((it,i)=>{
@@ -3697,7 +3676,7 @@ QA('.pStep .big, .ct h2').forEach(el=>{
   QA('i',el).forEach((c,i)=>c.style.transitionDelay=(i*0.028)+'s');
 });
 
-await P('cor');
+M('cor');
 /* ================= SISTEMA DE COR ao longo do percurso =================
    Quatro paragens. Não é decoração: é a curva de um festival.
    · VÉSPERA  índigo frio — ainda não chegou ninguém
@@ -3841,7 +3820,6 @@ if(!REDUCE){
   },{passive:true});
 }
 
-await P('detalhes-ui');
 /* ---------- hora de Lisboa ---------- */
 const lisTime=Q('#lisTime');
 function tickClock(){
