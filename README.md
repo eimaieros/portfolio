@@ -27,8 +27,14 @@ geometry allocated once and interpolated rather than rebuilt, and full
 `prefers-reduced-motion` support.
 
 **Where that lands, measured rather than claimed.** Seven runs each: desktop
-median **57–60**, mobile **66–75**. Accessibility **100**, best practices 96,
-SEO 100.
+median **57–60**, mobile **66–75**. Accessibility **100**, best practices
+**100**, SEO **100** — all three asserted at 1.0 in CI, so they cannot slip back
+without failing a build.
+
+Performance is the one that has not moved. It is also the one that moves
+constantly: the same unchanged page has produced blocking times between 1,410
+and 2,690 ms across consecutive runs. That is why the score is a ratchet and the
+timings are not.
 
 Desktop repeats exactly at seven samples and holds a hard floor in CI. Mobile
 does not — two seven-run medians five points apart — so its performance score
