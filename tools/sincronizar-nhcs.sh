@@ -27,12 +27,15 @@ VERIFICAR=0
 [ "${1:-}" = "--verificar" ] && VERIFICAR=1
 
 ORIGEM=""
+# `${USER:-}` e nao `$USER`: este script corre com `set -u`, e o Git Bash do
+# Windows nao define USER. A primeira versao rebentou com "USER: unbound
+# variable" na unica maquina onde isto tem de correr.
 for tentativa in \
   "../../../NHCS/App" \
   "../../NHCS/App" \
   "../NHCS/App" \
-  "$HOME/Documents/NHCS/App" \
-  "/c/Users/$USER/Documents/NHCS/App"
+  "${HOME:-}/Documents/NHCS/App" \
+  "/c/Users/${USERNAME:-${USER:-}}/Documents/NHCS/App"
 do
   if [ -d "$tentativa/demo" ] && [ -f "$tentativa/tools/gerar-demo.mjs" ]; then ORIGEM="$tentativa"; break; fi
 done
