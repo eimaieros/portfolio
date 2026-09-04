@@ -31,6 +31,16 @@ median **57–60**, mobile **66–75**. Accessibility **100**, best practices
 **100**, SEO **100** — all three asserted at 1.0 in CI, so they cannot slip back
 without failing a build.
 
+Those are scores for **the built page**, not for the deployed one. CI serves
+`dist/` from localhost, so it measures exactly what this repository produces and
+nothing else. The deployed page goes through Cloudflare, which injects two
+scripts of its own, and the Content-Security-Policy blocks one of them on
+purpose (see below) — a blocked script writes to the console, and console errors
+are a best-practices audit. A run against `rodrigofigueiredo.dev` may therefore
+read 96 where CI reads 100, for a reason that was chosen rather than missed. The
+two numbers answer different questions and it is worth knowing which one is on
+screen.
+
 Performance is the one that has not moved. It is also the one that moves
 constantly: the same unchanged page has produced blocking times between 1,410
 and 2,690 ms across consecutive runs. That is why the score is a ratchet and the
