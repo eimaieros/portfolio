@@ -316,56 +316,41 @@ dominant task) is trustworthy; the absolute 479 ms is from a warm shader cache
 and a delayed start, and should be re-measured on a normal foreground load
 before anyone quotes it.
 
-### 3c. Speed index is 7.5 s on desktop and 2.7 s on mobile — untested cause
+### 3c. The desktop speed index is the background, and it is not going anywhere
 
-Every CI run since the reporter started printing it: desktop speed index sits
-between 7.4 s and 7.9 s while FCP and LCP are 0.6–0.8 s. The content paints
-almost immediately and then the page keeps changing for another seven seconds.
-Speed index is 10% of the performance score, so this is not a rounding error.
+Desktop speed index sits between 7.4 s and 7.9 s while FCP and LCP are 0.6–0.8 s.
+The content paints almost immediately and the page then keeps changing for
+another seven seconds. Speed index is 10% of the performance score, so this is
+where a large part of the missing forty points lives.
 
-Mobile, the same page, reads 2.5–2.7 s. On touch the site shows the real hero
-without a loader and draws decorative WebGL only during interaction, which makes
-the difference *suggestive* — but the two profiles use different viewports and
-different CPU throttling, so speed index is not comparable across them. It is a
-hint, not a measurement, and it is written here as a hint.
+Two candidates: the loader, and a background shader that never reaches a stable
+frame. [`diagnostico.yml`](.github/workflows/diagnostico.yml) separated them by
+measuring the page with the loader removed and nothing else touched — the
+`@media(pointer:coarse)` path, widened to `@media all`, which is the same code
+that keeps touch devices from waiting behind it.
 
-Two candidates, and nothing here separates them:
+| | speed index | performance | CLS |
+|---|---:|---:|---:|
+| normal, seven runs | 7.4–7.9 s | 57–60 | 0.05–0.10 |
+| **no loader** | **6.9 s** | 60 | 0.02 |
 
-1. **The desktop loader.** It counts up and fills a dot grid for several
-   seconds. Visual completeness cannot arrive until it is gone.
-2. **The background.** A shader that never stops moving never reaches a stable
-   frame, and speed index measures stability.
+**It is the background.** Removing the loader entirely buys about a second, and
+the normal runs already spread half a second between themselves. Nothing on the
+list would have predicted that: the loader is the most visible thing on the
+page for the first few seconds and it turns out to be almost free.
 
-If it is the second, there is nothing to do that is not "delete the design".
-If it is the first, the loader's duration is a dial.
+Speed index measures how fast the viewport stops changing. A shader that animates
+forever never stops changing, so the metric never completes and the score is
+capped by the fact that the page moves. That is not a bug to fix; it is what the
+site is. The only ways down are to pause the background after the intro or delete
+it, and both of those are the design rather than an optimisation.
 
-**The experiment first written here was wrong, and it never ran.** It said to
-take a desktop Lighthouse run under Chrome's `--force-prefers-reduced-motion`,
-on the reasoning that the motion would stop while the loader kept going. That is
-not what this page does with that flag. `REDUCE` also sets
-`gsap.globalTimeline.timeScale(60)`, and the reduced-motion media query sets
-`animation:none` on everything — so the flag collapses the loader *and* the
-background at once. An experiment that moves two variables answers nothing, and
-this one would have produced a fast number and a confident wrong conclusion.
+So the desktop performance score has a floor that is a decision, not an
+oversight — worth saying out loud, because "we should improve performance" has
+been sitting on this list as though a few points were lying around unclaimed.
 
-**The experiment that does work** is [`diagnostico.yml`](.github/workflows/diagnostico.yml),
-run by hand from the Actions tab. The page already contains, and has shipped for
-weeks, a code path that means exactly "no loader, everything else unchanged":
-the `@media(pointer:coarse)` block hides `#pre`, unlocks the body and reveals the
-hero, which is why touch devices never wait behind it. The job builds `dist/`,
-copies `index.html` with that block widened to `@media all`, and measures the
-copy on the desktop profile. The shader still runs. One variable moves.
-
-| speed index there | conclusion |
-|---|---|
-| drops to ~2–3 s | the loader is the cost, and its duration is a dial |
-| stays at ~7 s | the background is, and there is nothing to do short of deleting the design |
-
-Nobody should touch either of them before that run. This file has a section
-titled "The previous version of this page was wrong" for acting on exactly this
-kind of plausible story — and the first version of *this* section was another
-one of them, caught only because writing the sed command meant reading what
-`REDUCE` actually does.
+The loader is cheap, but it is not free: it also costs about 0.03 of layout
+shift, which is the one number that moved cleanly in the experiment.
 
 ### 4. Ship a Three.js subset
 

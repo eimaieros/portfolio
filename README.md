@@ -46,6 +46,16 @@ constantly: the same unchanged page has produced blocking times between 1,410
 and 2,690 ms across consecutive runs. That is why the score is a ratchet and the
 timings are not.
 
+Part of that score is a decision rather than a backlog item. Desktop speed index
+is 7.4–7.9 s against a 0.7 s largest contentful paint, and speed index is 10% of
+the total. A one-variable experiment
+([`diagnostico.yml`](.github/workflows/diagnostico.yml)) measured the page with
+the loader removed and everything else untouched: **6.9 s**, about a second, when
+the normal runs already spread half a second between themselves. It is not the
+loader. It is that speed index measures how fast the viewport stops changing,
+and a background shader that animates forever never stops changing. The only
+ways down are to pause it or delete it, and both of those are the design.
+
 Desktop repeats exactly at seven samples and holds a hard floor in CI. Mobile
 does not — two seven-run medians five points apart — so its performance score
 is a warning there rather than a gate, still measured and still printed into
