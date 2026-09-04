@@ -114,12 +114,25 @@ function auditoriasEmFalta(lhr, cat) {
 function nosEmFalta(lhr, id, max = 6) {
   const itens = lhr.audits?.[id]?.details?.items;
   if (!Array.isArray(itens)) return [];
+  const limpa = (v, n) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
   const linhas = [];
   for (const it of itens.slice(0, max)) {
-    const no = it.node ?? it.subItems?.items?.[0]?.node ?? {};
-    const sel = (no.selector || no.snippet || '(sem selector)').replace(/\s+/g, ' ').slice(0, 110);
-    const porque = (no.explanation || '').replace(/\s+/g, ' ').slice(0, 130);
-    linhas.push(porque ? `\`${sel}\` — ${porque}` : `\`${sel}\``);
+    const no = it.node ?? it.subItems?.items?.[0]?.node ?? null;
+    if (no) {
+      const sel = limpa(no.selector || no.snippet, 110) || '(sem selector)';
+      const porque = limpa(no.explanation, 130);
+      linhas.push(porque ? `\`${sel}\` — ${porque}` : `\`${sel}\``);
+      continue;
+    }
+    /* Nem todas as auditorias falam de elementos. `errors-in-console` devolve
+       a mensagem e o sítio de onde veio, e a primeira versão disto imprimia
+       "(sem selector)" para as três — informação a menos exactamente onde eu
+       precisava dela. O que interessa é o que a linha *tem*, não o formato que
+       eu esperava. */
+    const onde = limpa(it.sourceLocation?.url ?? it.url ?? it.source, 90);
+    const que = limpa(it.description ?? it.reason ?? it.label, 160);
+    const linha = [que, onde && `(${onde})`].filter(Boolean).join(' ');
+    linhas.push(linha || `\`${limpa(JSON.stringify(it), 140)}\``);
   }
   if (itens.length > max) linhas.push(`…e mais ${itens.length - max}`);
   return linhas;

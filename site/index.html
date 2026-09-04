@@ -62,32 +62,42 @@ h1,h2,h3,p,blockquote,.big{overflow-wrap:break-word}
      do About, as metas dos trabalhos, os anos, o subtítulo do contacto. O site
      não parecia sóbrio, parecia enevoado — e ao mesmo tempo o fundo decorativo
      estava alto. Hierarquia ao contrário.
-       --dim   #777782  4.52:1  texto que é para ler
-       --faint #797984  4.65:1  micro-etiquetas em mono, caixa alta
-
      O --faint esteve em #5c5c65, 3.03:1, com o argumento de que as
      micro-etiquetas eram "decorativas". Não são. Dizem `users`, `events`,
      `sessions` por baixo dos números do Rock in Rio, e `ARRIVE / LOAD / PEAK /
      HOLD` no HUD — se são decorativas, então os números por cima delas não têm
-     unidade. Dezassete elementos, a 8 px e 12 px, é onde a página é mais
-     pequena e onde o contraste importa mais.
+     unidade.
 
-     Foi o Lighthouse a apanhá-lo, depois de o CI passar a imprimir que
-     auditorias é que estão a custar pontos: `color-contrast`, peso 7, a maior
-     falha das três categorias que não são desempenho.
+     E MEDIR CONTRA `--bg` NÃO ERA MEDIR. Esta é a parte que interessa e que me
+     escapou seis vezes seguidas. O --dim a #777782 dava 4.52:1 — contra
+     #080809, que é o fundo do documento e quase não é o fundo de nada. O texto
+     está dentro de painéis, e os painéis são camadas semi-transparentes por
+     cima do fundo:
 
-     O QUE ISTO CUSTA, E O QUE FICA POR DECIDIR. A 4.65:1 o --faint fica
-     praticamente em cima do --dim (4.52:1) — o degrau de tom entre "para ler"
-     e "etiqueta" deixa de existir, porque abaixo de 4.5:1 não há degrau
-     nenhum para ter. A distinção passa a ser só tipográfica: tamanho, caixa
-     alta e letter-spacing, que já era metade dela.
+       fundo real                                  --dim #777782
+       ------------------------------------------  -------------
+       #080809 (o documento, quase sem texto)        4.52:1  ✔
+       .rec      rgba(12,12,15,.62)  → #0a0a0d       4.46:1  ✘
+       .rec:hover rgba(16,13,14,.72) → #0b0a0b       4.42:1  ✘
+       #0a0a0f                                       4.46:1  ✘
+       .step:hover rgba(255,255,255,.022) → #0d0d0e  4.38:1  ✘
 
-     Se quiseres o degrau de volta, o caminho é subir o --dim, não descer o
-     --faint. #86868f dá 5.46:1 e mantinha dois passos legíveis. Não o fiz
-     porque isso clareia o corpo do texto da página inteira — o About, o
-     subtítulo do herói, as metas dos trabalhos — e isso é uma decisão de
-     desenho tua, não uma correcção de acessibilidade minha. */
-  --dim:#777782;--faint:#797984;--line:rgba(255,255,255,.07);
+     Ou seja: falhava em todos os fundos onde há texto e passava só naquele
+     onde quase não há. Foi o axe que o disse, com o elemento e o número —
+     `figure.rec > figcaption.who > span > span.rl`, 4.46:1, `#777782` sobre
+     `#0a0a0d`. O meu próprio verificador não via isto porque saltava fundos com
+     alfa abaixo de 0.5 em vez de os compor com o que está por trás.
+
+     Os valores abaixo estão calculados contra o **pior** fundo da página, não
+     contra o --bg, com folga em vez de em cima da linha:
+
+       --dim   #7d7d88   4.92:1 no fundo nu, 4.76:1 no pior painel
+       --faint #7b7b86   4.79:1 no fundo nu, 4.63:1 no pior painel
+
+     E, de borla, o degrau de tom volta: o --dim é outra vez mais claro do que o
+     --faint, que era como devia ser e tinha deixado de ser. A diferença para os
+     valores antigos são seis pontos de luminosidade — na prática não se vê. */
+  --dim:#7d7d88;--faint:#7b7b86;--line:rgba(255,255,255,.07);
   /* --acc é escrito por JS ao longo do scroll: a página muda de temperatura
      como muda um festival — véspera fria, carga quente, pico incandescente,
      e o verde de quem aguentou. Este valor é só o ponto de partida. */
