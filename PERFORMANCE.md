@@ -282,39 +282,65 @@ Kept on the list only so that nobody proposes it again. It removes the Three.js
 parse and keeps the context creation and the shader compile, which are the
 actual costs. The previous version of this page recommended it as the big win.
 
-### 3b. Break the initializer into more than one task — likely the largest win left
+### 3b. The initializer cannot be split until two things move — tried, reverted
 
-Measured on the published site, 3 September 2026, with a `PerformanceObserver`
-on `longtask` and `buffered: true`, so the tasks from the load itself are
-included rather than only those after the observer was attached:
+Total blocking time is 30% of the score and this page spends 1,400–2,700 ms of
+it inside one task. Blocking time counts what each task spends past 50 ms, so
+splitting the same work into pieces is worth a lot without doing anything less.
 
-| task | duration |
+**Where to cut is now measured, not guessed.** `performance.mark()` at the
+fourteen section boundaries the code already names, read from the published site
+with `__arranque()`:
+
+| section | ms |
 |---|---:|
-| module initialization | **479 ms** |
-| immediately before it | 113 ms |
-| two later | 75 ms, 64 ms |
-| total | 731 ms across four tasks |
+| WEBGL | 118 |
+| ASSEMBLY | 122 |
+| RECOMENDAÇÕES | 135 |
+| COR + the tail | 235 |
+| WORK | 57 |
+| the other nine, together | 74 |
 
-Total blocking time is the sum of each task's duration *above* 50 ms — here
-about 531 ms. Almost all of it is one task. Everything the module does runs
-inside a single `DOMContentLoaded → rAF → setTimeout` callback: the guards, then
-every `safe()` subsystem in sequence, with no yield between them. The browser
-cannot respond to anything for 479 ms because there is no gap to respond in.
+741 ms on a warm 32-core machine; the CI runner is two to six times slower. Five
+sections carry ninety per cent of it, and the largest single block is the tail —
+a Lisbon clock, an FAQ accordion and a back-to-top button — which is not where
+anyone would cut by reading the file.
 
-Splitting that one task into five of roughly 95 ms would take its contribution
-from 429 ms to about 225 ms, without making the page do a single thing less. The
-work is not the yielding — it is that the `safe()` calls share `const` bindings
-declared in module order, so deferring a subsystem means deciding what it
-depends on. That is a real refactor of the initialization, not a sprinkling of
-`await`, and it should be done with the Lighthouse floors watching.
+**The split was implemented, deployed, and reverted eleven minutes later.** The
+callback became `async` with six `await`s at those boundaries. Two things broke,
+and the second is the one that matters.
 
-**Caveat on the reading, because it changes what it is worth.** The tab was
-hidden when the page loaded and was made visible afterwards, so the whole module
-started around 9 s in rather than immediately — `requestAnimationFrame` does not
-fire in a background tab, and the initializer is behind one. The *shape* (one
-dominant task) is trustworthy; the absolute 479 ms is from a warm shader cache
-and a delayed start, and should be re-measured on a normal foreground load
-before anyone quotes it.
+*One:* `ReferenceError: Cannot access 'P' before initialization`. The helper was
+called `P`; the ASSEMBLY section declares its own `const P = []` inside a nested
+block, so inside that block the name is in the temporal dead zone until line
+2888. A rename fixes it. `tools/check-tdz.py` did not catch it because it only
+looks at top-level declarations, which is the right scope for the bug it was
+written for and the wrong one for this.
+
+*Two, and this is the blocker:* `Cannot access 'stageEl' before initialization`,
+thrown inside `buildScrollTriggers`, called from `intro()`, called from
+`setTimeout(…, 1500)` on line 2163. **The module schedules its own timers and
+assumes it will have finished before they fire.** Without yields it always does —
+741 ms of straight-line work beats a 1.5 s timer. With yields it does not, and a
+callback from the first half reaches a `const` in the second half that does not
+exist yet. Nothing about that failure is specific to the six cuts chosen; any
+split has it.
+
+So this is not a refactor with some risk attached, it is blocked on one of:
+
+- hoisting everything `intro()` transitively touches above the first yield, or
+- gating `intro()` on the module finishing, which is arguably what a preloader
+  should do anyway — it exists to cover startup, and it currently stops covering
+  it on a timer whether startup is done or not. The speed-index experiment above
+  says the loader is nearly free, so making it wait costs almost nothing.
+
+The second is the smaller change and the better argument. It was not attempted
+today because the first attempt had already been live and broken once, and a
+second guess at a 2,200-line closure on the page that is the work sample is not
+a thing to do twice in an afternoon.
+
+The marks stayed in. They cost microseconds, and they are what the next attempt
+will be judged by.
 
 ### 3c. The desktop speed index is the background, and it is not going anywhere
 
