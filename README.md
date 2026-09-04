@@ -339,6 +339,14 @@ Pushing to `main` deploys. Cloudflare Workers Builds runs `tools/build.sh`,
 which assembles `dist/`, then `wrangler deploy` publishes it as a static-asset
 Worker behind `rodrigofigueiredo.dev`.
 
+Verified on 4 September 2026 by pushing a CSS change and deliberately not
+deploying: three minutes later the live site had it. Worth stating because on
+27 August Workers Builds hung twice at "Initializing build environment", a
+manual publish script was written to get around it, and the assumption that the
+hang was permanent outlived the hang by a week — a day of releases went out by
+hand without anyone testing whether that was still necessary. The script is kept
+for when it happens again, not as the normal path.
+
 `dist/` is not in the repository. It is generated, and versioning generated
 output alongside its source is how the two end up disagreeing.
 
