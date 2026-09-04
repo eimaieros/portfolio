@@ -91,7 +91,7 @@
         "categories:accessibility": [
           "error",
           {
-            "minScore": 0.96
+            "minScore": 1
           }
         ],
         "categories:best-practices": [

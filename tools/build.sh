@@ -47,6 +47,39 @@ if [ -d glaze-demo ]; then
   cp glaze-demo/src/*.js dist/glaze/src/
 fi
 
+# ORDEM: isto tem de vir ANTES do CSP. O CSP e um hash dos bytes do script
+# inline do dist/index.html; qualquer edicao ao ficheiro depois de o hash
+# estar calculado poe o browser a recusar o script e a pagina fica em branco.
+# Se acrescentares mais alguma transformacao ao HTML, poe-a aqui em cima.
+# O video e opcional por desenho: sem ele o site usa a imagem e nao se parte.
+# So que "nao se parte" nao era "nao se nota". A pagina pedia
+# assets/rir-hero.mp4 na mesma, levava 404, e o browser escrevia um erro na
+# consola — que e a auditoria `errors-in-console` do Lighthouse, e as boas
+# praticas em 96 em vez de 100. Durante semanas a explicacao para esse 96 foi
+# um palpite; foi preciso o CI passar a imprimir *que* auditoria e *que* linha
+# para aparecer um 404 a um ficheiro que nunca esteve la.
+#
+# Antes isto imprimia uma nota e seguia. Agora tira a referencia: se o ficheiro
+# nao existe, a entrada `video:'assets/x.mp4'` do mapa MEDIA passa a `video:null`
+# no dist, que e exactamente o que as outras oito entradas ja dizem. Nada muda
+# no que se ve — o caminho da imagem ja era o fallback. O que muda e que a
+# pagina deixa de pedir uma coisa que nao existe.
+#
+# E reversivel sem tocar em codigo: assim que o mp4 estiver em assets/, o build
+# copia-o, encontra-o, e deixa a referencia em paz.
+node -e '
+const {readFileSync,writeFileSync,existsSync}=require("fs");
+let html=readFileSync("dist/index.html","utf8"), tirados=[];
+html=html.replace(/video\s*:\s*(["\x27])(assets\/[A-Za-z0-9._-]+\.mp4)\1/g,(m,q,src)=>{
+  if(existsSync("dist/"+src)) return m;
+  tirados.push(src); return "video:null";
+});
+if(tirados.length){
+  writeFileSync("dist/index.html",html);
+  for(const s of tirados) console.log("  ..  "+s+" nao esta em assets/ — referencia removida do dist (o site usa a imagem)");
+}
+' || exit 1
+
 cat > dist/robots.txt <<'EOF'
 User-agent: *
 Allow: /
@@ -231,9 +264,6 @@ fi
 falta=0
 for f in $(grep -o "assets/[A-Za-z0-9/._-]*\.webp" dist/index.html | sort -u); do
   [ -f "dist/$f" ] || { echo "ERRO: $f referido mas não existe em dist/" >&2; falta=1; }
-done
-for f in $(grep -o "assets/[A-Za-z0-9._-]*\.mp4" dist/index.html | sort -u); do
-  [ -f "dist/$f" ] || echo "nota: $f é opcional e não está lá — o site usa a imagem"
 done
 [ "$falta" -eq 0 ] || exit 1
 
