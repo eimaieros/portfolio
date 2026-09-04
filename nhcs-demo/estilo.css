@@ -154,7 +154,11 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 24px;
+  /* O cartão do voo sobe 38 px por cima do herói, de propósito. Com 24 px de
+     fundo, a linha das datas ficava por baixo dele — visível no telemóvel, que
+     é onde esta página é aberta. O fundo tem de dar para o herói e para a
+     sobreposição. */
+  padding: 24px 24px 56px;
   border: 0;
   width: calc(100% + 12px);
   text-align: left;
