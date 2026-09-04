@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NHCS Digital Concierge — protótipo</title>
+<meta name="description" content="Protótipo navegável da app NHCS Digital Concierge. Dados ilustrativos: não há reservas, documentos nem pagamentos reais.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#080809">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<header class="topo">
+  <p class="etiqueta">Protótipo · NHCS Digital Concierge</p>
+  <h1>A app, a funcionar.</h1>
+  <p class="nota">Toca nos separadores em baixo, ou escreve um pedido no <b>Concierge</b>. É um protótipo: os dados são ilustrativos e não há reservas, documentos nem pagamentos reais.</p>
+</header>
+
+<div class="palco">
+  <div class="telefone">
+    <div class="ecra" id="ecra">
+      <p class="faixa" id="faixa">DEMONSTRAÇÃO — DADOS ILUSTRATIVOS</p>
+      <div class="vista" id="vista"></div>
+      <div class="aviso" id="aviso" role="status" aria-live="polite" hidden></div>
+      <nav class="nav" id="nav" role="tablist" aria-label="Secções da app"></nav>
+    </div>
+  </div>
+</div>
+
+<section class="relogio">
+  <p class="etiqueta">Relógio simulado</p>
+  <p class="nota">O Início muda com a fase da viagem. Adianta aqui o relógio para ver as quatro — é a mesma função que a app usa, com outra data.</p>
+  <div class="fases" id="fases"></div>
+  <p class="agora" id="agora"></p>
+</section>
+
+<footer class="rodape">
+  <p>Interface em português. O ecrã dentro da moldura corre o mesmo código da app
+  em React Native — o mock, as fases da viagem e as regras do concierge são os
+  ficheiros do projecto, com os tipos retirados para o browser os poder ler.
+  A camada de desenho é que é reescrita, porque React Native não desenha em HTML.</p>
+</footer>
+
+<script type="module" src="vista.js"></script>
+</body>
+</html>
