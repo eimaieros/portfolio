@@ -6,9 +6,9 @@ Seven runs per profile, on the GitHub runner. Latest:
 
 | | Desktop | Mobile |
 |---|---:|---:|
-| **Performance** | **58** | **66** |
-| Accessibility | 96 | 96 |
-| Best practices | 96 | 96 |
+| **Performance** | **59** | **65** |
+| Accessibility | **100** | **100** |
+| Best practices | **100** | **100** |
 | SEO | 100 | 100 |
 | First contentful paint | 0.7 s | 2.4 s |
 | Largest contentful paint | 0.7 s | 2.7 s |
@@ -308,6 +308,40 @@ fire in a background tab, and the initializer is behind one. The *shape* (one
 dominant task) is trustworthy; the absolute 479 ms is from a warm shader cache
 and a delayed start, and should be re-measured on a normal foreground load
 before anyone quotes it.
+
+### 3c. Speed index is 7.5 s on desktop and 2.7 s on mobile — untested cause
+
+Every CI run since the reporter started printing it: desktop speed index sits
+between 7.4 s and 7.9 s while FCP and LCP are 0.6–0.8 s. The content paints
+almost immediately and then the page keeps changing for another seven seconds.
+Speed index is 10% of the performance score, so this is not a rounding error.
+
+Mobile, the same page, reads 2.5–2.7 s. On touch the site shows the real hero
+without a loader and draws decorative WebGL only during interaction, which makes
+the difference *suggestive* — but the two profiles use different viewports and
+different CPU throttling, so speed index is not comparable across them. It is a
+hint, not a measurement, and it is written here as a hint.
+
+Two candidates, and nothing here separates them:
+
+1. **The desktop loader.** It counts up and fills a dot grid for several
+   seconds. Visual completeness cannot arrive until it is gone.
+2. **The background.** A shader that never stops moving never reaches a stable
+   frame, and speed index measures stability.
+
+If it is the second, there is nothing to do that is not "delete the design".
+If it is the first, the loader's duration is a dial.
+
+**The experiment that would tell them apart**, and it has not been run: take a
+desktop Lighthouse run with Chrome's `--force-prefers-reduced-motion`. This page
+honours that flag in five places, so the decorative motion stops while the loader
+still runs. If speed index drops to the low seconds, the background was the cost;
+if it stays at seven, the loader was. One run, one flag, and the answer replaces
+this section.
+
+Nobody should touch either of them before that run. This file has a section
+titled "The previous version of this page was wrong" for acting on exactly this
+kind of plausible story.
 
 ### 4. Ship a Three.js subset
 
