@@ -163,6 +163,39 @@ for (const id of [...new Set(idsFalhados)]) {
   detalhe.push('', '</details>', '');
 }
 
+/**
+ * Onde é que o desempenho está a perder, com o número ao lado.
+ *
+ * As três categorias que não são desempenho estão a 100, e quando falham o
+ * resumo já diz o quê e em que elemento. O desempenho está em 57–60 no desktop
+ * e 65–75 no mobile e o resumo não dizia nada sobre porquê — só a pontuação.
+ * Isso deixa quem lê a olhar para capturas de ecrã e a adivinhar, que é como se
+ * passa uma tarde a corrigir a coisa errada.
+ *
+ * O Lighthouse já calcula isto. Cada auditoria de oportunidade traz
+ * `overallSavingsMs`, a estimativa dele do que se ganhava, e está no mesmo JSON
+ * de onde já se tira a pontuação.
+ *
+ * NÃO É UMA LISTA DE TAREFAS. O Lighthouse estima por cima, e este repositório
+ * já viu uma "poupança" de 589 KB que valia 26 ms quando alguém a cronometrou.
+ * É por onde começar a medir, não a conclusão.
+ */
+function oportunidades(lhr, max = 8) {
+  const refs = lhr.categories?.performance?.auditRefs ?? [];
+  const out = [];
+  for (const r of refs) {
+    const a = lhr.audits?.[r.id];
+    if (!a || a.score === null || a.score >= 1) continue;
+    const poupa = a.details?.overallSavingsMs;
+    if (typeof poupa !== 'number' || poupa < 1) continue;
+    out.push({ titulo: a.title, id: r.id, ms: Math.round(poupa) });
+  }
+  out.sort((x, y) => y.ms - x.ms);
+  return out.slice(0, max);
+}
+
+const oport = oportunidades(lhr);
+
 const linhas = [
   `### ${rotulo}`,
   '',
@@ -174,6 +207,11 @@ const linhas = [
   ...(falhas.length
     ? ['**O que falta para 100** (só auditorias com peso)', '', '| categoria | auditoria |', '|---|---|', ...falhas, '', ...detalhe]
     : ['Accessibility, best practices e SEO sem auditorias com peso em falta.', '']),
+  ...(oport.length
+    ? ['**Onde o desempenho está a perder** — estimativa do Lighthouse, não medição', '',
+       '| auditoria | estimado |', '|---|---:|',
+       ...oport.map((o) => `| ${o.titulo} (\`${o.id}\`) | ${o.ms} ms |`), '']
+    : []),
 ];
 
 const texto = linhas.join('\n');
