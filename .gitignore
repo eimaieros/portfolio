@@ -53,3 +53,6 @@ PROMPT-LOVABLE.md
 # são para esta máquina, tratam de seis repos de uma vez, e não têm nada que
 # fazer no repositório de um deles.
 *.bat
+
+# Registo do PUBLICAR.bat: muda a cada publicação e não é código.
+PUBLICAR-ultimo.log
