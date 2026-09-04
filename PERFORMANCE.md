@@ -1,8 +1,8 @@
-# Why this site scores 58 on desktop and 66–71 on mobile
+# Why this site scores 59 on desktop and 65 on mobile
 
 Seven runs per profile, on the GitHub runner. Latest:
-[CI #23](https://github.com/eimaieros/portfolio/actions/runs/33556805963),
-1 September 2026.
+[CI #36](https://github.com/eimaieros/portfolio/actions/runs/33842390519),
+3 September 2026.
 
 | | Desktop | Mobile |
 |---|---:|---:|
@@ -10,10 +10,17 @@ Seven runs per profile, on the GitHub runner. Latest:
 | Accessibility | **100** | **100** |
 | Best practices | **100** | **100** |
 | SEO | 100 | 100 |
-| First contentful paint | 0.7 s | 2.4 s |
-| Largest contentful paint | 0.7 s | 2.7 s |
-| Cumulative layout shift | 0.074 | 0.006 |
-| Total blocking time | 2,050 ms | 1,670 ms |
+| First contentful paint | 0.7 s | 2.7 s |
+| Largest contentful paint | 0.7 s | 2.8 s |
+| Cumulative layout shift | 0.062 | 0.006 |
+| Total blocking time | 1,420 ms | 1,510 ms |
+| Speed index | 7.5 s | 2.7 s |
+
+The performance number is one run of a metric that moves a lot; the range across
+recent runs is 57–60 desktop and 65–75 mobile, and the blocking time inside that
+range has spanned 1,410–2,690 ms on a page that did not change. The three
+categories above it do not move at all, which is why they are the ones with hard
+floors at 1.0.
 
 Before the mobile work this page scored 40 with a 7.1 s LCP. Showing the real
 hero without a loader on touch devices, drawing decorative WebGL only during
@@ -48,7 +55,7 @@ worse than an absent one because it still looks like coverage. The day seven
 runs land within two points of each other, it goes back to being an error.
 
 **What still hard-fails on mobile** is what measured stably across every run:
-accessibility 96, SEO 100, layout shift 0.002–0.006. None of them near their
+accessibility 100, SEO 100, layout shift 0.002–0.008. None of them near their
 limits, which is the point — they fail only when something real breaks.
 
 The same error existed one metric down and had to go too: mobile FCP was
