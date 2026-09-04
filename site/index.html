@@ -1698,6 +1698,29 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
    of FCP even though the external files were correctly deferred. */
 addEventListener('DOMContentLoaded',()=>requestAnimationFrame(()=>setTimeout(()=>{
 'use strict';
+
+/* MARCOS DE ARRANQUE — 13 linhas, inertes, e a unica forma de saber onde e que
+   os ~2 s de blocking time deste modulo estao. `performance.mark` custa
+   microssegundos e nao desenha nada. Le-se no site publicado com:
+
+     __arranque()
+
+   que devolve quanto tempo passou entre cada seccao. Sem isto, dividir o
+   modulo em tarefas seria escolher os cortes a olho — que e exactamente como
+   este ficheiro chegou a recomendar reescrever o fundo para poupar 26 ms. */
+const M = (n)=>{ try{ performance.mark('arr:'+n); }catch(e){} };
+M('inicio');
+window.__arranque = ()=>{
+  const ms = performance.getEntriesByType('mark').filter(m=>m.name.startsWith('arr:'));
+  const out = []; let ant = null;
+  for(const m of ms){
+    out.push({ seccao: m.name.slice(4), desde_navegacao: Math.round(m.startTime),
+               delta_ms: ant===null ? 0 : Math.round(m.startTime - ant) });
+    ant = m.startTime;
+  }
+  return out;
+};
+
 /* Uma excepção a meio do módulo mata tudo o que vem a seguir — foi assim que
    um erro de âmbito apagou vinte sistemas de uma vez. `safe()` isola cada
    arranque: se um falhar, os outros continuam e o erro fica visível na consola
@@ -1818,6 +1841,7 @@ if(!HAS_GSAP){
 gsap.registerPlugin(ScrollTrigger);
 if(!HAS_WEBGL) Q('#gl').style.display='none';
 
+M('lenis');
 /* ================= LENIS ================= */
 let scrollVel=0;
 const lenis = HAS_LENIS
@@ -1833,6 +1857,7 @@ if(HAS_LENIS){
   document.documentElement.style.scrollBehavior='smooth';
 }
 
+M('cases');
 /* ================= CASES ================= */
 const CASES={
  rir:{k:'2026 · Fixed-term, festival cycle',t:'Rock in Rio Lisboa',
@@ -1910,6 +1935,7 @@ const CASES={
         ['What I did','Full design and build - layout, typography, responsive behaviour, and the translation of an existing brand into a web presence that held its tone.']]}
 };
 
+M('cursor');
 /* ================= CURSOR ================= */
 const cur=Q('#cur'),curL=Q('span',cur);
 let mx=innerWidth/2,my=innerHeight/2;
@@ -2026,6 +2052,7 @@ document.addEventListener('mouseout',e=>{if(e.target.closest('[data-cursor]'))cu
 /* (a antiga secção .stmt foi substituída pela frase que se monta em .say —
    dizia exactamente as mesmas palavras e ficavam duas vezes na página) */
 
+M('preloader');
 /* ================= PRELOADER ================= */
 /* Preloader honesto: a percentagem segue coisas que estão mesmo a acontecer —
    as fontes a chegar, as bibliotecas presentes, o primeiro frame desenhado.
@@ -2181,6 +2208,7 @@ function intro(){
 }
 lenis.stop();
 
+M('scrolltriggers');
 /* ================= SCROLLTRIGGERS ================= */
 let camZ={v:0},sph=.5,spv=.5,vel=0,assembly={t:0,target:0};
 function buildScrollTriggers(){
@@ -2455,6 +2483,7 @@ function buildScrollTriggers(){
     onUpdate:s=>Q('.mainNav').classList.toggle('hide',s.direction===1)});
 }
 
+M('webgl');
 /* ================= WEBGL ================= */
 /* Ponteiro para o redimensionamento do palco.
    sizeStage() vive dentro de if(HAS_THREE){...} e é block-scoped; checkStage()
@@ -2566,6 +2595,7 @@ Q('#gl').addEventListener('webglcontextlost',e=>{e.preventDefault();
   Q('#gl').style.display='none';console.warn('[portfolio] WebGL context lost — background disabled.')});
 R.setPixelRatio(Math.min(devicePixelRatio,1.5));R.setSize(innerWidth,innerHeight);
 
+M('fluido');
 /* ============ CAMPO DE FLUIDO (o rato empurra carga pelo sistema) ============
    Não é decoração. A ideia é a do site: uma plataforma sob carga. O cursor
    injeta "tráfego", o campo transporta-o, difunde-o e dissipa-o, e o fundo
@@ -2696,6 +2726,7 @@ bgScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial
     col+=(gr-.5)*.05*(1.-min(col.r*3.,1.));
     gl_FragColor=vec4(col,1.);}`})));
 
+M('assembly');
 /* ================= ASSEMBLY: peças que se montam com o scroll ================= */
 const PIECES = REDUCE ? 28 : 84;
 const dummy = new THREE.Object3D();
@@ -2818,6 +2849,7 @@ for(let i=0;i<6;i++){
 }
 STAGE_SC.add(BEAMS);
 
+M('cenas');
 /* ================= UMA CENA POR PROJETO =================
    A jogada que a Cartier usa: em vez de um scroll longo, cada peça ganha o seu
    próprio espaço. Aqui as mesmas 84 peças reconfiguram-se na forma do projeto
@@ -3082,6 +3114,7 @@ document.addEventListener('visibilitychange',()=>{
   });
 }
 
+M('recomendacoes');
 /* ================= CARROSSEL DE RECOMENDAÇÕES =================
    O scroll vertical conduz o deslocamento horizontal. Nada roda sozinho: são
    citações de pessoas reais, e tirar o controlo a quem as está a ler para
@@ -3150,6 +3183,7 @@ safe('recomendações',()=>{
   });
 });
 
+M('massa');
 /* ================= MASSA =================
    Nada nesta página tinha peso: tudo se movia exactamente à velocidade do
    scroll, como decalques colados ao ecrã. Os elementos grandes passam a ficar
@@ -3200,6 +3234,7 @@ safe('massa',()=>{
   });
 });
 
+M('work');
 /* ================= WORK ================= */
 const caseEl=Q('#case'),caseIn=Q('.inner',caseEl);
 safe('lista de trabalhos',()=>QA('.itm').forEach((it,i)=>{
@@ -3641,6 +3676,7 @@ QA('.pStep .big, .ct h2').forEach(el=>{
   QA('i',el).forEach((c,i)=>c.style.transitionDelay=(i*0.028)+'s');
 });
 
+M('cor');
 /* ================= SISTEMA DE COR ao longo do percurso =================
    Quatro paragens. Não é decoração: é a curva de um festival.
    · VÉSPERA  índigo frio — ainda não chegou ninguém
@@ -3869,6 +3905,7 @@ if(location.hostname==='localhost'||location.hostname==='127.0.0.1'){
       'font:12px ui-monospace;color:#6a6a72;line-height:1.7');
   }catch(e){}
 }
+M('fim');
 },0)));
 </script>
 </body>
