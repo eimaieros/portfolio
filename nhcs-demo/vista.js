@@ -679,8 +679,25 @@ function ligarJato() {
     alvo.style.setProperty('--voo', String(fracaoDaViagemAgora()));
     return;
   }
-  if (TEM_TIMELINE_NATIVA) return; // o CSS trata disto sozinho
+  /* `CSS.supports` diz que o browser CONHECE `animation-timeline`. Não diz que
+     esta animação ficou ligada a um timeline vivo — e a diferença apanhou-me:
+     com o nome a resolver mal, o Chrome dava uma `ViewTimeline` com
+     `currentTime` a `null`, a animação ficava presa no primeiro fotograma, e o
+     jato ficava parado num sítio perfeitamente plausível. Uma avaria que passa
+     numa revisão visual.
 
+     Por isso a pergunta aqui não é "suporta?" mas "está a andar?". A resposta
+     só existe depois de um fotograma — antes do primeiro layout o timeline
+     ainda não tem tempo — daí o `requestAnimationFrame`. Se ainda assim não
+     estiver a andar, entra o caminho em JavaScript, que funciona em qualquer
+     lado. Se estiver, não se liga ouvinte nenhum e o scroll fica de graça. */
+  requestAnimationFrame(() => {
+    if (TEM_TIMELINE_NATIVA && jatoTemTimelineViva(alvo)) return;
+    conduzirJatoPorScroll(lista, alvo);
+  });
+}
+
+function conduzirJatoPorScroll(lista, alvo) {
   /* O ouvinte é registado uma vez e não a cada desenho. `desenhar()` corre em
      cada toque no separador e em cada tecla escrita no concierge; um
      `addEventListener` por desenho acumula centenas de closures presas ao mesmo
@@ -704,6 +721,19 @@ function ligarJato() {
 }
 
 let ouvinteVooLigado = false;
+
+/**
+ * A animação nativa está mesmo ligada a um timeline que anda?
+ *
+ * `getAnimations()` devolve a animação mesmo quando o timeline não resolveu; o
+ * sinal que distingue os dois casos é `timeline.currentTime`, que fica a `null`
+ * enquanto o timeline estiver inactivo. Se nenhuma das animações do jato tiver
+ * um tempo, o CSS não está a conduzir nada e o JavaScript tem de conduzir.
+ */
+function jatoTemTimelineViva(alvo) {
+  if (typeof alvo.getAnimations !== 'function') return false;
+  return alvo.getAnimations().some((a) => a.timeline && a.timeline.currentTime !== null);
+}
 
 /**
  * `--voo`, entre 0 e 1, a partir de onde a lista está no ecrã.

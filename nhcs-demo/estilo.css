@@ -266,6 +266,14 @@ body {
 
 .itinerario { view-timeline-name: --itinerario; view-timeline-axis: block; }
 
+/* `timeline-scope` não é opcional, e custou-me uma hora.
+   Um nome de `view-timeline` só é visível para o elemento que o declara, para
+   os descendentes dele e para os IRMÃOS SEGUINTES. A caixa da rota vem ANTES
+   da lista no DOM — portanto, sem isto, `--itinerario` não resolve e o jato
+   fica parado em Malé para sempre. Parado num sítio plausível: exactamente o
+   tipo de avaria que passa numa revisão visual. */
+.vista { timeline-scope: --itinerario; }
+
 @supports (animation-timeline: view()) {
   .rota-jato {
     animation: voar linear both;
