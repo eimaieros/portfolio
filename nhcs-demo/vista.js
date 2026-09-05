@@ -2,6 +2,7 @@ import { eventProgress, formatTime, getJourneyTiming, groupByDay, nextEvent, rou
 import { phaseCopy, planCategories, promptSuggestions } from './src/mock.js';
 import { conciergeService } from './src/concierge-service.js';
 import { journeyRepository } from './src/journey-repository.js';
+import { messageRepository, relativeLabel, unreadCount } from './src/message-repository.js';
 
 const estado = {
   separador: 'home',
@@ -14,6 +15,9 @@ const estado = {
 
   viagem: null,
   erroViagem: null,
+
+  mensagens: [],
+  mensagemAberta: null,
 
   agora: null,
 };
@@ -87,6 +91,7 @@ async function carregarViagem() {
     const viagens = await journeyRepository.list();
     estado.viagem = viagens[0] || null;
     if (!estado.viagem) estado.erroViagem = 'Não há viagens nesta conta de demonstração.';
+    if (estado.viagem) estado.mensagens = await messageRepository.list(estado.viagem.id);
   } catch (erro) {
     estado.erroViagem = erro instanceof Error ? erro.message : 'Não foi possível carregar a viagem.';
   }
@@ -163,11 +168,53 @@ function ecraInicio() {
         : cartaoContexto('Itinerário cumprido', 'Não há mais momentos agendados nesta viagem de demonstração.', 'ITINERÁRIO'),
       cartaoContexto(estado.viagem.destination, '28° · Céu limpo · exemplo de contexto de destino', 'DESTINO'),
     ]),
+    ...mensagensDaNHCS(),
     el('button', { class: 'chamada', onclick: () => abrirConcierge(copy.calloutPrompt) }, [
       el('span', {}, [el('strong', { texto: copy.calloutTitle }), el('span', { texto: copy.calloutText })]),
       el('span', { class: 'icone', 'aria-hidden': 'true', texto: '✦' }),
     ]),
   ];
+}
+
+function mensagensDaNHCS() {
+  if (!estado.mensagens.length) return [];
+  const porLer = unreadCount(estado.mensagens);
+  const agora = relogio();
+
+  return [
+    el('div', { class: 'seccao' }, [
+      el('h3', { texto: 'Mensagens' }),
+      porLer ? el('span', { class: 'contador', 'aria-label': `${porLer} por ler`, texto: String(porLer) }) : null,
+    ]),
+    el('div', { class: 'pilha' }, estado.mensagens.slice(0, 3).map((m) => {
+      const aberta = estado.mensagemAberta === m.id;
+      return el('button', {
+        class: 'mensagem' + (m.read ? '' : ' por-ler') + (m.needsReply && !m.read ? ' pede-accao' : '') + (aberta ? ' aberta' : ''),
+        'aria-expanded': String(aberta),
+        onclick: () => void abrirMensagem(m.id),
+      }, [
+        el('div', { class: 'linha' }, [
+          el('span', { class: 'quem', texto: m.from }),
+          el('span', { class: 'quando', texto: relativeLabel(m.at, agora) }),
+        ]),
+        el('p', { class: 'assunto', texto: m.subject }),
+        m.needsReply && !m.read ? el('span', { class: 'etiqueta-accao', texto: 'PRECISA DE RESPOSTA' }) : null,
+        aberta ? el('p', { class: 'corpo-mensagem', texto: m.body }) : null,
+      ]);
+    })),
+  ];
+}
+
+async function abrirMensagem(id) {
+  estado.mensagemAberta = estado.mensagemAberta === id ? null : id;
+  desenhar();
+  if (!estado.viagem) return;
+  try {
+    estado.mensagens = await messageRepository.markRead(estado.viagem.id, id);
+  } catch (erro) {
+    aviso(erro instanceof Error ? erro.message : 'Não foi possível marcar a mensagem como lida.');
+  }
+  desenhar();
 }
 
 const ICONES = { flight: '✈', transfer: '→', stay: '⌂', experience: '✦' };
