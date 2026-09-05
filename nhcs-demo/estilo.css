@@ -166,7 +166,7 @@ body {
 }
 .linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .rotulo { font-family: var(--mono); font-size: 9px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0; }
-.rota { font-size: 15px; font-weight: 800; margin: 5px 0 0; }
+.rota-texto { font-size: 15px; font-weight: 800; margin: 5px 0 0; }
 .pastilha { flex: none; background: #ecebe3; border-radius: 999px; padding: 7px 9px; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .05em; }
 .accao-inline { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; background: none; border: 0; padding: 0; color: var(--forest); font: 800 12px var(--sans); cursor: pointer; }
 
@@ -191,7 +191,7 @@ body {
 
 .rota-caixa { margin: 18px -6px 0; padding: 14px 10px 10px; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; }
 .rota-caixa .rotulo { padding: 0 6px; }
-.rota { display: block; width: 100%; height: auto; margin-top: 4px; overflow: visible; }
+.rota-mapa { display: block; width: 100%; height: auto; margin-top: 4px; overflow: visible; }
 
 .rota-traco { stroke: #c3c8bd; stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 5 4; }
 
@@ -209,30 +209,6 @@ body {
   transform: perspective(90px) rotateY(calc((var(--voo, 0) - .5) * -70deg));
   transform-origin: center;
   transform-box: fill-box;
-}
-
-.itinerario { view-timeline-name: --itinerario; view-timeline-axis: block; }
-
-.vista { timeline-scope: --itinerario; }
-
-@supports (animation-timeline: view()) {
-  .rota-jato {
-    animation: voar linear both;
-    animation-timeline: --itinerario;
-
-    animation-range: entry 0% exit 100%;
-  }
-  .rota-jato-corpo {
-    animation: inclinar linear both;
-    animation-timeline: --itinerario;
-    animation-range: entry 0% exit 100%;
-  }
-}
-
-@keyframes voar { from { offset-distance: 0%; } to { offset-distance: 100%; } }
-@keyframes inclinar {
-  from { transform: perspective(90px) rotateY(35deg); }
-  to { transform: perspective(90px) rotateY(-35deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {

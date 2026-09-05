@@ -115,7 +115,7 @@ function ecraInicio() {
       el('div', { class: 'linha' }, [
         el('div', {}, [
           el('p', { class: 'rotulo', texto: `Rota ilustrativa · partida ${timing.timeLabel} (hora de Lisboa)` }),
-          el('p', { class: 'rota', texto: 'EK091 · LIS → DXB → MLE' }),
+          el('p', { class: 'rota-texto', texto: routeLabel(nextJourney) }),
         ]),
         el('span', { class: 'pastilha', texto: 'EXEMPLO' }),
       ]),
@@ -175,7 +175,8 @@ function rotaDeVoo() {
   ]);
 
   const desenho = svg('svg', {
-    class: 'rota',
+
+    class: 'rota-mapa',
     viewBox: '0 0 320 120',
     preserveAspectRatio: 'xMidYMid meet',
     'aria-hidden': 'true',
@@ -540,12 +541,6 @@ function desenhar({ manterFoco = false } = {}) {
   anterior = estado.separador;
 }
 
-const TEM_TIMELINE_NATIVA = typeof CSS !== 'undefined'
-  && typeof CSS.supports === 'function'
-  && CSS.supports('animation-timeline', 'view()');
-
-let pendenteVoo = false;
-
 function fracaoDaViagemAgora() {
   const agora = relogio().getTime();
   const pontos = eventProgress(nextJourney);
@@ -565,26 +560,18 @@ function ligarJato() {
     alvo.style.setProperty('--voo', String(fracaoDaViagemAgora()));
     return;
   }
-
-  requestAnimationFrame(() => {
-    if (TEM_TIMELINE_NATIVA && jatoTemTimelineViva(alvo)) return;
-    conduzirJatoPorScroll(lista, alvo);
-  });
+  conduzirJatoPorScroll(lista, alvo);
 }
 
 function conduzirJatoPorScroll(lista, alvo) {
 
   if (!ouvinteVooLigado) {
     ouvinteVooLigado = true;
+
     vista.addEventListener('scroll', () => {
-      if (pendenteVoo) return;
-      pendenteVoo = true;
-      requestAnimationFrame(() => {
-        pendenteVoo = false;
-        const l = vista.querySelector('.itinerario');
-        const a = vista.querySelector('.rota-jato');
-        if (l && a) medirCom(l, a);
-      });
+      const l = vista.querySelector('.itinerario');
+      const a = vista.querySelector('.rota-jato');
+      if (l && a) medirCom(l, a);
     }, { passive: true });
   }
 
@@ -592,11 +579,6 @@ function conduzirJatoPorScroll(lista, alvo) {
 }
 
 let ouvinteVooLigado = false;
-
-function jatoTemTimelineViva(alvo) {
-  if (typeof alvo.getAnimations !== 'function') return false;
-  return alvo.getAnimations().some((a) => a.timeline && a.timeline.currentTime !== null);
-}
 
 function medirCom(lista, alvo) {
   const caixa = lista.getBoundingClientRect();
