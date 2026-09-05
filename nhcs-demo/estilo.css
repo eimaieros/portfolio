@@ -191,7 +191,7 @@ body {
 }
 .linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .rotulo { font-family: var(--mono); font-size: 9px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0; }
-.rota { font-size: 15px; font-weight: 800; margin: 5px 0 0; }
+.rota-texto { font-size: 15px; font-weight: 800; margin: 5px 0 0; }
 .pastilha { flex: none; background: #ecebe3; border-radius: 999px; padding: 7px 9px; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .05em; }
 .accao-inline { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; background: none; border: 0; padding: 0; color: var(--forest); font: 800 12px var(--sans); cursor: pointer; }
 
@@ -237,7 +237,7 @@ body {
 
 .rota-caixa { margin: 18px -6px 0; padding: 14px 10px 10px; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; }
 .rota-caixa .rotulo { padding: 0 6px; }
-.rota { display: block; width: 100%; height: auto; margin-top: 4px; overflow: visible; }
+.rota-mapa { display: block; width: 100%; height: auto; margin-top: 4px; overflow: visible; }
 
 .rota-traco { stroke: #c3c8bd; stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 5 4; }
 /* Um ponto por momento do itinerário, colocado pela hora. Nada mais vai ao
@@ -264,36 +264,30 @@ body {
   transform-box: fill-box;
 }
 
-.itinerario { view-timeline-name: --itinerario; view-timeline-axis: block; }
-
-/* `timeline-scope` não é opcional, e custou-me uma hora.
-   Um nome de `view-timeline` só é visível para o elemento que o declara, para
-   os descendentes dele e para os IRMÃOS SEGUINTES. A caixa da rota vem ANTES
-   da lista no DOM — portanto, sem isto, `--itinerario` não resolve e o jato
-   fica parado em Malé para sempre. Parado num sítio plausível: exactamente o
-   tipo de avaria que passa numa revisão visual. */
-.vista { timeline-scope: --itinerario; }
-
-@supports (animation-timeline: view()) {
-  .rota-jato {
-    animation: voar linear both;
-    animation-timeline: --itinerario;
-    /* A mesma janela que o JavaScript mede: começa quando a lista entra por
-       baixo e acaba quando sai por cima. */
-    animation-range: entry 0% exit 100%;
-  }
-  .rota-jato-corpo {
-    animation: inclinar linear both;
-    animation-timeline: --itinerario;
-    animation-range: entry 0% exit 100%;
-  }
-}
-
-@keyframes voar { from { offset-distance: 0%; } to { offset-distance: 100%; } }
-@keyframes inclinar {
-  from { transform: perspective(90px) rotateY(35deg); }
-  to { transform: perspective(90px) rotateY(-35deg); }
-}
+/* PORQUE E QUE ISTO NAO USA `animation-timeline`, QUE ERA O CAMINHO CERTO
+ *
+ * A primeira versão ligava as duas animações ao scroll com
+ * `animation-timeline: view()` — sem JavaScript e fora da thread principal, que
+ * é como isto se deve fazer em 2026. Publiquei e fui medir. Duas coisas:
+ *
+ * 1. O nome não resolvia. Um `view-timeline-name` só é visível para o elemento
+ *    que o declara, para os descendentes dele e para os IRMÃOS SEGUINTES — e a
+ *    caixa da rota vem ANTES da lista no DOM. Resultado: `offsetDistance` a
+ *    100%, o jato pousado em Malé, quieto. Parado num sítio plausível, que é o
+ *    tipo de avaria que passa numa revisão visual.
+ * 2. Com `timeline-scope` num antepassado comum o nome passou a resolver — o
+ *    Chrome devolvia uma `ViewTimeline` a sério — mas com `currentTime` a
+ *    `null`, ou seja inactiva. A animação ficou presa no primeiro fotograma.
+ *
+ * Não descobri porquê, e a essa altura já tinha gasto mais tempo a defender o
+ * caminho bonito do que ele valia. O `--voo` escrito no scroll é vinte linhas,
+ * funciona em todos os browsers incluindo o Firefox, e eu consigo prová-lo a
+ * correr. Fica assim até haver uma razão medida para voltar atrás.
+ *
+ * O que se perde: a animação passa a correr na thread principal. É uma escrita
+ * de custom property e uma leitura de rectângulo por evento de scroll, e o
+ * trabalho pesado (`offset-path` e `transform`) continua a ser composto na GPU.
+ */
 
 /* Com movimento reduzido não há animação nenhuma. O `--voo` é escrito uma vez
    pelo JavaScript com a posição do momento em que a viagem vai — o jato fica

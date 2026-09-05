@@ -147,7 +147,7 @@ function ecraInicio() {
       el('div', { class: 'linha' }, [
         el('div', {}, [
           el('p', { class: 'rotulo', texto: `Rota ilustrativa · partida ${timing.timeLabel} (hora de Lisboa)` }),
-          el('p', { class: 'rota', texto: 'EK091 · LIS → DXB → MLE' }),
+          el('p', { class: 'rota-texto', texto: routeLabel(nextJourney) }),
         ]),
         el('span', { class: 'pastilha', texto: 'EXEMPLO' }),
       ]),
@@ -256,7 +256,12 @@ function rotaDeVoo() {
   ]);
 
   const desenho = svg('svg', {
-    class: 'rota',
+    /* `rota-mapa` e nao `rota`: `.rota` ja era a classe do texto da rota no
+       cartao de voo do Inicio, e as duas regras de CSS aplicavam-se uma a
+       outra — o texto ganhava `width:100%` e `display:block` de um SVG, o SVG
+       ganhava `font-weight:800` de um paragrafo. Apanhado a reler o ficheiro,
+       nao a ve-lo. */
+    class: 'rota-mapa',
     viewBox: '0 0 320 120',
     preserveAspectRatio: 'xMidYMid meet',
     'aria-hidden': 'true',
@@ -654,12 +659,6 @@ function desenhar({ manterFoco = false } = {}) {
  * próximo momento da viagem e fica lá. Parado, continua a dizer onde se está.
  */
 
-const TEM_TIMELINE_NATIVA = typeof CSS !== 'undefined'
-  && typeof CSS.supports === 'function'
-  && CSS.supports('animation-timeline', 'view()');
-
-let pendenteVoo = false;
-
 function fracaoDaViagemAgora() {
   const agora = relogio().getTime();
   const pontos = eventProgress(nextJourney);
@@ -679,22 +678,7 @@ function ligarJato() {
     alvo.style.setProperty('--voo', String(fracaoDaViagemAgora()));
     return;
   }
-  /* `CSS.supports` diz que o browser CONHECE `animation-timeline`. Não diz que
-     esta animação ficou ligada a um timeline vivo — e a diferença apanhou-me:
-     com o nome a resolver mal, o Chrome dava uma `ViewTimeline` com
-     `currentTime` a `null`, a animação ficava presa no primeiro fotograma, e o
-     jato ficava parado num sítio perfeitamente plausível. Uma avaria que passa
-     numa revisão visual.
-
-     Por isso a pergunta aqui não é "suporta?" mas "está a andar?". A resposta
-     só existe depois de um fotograma — antes do primeiro layout o timeline
-     ainda não tem tempo — daí o `requestAnimationFrame`. Se ainda assim não
-     estiver a andar, entra o caminho em JavaScript, que funciona em qualquer
-     lado. Se estiver, não se liga ouvinte nenhum e o scroll fica de graça. */
-  requestAnimationFrame(() => {
-    if (TEM_TIMELINE_NATIVA && jatoTemTimelineViva(alvo)) return;
-    conduzirJatoPorScroll(lista, alvo);
-  });
+  conduzirJatoPorScroll(lista, alvo);
 }
 
 function conduzirJatoPorScroll(lista, alvo) {
@@ -705,15 +689,16 @@ function conduzirJatoPorScroll(lista, alvo) {
      que é precisamente o tipo de fuga que ninguém liga a um jato. */
   if (!ouvinteVooLigado) {
     ouvinteVooLigado = true;
+    /* Mede no próprio evento, sem `requestAnimationFrame`. O rAF é a maneira
+       habitual de estrangular um handler de scroll, mas não dispara em
+       separadores escondidos — e foi exactamente assim que a verificação desta
+       animação me deu resultados vazios durante meia hora. Uma leitura de
+       rectângulo e uma escrita de custom property por evento é barato; o
+       trabalho pesado é composto na GPU a partir de `--voo`. */
     vista.addEventListener('scroll', () => {
-      if (pendenteVoo) return;
-      pendenteVoo = true;
-      requestAnimationFrame(() => {
-        pendenteVoo = false;
-        const l = vista.querySelector('.itinerario');
-        const a = vista.querySelector('.rota-jato');
-        if (l && a) medirCom(l, a);
-      });
+      const l = vista.querySelector('.itinerario');
+      const a = vista.querySelector('.rota-jato');
+      if (l && a) medirCom(l, a);
     }, { passive: true });
   }
 
@@ -721,19 +706,6 @@ function conduzirJatoPorScroll(lista, alvo) {
 }
 
 let ouvinteVooLigado = false;
-
-/**
- * A animação nativa está mesmo ligada a um timeline que anda?
- *
- * `getAnimations()` devolve a animação mesmo quando o timeline não resolveu; o
- * sinal que distingue os dois casos é `timeline.currentTime`, que fica a `null`
- * enquanto o timeline estiver inactivo. Se nenhuma das animações do jato tiver
- * um tempo, o CSS não está a conduzir nada e o JavaScript tem de conduzir.
- */
-function jatoTemTimelineViva(alvo) {
-  if (typeof alvo.getAnimations !== 'function') return false;
-  return alvo.getAnimations().some((a) => a.timeline && a.timeline.currentTime !== null);
-}
 
 /**
  * `--voo`, entre 0 e 1, a partir de onde a lista está no ecrã.
