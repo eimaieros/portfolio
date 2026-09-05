@@ -149,8 +149,11 @@ body {
   border-radius: 28px;
   overflow: hidden;
   /* A cor fica por baixo: se a imagem não carregar, o texto branco continua a
-     ter contraste em vez de ficar sobre branco. */
-  background: var(--moss) url("assets/hero.webp") center/cover no-repeat;
+     ter contraste em vez de ficar sobre branco. A imagem mudou-se para o
+     pseudo-elemento `::before` para poder deslocar-se com o scroll sem mexer
+     no bloco nem no texto. */
+  background: var(--moss);
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -167,7 +170,23 @@ body {
   box-shadow: 0 12px 28px rgba(27, 38, 30, .12);
 }
 .heroi::before, .heroi::after { content: ""; position: absolute; left: 0; right: 0; pointer-events: none; }
-.heroi::before { top: 0; bottom: 0; background: rgba(10, 24, 17, .25); }
+
+/* Parallax. A imagem é 24% mais alta do que o herói e desloca-se no máximo 12%
+   para cada lado — o limite da tabela de movimento. `translate3d` para ficar na
+   GPU; `will-change` porque isto move-se a cada frame de scroll e não vale a
+   pena o browser descobrir isso sozinho. */
+.heroi::before {
+  top: -12%;
+  height: 124%;
+  /* A camada de contraste vai no mesmo `background` da imagem, e não num
+     elemento à parte: assim desloca-se com ela e o texto branco mantém o mesmo
+     contraste em qualquer posição do parallax. */
+  background:
+    linear-gradient(rgba(10, 24, 17, .25), rgba(10, 24, 17, .25)),
+    url("assets/hero.webp") center/cover no-repeat;
+  transform: translate3d(0, var(--parallax, 0%), 0);
+  will-change: transform;
+}
 .heroi::after { bottom: 0; height: 57%; background: linear-gradient(to bottom, transparent, rgba(10, 24, 17, .52)); }
 .heroi > * { position: relative; z-index: 1; }
 .heroi .eyebrow { color: #f5f8f2; letter-spacing: .12em; }
@@ -183,11 +202,20 @@ body {
 .cartao-voo {
   position: relative; z-index: 2;
   margin: -38px 10px 0;
-  background: var(--paper);
-  border: 1px solid #fff;
+  /* Vidro, e só aqui: este cartão sobrepõe-se à fotografia do herói, que é a
+     única condição em que `backdrop-filter` significa alguma coisa. Num cartão
+     sobre fundo liso seria custo de GPU por nada. */
+  background: rgba(255, 254, 250, .82);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, .8);
   border-radius: 22px;
   padding: 17px;
   box-shadow: 0 12px 28px rgba(27, 38, 30, .12);
+}
+@supports not (backdrop-filter: blur(1px)) {
+  /* Sem vidro, opaco — nunca translúcido sem desfoque, que é ilegível. */
+  .cartao-voo { background: var(--paper); }
 }
 .linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .rotulo { font-family: var(--mono); font-size: 9px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0; }
@@ -296,6 +324,11 @@ body {
   .rota-jato, .rota-jato-corpo { animation: none !important; }
   .rota-jato-corpo { transform: none; }
   .rota-traco { stroke-dasharray: none; }
+  /* Sem parallax, sem ciclo no orb, sem espinha a crescer. O que fica continua
+     completo: a fotografia está lá, o orb está lá, e a espinha aparece cheia. */
+  .heroi::before { transform: none !important; }
+  .orb, .orb::after { animation: none !important; }
+  .itinerario::before { height: calc(100% - 90px); transition: none; }
 }
 
 .rota-paragens { display: flex; justify-content: space-between; margin-top: 2px; padding: 0 4px; }
@@ -313,6 +346,24 @@ body {
 .calha { position: relative; width: 47px; flex: none; display: flex; justify-content: center; }
 .ponto { width: 38px; height: 38px; border-radius: 50%; background: var(--paper); border: 1px solid var(--line); display: grid; place-items: center; color: var(--forest); font-size: 15px; z-index: 1; }
 .calha i { position: absolute; top: 36px; bottom: 0; width: 1px; background: #cbcdc3; }
+
+/* A espinha: um traço verde por cima da calha cinzenta, que cresce com o
+   progresso do scroll pela lista. O mesmo progresso que move o jato, dito no
+   sítio onde se está a ler. `--espinha` é escrito no `.itinerario` e herdado. */
+.itinerario { position: relative; }
+.itinerario::before {
+  content: "";
+  position: absolute;
+  left: 23px;
+  top: 60px;
+  width: 2px;
+  height: var(--espinha, 0%);
+  max-height: calc(100% - 90px);
+  background: linear-gradient(to bottom, var(--forest), rgba(41, 66, 54, .25));
+  border-radius: 2px;
+  pointer-events: none;
+  transition: height 90ms linear;
+}
 .evento .corpo { flex: 1; padding: 2px 0 19px 7px; }
 .evento .hora { font-size: 11px; font-weight: 800; color: var(--forest); }
 .evento h4 { margin: 2px 0 0; font-size: 15px; }
@@ -338,15 +389,44 @@ body {
 .marca-nhcs { font-size: 13px; font-weight: 900; letter-spacing: .18em; }
 .conc-privado { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; color: #b8c3b9; }
 
-/* Decorativo, e o `aria-hidden` no HTML diz isso. O ciclo de 8,4 s é o mesmo
-   do ConciergeOrb da app — lento o suficiente para não puxar o olho para fora
-   do que se está a ler. */
+/* O orb, com três estados.
+ *
+ * É o único elemento do concierge que não é texto nem fotografia, e por isso é
+ * o que tem de trabalhar mais. O movimento diz em que ponto está o pedido:
+ *
+ *   repouso    respira devagar, ciclo de 8,4 s — presente e não insistente
+ *   pensa      acelera para 1,4 s e aperta, com um anel a girar por fora
+ *   respondeu  abre uma vez e assenta; não repete
+ *
+ * Nada disto é necessário: o estado está também no texto ("A organizar a sua
+ * proposta") e no indicador de carregamento. Isto é a diferença entre uma app
+ * que funciona e uma que parece viva.
+ */
 .orb {
+  position: relative;
   width: 132px; height: 132px; margin: 22px auto 4px; border-radius: 50%;
   background: radial-gradient(circle at 38% 32%, #e6f2c4 0%, #93ad8b 30%, #2c463a 62%, rgba(23, 43, 34, 0) 76%);
-  animation: pulso 8.4s ease-in-out infinite;
+  will-change: transform, opacity;
 }
+.orb::after {
+  content: ""; position: absolute; inset: -14px; border-radius: 50%;
+  border: 1px solid rgba(221, 235, 177, .34);
+  opacity: 0;
+}
+
+.orb-repouso { animation: pulso 8.4s ease-in-out infinite; }
+
+.orb-pensa { animation: pulso-rapido 1.4s ease-in-out infinite; }
+.orb-pensa::after { opacity: 1; animation: anel 2.6s linear infinite; }
+
+.orb-respondeu { animation: assenta 900ms cubic-bezier(.16, 1, .3, 1) both; }
+.orb-respondeu::after { animation: onda 900ms cubic-bezier(.16, 1, .3, 1) both; }
+
 @keyframes pulso { 0%, 100% { transform: scale(1); opacity: .92; } 50% { transform: scale(1.045); opacity: 1; } }
+@keyframes pulso-rapido { 0%, 100% { transform: scale(.955); opacity: .88; } 50% { transform: scale(1.02); opacity: 1; } }
+@keyframes anel { to { transform: rotate(360deg) scale(1.04); } }
+@keyframes assenta { 0% { transform: scale(1.1); } 60% { transform: scale(.985); } 100% { transform: scale(1); } }
+@keyframes onda { 0% { opacity: .9; transform: scale(.9); } 100% { opacity: 0; transform: scale(1.5); } }
 
 .escuro .eyebrow { color: #c5d1c5; }
 .conc-titulo { font-family: var(--serif); font-size: 44px; line-height: .98; letter-spacing: -.045em; margin: 8px 0 0; font-weight: 400; }

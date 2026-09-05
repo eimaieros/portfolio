@@ -455,7 +455,11 @@ function ecraConcierge() {
       el('span', { class: 'marca-nhcs', texto: 'NHCS' }),
       el('span', { class: 'conc-privado', texto: 'CONCIERGE PRIVADO' }),
     ]),
-    el('div', { class: 'orb', 'aria-hidden': 'true' }),
+    /* Três estados, e o movimento diz qual é. Em repouso respira devagar; a
+       pensar acelera e aperta; quando a proposta chega, abre uma vez e assenta.
+       É a assinatura do produto: o único elemento do ecrã que não é texto nem
+       fotografia, e por isso é o que tem de trabalhar mais. */
+    el('div', { class: 'orb orb-' + (estado.aPreparar || estado.aEnviar ? 'pensa' : proposta ? 'respondeu' : 'repouso'), 'aria-hidden': 'true' }),
     el('p', { class: 'eyebrow', texto: 'O seu concierge privado' }),
     el('h2', { class: 'conc-titulo' }, ['Diga-me', el('br'), 'o que tem', el('br'), 'em mente.']),
     el('p', { class: 'conc-intro', texto: 'A NHCS organiza intenção, opções e confirmação — sem o transformar num chat genérico.' }),
@@ -669,6 +673,11 @@ function desenhar({ manterFoco = false } = {}) {
   vista.append(...separador.ecra().filter(Boolean));
   desenharNav();
   if (estado.separador === 'trips') ligarJato();
+  /* O Início também tem herói. O ouvinte de scroll é o mesmo — está preso ao
+     `.vista`, que não é recriado — mas a primeira medição tem de acontecer a
+     cada desenho, senão o herói novo fica sem posição até alguém tocar. */
+  medirParallax();
+  ligarScrollGlobal();
 
   if (manterFoco) {
     vista.scrollTop = posicao;
@@ -727,6 +736,18 @@ function ligarJato() {
   conduzirJatoPorScroll(lista, alvo);
 }
 
+/**
+ * O ouvinte de scroll para o que não depende do itinerário — parallax e
+ * espinha. É registado uma vez, como o do jato, e pela mesma razão: `desenhar()`
+ * corre a cada toque e a cada tecla, e um ouvinte por desenho acumula.
+ */
+let ouvinteScrollLigado = false;
+function ligarScrollGlobal() {
+  if (ouvinteScrollLigado) return;
+  ouvinteScrollLigado = true;
+  vista.addEventListener('scroll', () => { medirParallax(); medirEspinha(); }, { passive: true });
+}
+
 function conduzirJatoPorScroll(lista, alvo) {
   /* O ouvinte é registado uma vez e não a cada desenho. `desenhar()` corre em
      cada toque no separador e em cada tecla escrita no concierge; um
@@ -745,13 +766,37 @@ function conduzirJatoPorScroll(lista, alvo) {
       const l = vista.querySelector('.itinerario');
       const a = vista.querySelector('.rota-jato');
       if (l && a) medirCom(l, a);
+      medirParallax();
+      medirEspinha();
     }, { passive: true });
   }
 
   medirCom(lista, alvo);
+  medirParallax();
+  medirEspinha();
 }
 
 let ouvinteVooLigado = false;
+
+/**
+ * A espinha do itinerário preenche-se com o progresso do scroll.
+ *
+ * A linha vertical que liga os momentos já existia, cinzenta e inteira. Agora
+ * tem um traço verde por cima que cresce à medida que se desce — o mesmo
+ * progresso que move o jato, dito de outra maneira e no sítio onde se está a
+ * ler. Duas leituras do mesmo facto, e nenhuma delas necessária: as horas
+ * continuam todas em texto.
+ */
+function medirEspinha() {
+  const lista = vista.querySelector('.itinerario');
+  if (!lista) return;
+  const caixa = lista.getBoundingClientRect();
+  const alturaEcra = vista.clientHeight || 1;
+  /* Cheia quando o fundo da lista chega a meio do ecrã. Preencher só ao sair
+     por cima deixaria a espinha eternamente incompleta em listas curtas. */
+  const percorrido = (alturaEcra * 0.55 - caixa.top) / Math.max(1, caixa.height);
+  lista.style.setProperty('--espinha', (Math.min(1, Math.max(0, percorrido)) * 100).toFixed(1) + '%');
+}
 
 /**
  * `--voo`, entre 0 e 1, a partir de onde a lista está no ecrã.
@@ -760,6 +805,29 @@ let ouvinteVooLigado = false;
  * chega ao topo — a mesma janela que o `animation-range: entry/exit` do CSS
  * define, para as duas versões coincidirem.
  */
+/**
+ * Parallax do herói.
+ *
+ * A imagem desloca-se a uma fracção do scroll — no máximo 12% da altura, que é
+ * o limite da tabela de movimento. Abaixo disso não se nota; acima, a fotografia
+ * passa a competir com o texto que está por cima dela.
+ *
+ * É `translate3d` num pseudo-elemento com `will-change`, portanto composto na
+ * GPU e sem tocar no layout.
+ */
+function medirParallax() {
+  if (semMovimento()) return;
+  const topo = vista.scrollTop;
+  for (const heroi of vista.querySelectorAll('.heroi')) {
+    const caixa = heroi.getBoundingClientRect();
+    const alturaEcra = vista.clientHeight || 1;
+    /* -1 quando o herói está todo abaixo do ecrã, +1 quando já saiu por cima. */
+    const rel = Math.max(-1, Math.min(1, (alturaEcra / 2 - (caixa.top + caixa.height / 2)) / alturaEcra));
+    heroi.style.setProperty('--parallax', (rel * 12).toFixed(2) + '%');
+  }
+  void topo;
+}
+
 function medirCom(lista, alvo) {
   const caixa = lista.getBoundingClientRect();
   const alturaEcra = vista.clientHeight || 1;
