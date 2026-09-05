@@ -1,8 +1,9 @@
-import { eventProgress, formatTime, getJourneyTiming, groupByDay, nextEvent, routeLabel } from './src/journey.js';
+import { eventProgress, formatFullDay, formatTime, getJourneyTiming, groupByDay, nextEvent, routeLabel } from './src/journey.js';
 import { phaseCopy, planCategories, promptSuggestions } from './src/mock.js';
 import { conciergeService } from './src/concierge-service.js';
 import { journeyRepository } from './src/journey-repository.js';
 import { messageRepository, relativeLabel, unreadCount } from './src/message-repository.js';
+import { documentLabel, documentRepository, documentStatus, sortForAttention, walletReadiness } from './src/document-repository.js';
 
 const estado = {
   separador: 'home',
@@ -17,6 +18,8 @@ const estado = {
   erroViagem: null,
 
   mensagens: [],
+
+  documentos: [],
   mensagemAberta: null,
 
   agora: null,
@@ -25,6 +28,8 @@ const estado = {
 let sequencia = 0;
 
 const relogio = () => (estado.agora ? new Date(estado.agora) : new Date());
+
+const ICONES_DOC = { passport: '▣', visa: '◈', ticket: '⌁', voucher: '▤', transfer: '⇄', insurance: '⛨' };
 
 const $ = (id) => document.getElementById(id);
 const vista = $('vista');
@@ -86,12 +91,22 @@ function aviso(mensagem) {
 async function carregarViagem() {
   estado.erroViagem = null;
   estado.viagem = null;
+  estado.mensagens = [];
+  estado.documentos = [];
   desenhar();
   try {
     const viagens = await journeyRepository.list();
     estado.viagem = viagens[0] || null;
     if (!estado.viagem) estado.erroViagem = 'Não há viagens nesta conta de demonstração.';
-    if (estado.viagem) estado.mensagens = await messageRepository.list(estado.viagem.id);
+    if (estado.viagem) {
+
+      const [mensagens, documentos] = await Promise.all([
+        messageRepository.list(estado.viagem.id),
+        documentRepository.list(estado.viagem.id),
+      ]);
+      estado.mensagens = mensagens;
+      estado.documentos = documentos;
+    }
   } catch (erro) {
     estado.erroViagem = erro instanceof Error ? erro.message : 'Não foi possível carregar a viagem.';
   }
@@ -161,6 +176,7 @@ function ecraInicio() {
         'Ver viagem', el('span', { 'aria-hidden': 'true', texto: '→' }),
       ]),
     ]),
+    ...alertaDaCarteira(),
     seccao(copy.sectionTitle, 'Ver viagem', () => irPara('trips')),
     el('div', { class: 'pilha' }, [
       proximo
@@ -174,6 +190,26 @@ function ecraInicio() {
       el('span', { class: 'icone', 'aria-hidden': 'true', texto: '✦' }),
     ]),
   ];
+}
+
+function alertaDaCarteira() {
+  if (!estado.viagem || !estado.documentos.length) return [];
+  const estadoCarteira = walletReadiness(estado.documentos, estado.viagem);
+  if (!estadoCarteira.headline) return [];
+
+  const grave = estadoCarteira.needsAction > 0;
+  return [el('button', {
+    class: grave ? 'alerta-carteira' : 'alerta-carteira suave',
+    'aria-label': `${estadoCarteira.headline}. Abrir carteira.`,
+    onclick: () => { estado.carteiraAberta = true; irPara('trips'); },
+  }, [
+    el('span', { class: 'icone', 'aria-hidden': 'true', texto: grave ? '!' : '·' }),
+    el('span', { class: 'texto' }, [
+      el('strong', { texto: estadoCarteira.headline }),
+      el('span', { texto: `Carteira de viagem · ${estadoCarteira.total} no total` }),
+    ]),
+    el('span', { class: 'seta', 'aria-hidden': 'true', texto: '→' }),
+  ])];
 }
 
 function mensagensDaNHCS() {
@@ -320,12 +356,24 @@ function ecraViagens() {
           el('strong', { texto: 'CARTEIRA DE DEMONSTRAÇÃO' }),
           el('p', { texto: 'Pré-visualização sem ficheiros pessoais, reserva ou autenticação ativa.' }),
         ]),
-        ...['Bilhete de avião', 'Voucher de hotel', 'Transfer privado', 'Seguro de viagem'].map((nome) =>
-          el('div', { class: 'doc' }, [
-            el('span', { class: 'icone', 'aria-hidden': 'true', texto: '⌁' }),
-            el('span', { class: 'nome' }, [nome, el('p', { class: 'suave', texto: 'Exemplo visual — sem ficheiro real' })]),
-            el('span', { class: 'demo', texto: 'DEMO' }),
-          ])),
+        ...sortForAttention(estado.documentos, estado.viagem).map((doc) => {
+          const st = documentStatus(doc, estado.viagem);
+          const grave = st === 'missing' || st === 'expired' || st === 'insufficient';
+          return el('div', { class: grave ? 'doc doc-accao' : 'doc' }, [
+            el('span', { class: 'icone', 'aria-hidden': 'true', texto: ICONES_DOC[doc.kind] || '⌁' }),
+            el('span', { class: 'nome' }, [
+              `${doc.title} · ${doc.holder}`,
+              el('p', { class: grave ? 'estado-doc grave' : 'estado-doc', texto: documentLabel(doc, estado.viagem) }),
+              doc.expiresAt ? el('p', { class: 'suave', texto: `Válido até ${formatFullDay(doc.expiresAt)}` }) : null,
+            ].filter(Boolean)),
+            el('span', { class: grave ? 'demo demo-accao' : 'demo', texto: grave ? 'AÇÃO' : 'DEMO' }),
+          ]);
+        }),
+
+        el('div', { class: 'nota-carteira' }, [
+          el('strong', { texto: `Requisito de entrada usado nesta conta: ${estado.viagem.entryRequirements.passportValidityDaysAfterReturn} dias de validade depois do regresso` }),
+          el('p', { texto: estado.viagem.entryRequirements.source }),
+        ]),
       ])
     : el('p', { class: 'suave', texto: 'Demonstração visual: não existem documentos reais nesta app. A versão de produção exigirá autenticação do dispositivo.' });
 

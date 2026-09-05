@@ -5,6 +5,11 @@ export const nextJourney          = {
   returnAt: '2026-10-20T22:00:00+01:00',
   status: 'Em preparação',
   flightNumber: 'EK091',
+  entryRequirements: {
+    passportValidityDaysAfterReturn: 180,
+    source:
+      'Valor de demonstração, não confirmado com nenhuma fonte oficial. Antes de um cliente ver este ecrã, o requisito de cada destino tem de vir da NHCS ou de fonte consular, com data.',
+  },
   route: [
     { code: 'LIS', city: 'Lisboa' },
     { code: 'DXB', city: 'Dubai' },
@@ -111,6 +116,59 @@ export const messages            = [
     at: '2026-08-28T11:05:00+01:00',
     read: true,
     needsReply: false,
+  },
+];
+
+export const documents                   = [
+  {
+    id: 'doc-passaporte-rodrigo',
+    kind: 'passport',
+    title: 'Passaporte',
+    holder: 'Rodrigo Figueiredo',
+    expiresAt: '2027-01-15T00:00:00+01:00',
+    provided: true,
+    hasFile: false,
+  },
+  {
+    id: 'doc-passaporte-sofia',
+    kind: 'passport',
+    title: 'Passaporte',
+    holder: 'Sofia Figueiredo',
+    provided: false,
+    hasFile: false,
+  },
+  {
+    id: 'doc-seguro',
+    kind: 'insurance',
+    title: 'Seguro de viagem',
+    holder: 'Ambos os viajantes',
+    expiresAt: '2026-10-27T23:59:00+01:00',
+    provided: true,
+    hasFile: false,
+  },
+  {
+    id: 'doc-bilhete',
+    kind: 'ticket',
+    title: 'Bilhete de avião',
+    holder: 'Ambos os viajantes',
+    provided: true,
+    hasFile: false,
+  },
+  {
+    id: 'doc-voucher',
+    kind: 'voucher',
+    title: 'Voucher de hotel',
+    holder: 'Ambos os viajantes',
+    provided: true,
+    hasFile: false,
+  },
+  {
+    id: 'doc-transfer',
+    kind: 'transfer',
+    title: 'Transfer privado',
+    holder: 'Ambos os viajantes',
+    provided: true,
+    hasFile: false,
   },
 ];
 

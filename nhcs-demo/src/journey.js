@@ -47,6 +47,11 @@ export function formatDay(iso        )         {
   return `${moment.day} de ${MESES[moment.month - 1]}`;
 }
 
+export function formatFullDay(iso        )         {
+  const moment = parseMoment(iso);
+  return `${moment.day} de ${MESES[moment.month - 1]} de ${moment.year}`;
+}
+
 export function formatRange(journey         )         {
   const start = parseMoment(journey.departureAt);
   const end = parseMoment(journey.returnAt);
