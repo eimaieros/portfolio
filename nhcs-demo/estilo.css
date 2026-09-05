@@ -245,9 +245,10 @@ body {
 .rota-ponto { fill: var(--forest); opacity: .5; }
 
 .rota-jato {
-  offset-path: path("M 18 100 Q 89 22 160 84 Q 231 22 302 100");
-  /* Roda o nariz para a tangente do caminho — a descolagem e a aterragem saem
-     de graça, e o canto no Dubai levanta o nariz como deve ser. */
+  /* O `offset-path` é escrito pelo JavaScript, a partir do mesmo caminho que
+     desenha o traço — ver `caminhoDaRota` em vista.js. Aqui ficava fixo em três
+     paragens, e o jato deixaria de seguir a linha no dia em que a rota mudasse.
+     Roda o nariz para a tangente: descolagem e aterragem saem de graça. */
   offset-rotate: auto;
   offset-distance: calc(var(--voo, 0) * 100%);
   offset-anchor: center;

@@ -196,20 +196,60 @@ const ICONES = { flight: '✈', transfer: '→', stay: '⌂', experience: '✦' 
  * O caminho tem duas curvas e um canto no Dubai. O canto é de propósito: são
  * dois voos, e com `offset-rotate: auto` o nariz levanta na descolagem.
  */
-const ROTA_SVG = 'M 18 100 Q 89 22 160 84 Q 231 22 302 100';
+/**
+ * O caminho, para o número de paragens que a rota tiver.
+ *
+ * A primeira versão tinha `'M 18 100 Q 89 22 160 84 Q 231 22 302 100'` escrito
+ * à mão — duas curvas, três paragens, Lisboa-Dubai-Malé para sempre. Bastava
+ * um voo directo ou uma escala a mais para o desenho deixar de corresponder à
+ * rota, sem avisar: o arco continuava a ter duas pernas e a legenda passava a
+ * ter outro número. É o mesmo defeito que este projecto passou dois dias a
+ * tirar de outros sítios, e ia entrando outra vez pela porta do desenho.
+ *
+ * Uma perna por par de paragens consecutivas, cada uma um arco quadrático que
+ * sobe e volta a descer. As paragens ficam na linha de baixo (y = SOLO) porque
+ * é onde os aviões estão quando não estão a voar.
+ */
+const ROTA_LARGURA = 320;
+const ROTA_MARGEM = 18;
+const ROTA_SOLO = 100;
+const ROTA_TECTO = 22;
+
+export function caminhoDaRota(paragens) {
+  const n = Math.max(2, paragens);
+  const util = ROTA_LARGURA - ROTA_MARGEM * 2;
+  const passo = util / (n - 1);
+  const x = (i) => ROTA_MARGEM + passo * i;
+
+  /* Escalas intermédias não descem até ao solo no desenho: ficam a meio
+     caminho, que é como se lê uma paragem curta sem sair do aeroporto. */
+  const y = (i) => (i === 0 || i === n - 1 ? ROTA_SOLO : ROTA_SOLO - 16);
+
+  let d = `M ${x(0)} ${y(0)}`;
+  for (let i = 1; i < n; i++) {
+    const cx = (x(i - 1) + x(i)) / 2;
+    d += ` Q ${cx} ${ROTA_TECTO} ${x(i)} ${y(i)}`;
+  }
+  return d;
+}
 
 function rotaDeVoo() {
   const paragens = nextJourney.route;
   const progresso = eventProgress(nextJourney);
+  const d = caminhoDaRota(paragens.length);
 
-  const caminho = svg('path', { class: 'rota-traco', d: ROTA_SVG, fill: 'none' });
+  const caminho = svg('path', { class: 'rota-traco', d, fill: 'none' });
 
   /* Os pontos dos eventos são colocados com `getPointAtLength`, que precisa do
      caminho já no documento. É por isso que ficam num grupo preenchido depois,
      e não aqui. */
   const pontos = svg('g', { class: 'rota-pontos' });
 
-  const jato = svg('g', { class: 'rota-jato' }, [
+  /* O `offset-path` tem de ser o MESMO caminho que está desenhado, e por isso
+     vem daqui e não do CSS: uma folha de estilo com o caminho lá dentro voltaria
+     a fixar três paragens, e a divergência entre o traço e a trajectória do
+     jato seria invisível até alguém mudar a rota. */
+  const jato = svg('g', { class: 'rota-jato', style: `offset-path: path("${d}")` }, [
     /* Um triângulo alongado com uma cauda. Desenhado a apontar para a direita,
        porque `offset-rotate: auto` roda-o a partir daí. */
     svg('path', { class: 'rota-jato-corpo', d: 'M 9 0 L -6 5 L -3 0 L -6 -5 Z' }),
