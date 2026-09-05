@@ -213,6 +213,8 @@ body {
 
 .itinerario { view-timeline-name: --itinerario; view-timeline-axis: block; }
 
+.vista { timeline-scope: --itinerario; }
+
 @supports (animation-timeline: view()) {
   .rota-jato {
     animation: voar linear both;

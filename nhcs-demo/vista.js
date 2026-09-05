@@ -565,7 +565,14 @@ function ligarJato() {
     alvo.style.setProperty('--voo', String(fracaoDaViagemAgora()));
     return;
   }
-  if (TEM_TIMELINE_NATIVA) return;
+
+  requestAnimationFrame(() => {
+    if (TEM_TIMELINE_NATIVA && jatoTemTimelineViva(alvo)) return;
+    conduzirJatoPorScroll(lista, alvo);
+  });
+}
+
+function conduzirJatoPorScroll(lista, alvo) {
 
   if (!ouvinteVooLigado) {
     ouvinteVooLigado = true;
@@ -585,6 +592,11 @@ function ligarJato() {
 }
 
 let ouvinteVooLigado = false;
+
+function jatoTemTimelineViva(alvo) {
+  if (typeof alvo.getAnimations !== 'function') return false;
+  return alvo.getAnimations().some((a) => a.timeline && a.timeline.currentTime !== null);
+}
 
 function medirCom(lista, alvo) {
   const caixa = lista.getBoundingClientRect();
