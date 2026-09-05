@@ -17,8 +17,9 @@
  */
 
 import { eventProgress, formatTime, getJourneyTiming, groupByDay, nextEvent, routeLabel } from './src/journey.js';
-import { nextJourney, phaseCopy, planCategories, promptSuggestions } from './src/mock.js';
+import { phaseCopy, planCategories, promptSuggestions } from './src/mock.js';
 import { conciergeService } from './src/concierge-service.js';
+import { journeyRepository } from './src/journey-repository.js';
 
 /* ------------------------------------------------------------------ estado */
 
@@ -30,6 +31,13 @@ const estado = {
   aPreparar: false,
   aEnviar: false,
   carteiraAberta: false,
+  /* A viagem deixou de ser importada do mock e passa a ser pedida.
+     Ver `journey-repository.ts`: hoje responde o mock, amanhã o backend da
+     NHCS. `null` enquanto não chega — e "enquanto não chega" é um estado que
+     tem de existir no ecrã, não uma suposição. */
+  viagem: null,
+  erroViagem: null,
+
   /* Relógio da demonstração. `null` é o relógio a sério — que é o que a app
      usa. Os botões lá em baixo põem aqui uma data para mostrar as outras fases,
      e a página diz que o está a fazer. */
@@ -105,6 +113,42 @@ function aviso(mensagem) {
   );
 }
 
+/**
+ * Pede a viagem ao repositório.
+ *
+ * Corre uma vez no arranque. Se falhar, o ecrã diz que falhou e oferece tentar
+ * outra vez — que é mais do que a app fazia, porque até aqui a viagem não podia
+ * falhar: estava importada.
+ */
+async function carregarViagem() {
+  estado.erroViagem = null;
+  estado.viagem = null;
+  desenhar();
+  try {
+    const viagens = await journeyRepository.list();
+    estado.viagem = viagens[0] || null;
+    if (!estado.viagem) estado.erroViagem = 'Não há viagens nesta conta de demonstração.';
+  } catch (erro) {
+    estado.erroViagem = erro instanceof Error ? erro.message : 'Não foi possível carregar a viagem.';
+  }
+  desenhar();
+}
+
+/** Placa de carregamento ou de erro, quando ainda não há viagem para desenhar. */
+function semViagem() {
+  if (estado.erroViagem) {
+    return [el('div', { class: 'cartao aviso-carregar' }, [
+      el('h4', { texto: 'Não consegui carregar a viagem' }),
+      el('p', { class: 'suave', texto: estado.erroViagem }),
+      el('button', { class: 'botao-contorno', texto: 'Tentar outra vez', onclick: () => void carregarViagem() }),
+    ])];
+  }
+  return [el('div', { class: 'cartao aviso-carregar' }, [
+    el('span', { class: 'roda roda-escura', 'aria-hidden': 'true' }),
+    el('p', { class: 'suave', texto: 'A carregar a sua viagem…' }),
+  ])];
+}
+
 /* ------------------------------------------------------------------ ecrãs */
 
 function cabecalho(eyebrow, titulo, selo) {
@@ -131,23 +175,24 @@ function cartaoContexto(titulo, detalhe, marca) {
 }
 
 function ecraInicio() {
-  const timing = getJourneyTiming(nextJourney, relogio());
+  if (!estado.viagem) return [cabecalho('Bom dia', 'Rodrigo.'), ...semViagem()];
+  const timing = getJourneyTiming(estado.viagem, relogio());
   const copy = phaseCopy[timing.phase];
-  const proximo = nextEvent(nextJourney, relogio());
+  const proximo = nextEvent(estado.viagem, relogio());
 
   return [
     cabecalho(copy.greeting, 'Rodrigo.'),
-    el('button', { class: 'heroi', 'aria-label': `Abrir a viagem às ${nextJourney.destination}`, onclick: () => irPara('trips') }, [
+    el('button', { class: 'heroi', 'aria-label': `Abrir a viagem às ${estado.viagem.destination}`, onclick: () => irPara('trips') }, [
       el('span', { class: 'marca-heroi', texto: 'EXEMPLO DE VIAGEM' }),
       el('p', { class: 'eyebrow', texto: copy.heroEyebrow }),
-      el('h2', { texto: nextJourney.destination }),
+      el('h2', { texto: estado.viagem.destination }),
       el('p', { class: 'meta', texto: `${timing.datesLabel} · ${timing.relativeLabel}` }),
     ]),
     el('div', { class: 'cartao-voo' }, [
       el('div', { class: 'linha' }, [
         el('div', {}, [
           el('p', { class: 'rotulo', texto: `Rota ilustrativa · partida ${timing.timeLabel} (hora de Lisboa)` }),
-          el('p', { class: 'rota-texto', texto: routeLabel(nextJourney) }),
+          el('p', { class: 'rota-texto', texto: routeLabel(estado.viagem) }),
         ]),
         el('span', { class: 'pastilha', texto: 'EXEMPLO' }),
       ]),
@@ -160,7 +205,7 @@ function ecraInicio() {
       proximo
         ? cartaoContexto(proximo.title, `${formatTime(proximo.at)}, hora local · ${proximo.detail}`, 'ITINERÁRIO')
         : cartaoContexto('Itinerário cumprido', 'Não há mais momentos agendados nesta viagem de demonstração.', 'ITINERÁRIO'),
-      cartaoContexto(nextJourney.destination, '28° · Céu limpo · exemplo de contexto de destino', 'DESTINO'),
+      cartaoContexto(estado.viagem.destination, '28° · Céu limpo · exemplo de contexto de destino', 'DESTINO'),
     ]),
     el('button', { class: 'chamada', onclick: () => abrirConcierge(copy.calloutPrompt) }, [
       el('span', {}, [el('strong', { texto: copy.calloutTitle }), el('span', { texto: copy.calloutText })]),
@@ -234,8 +279,8 @@ export function caminhoDaRota(paragens) {
 }
 
 function rotaDeVoo() {
-  const paragens = nextJourney.route;
-  const progresso = eventProgress(nextJourney);
+  const paragens = estado.viagem.route;
+  const progresso = eventProgress(estado.viagem);
   const d = caminhoDaRota(paragens.length);
 
   const caminho = svg('path', { class: 'rota-traco', d, fill: 'none' });
@@ -277,7 +322,7 @@ function rotaDeVoo() {
     ])));
 
   const bloco = el('div', { class: 'rota-caixa' }, [
-    el('p', { class: 'rotulo', texto: routeLabel(nextJourney) }),
+    el('p', { class: 'rotulo', texto: routeLabel(estado.viagem) }),
     desenho,
     etiquetas,
   ]);
@@ -307,8 +352,9 @@ function rotaDeVoo() {
 }
 
 function ecraViagens() {
-  const timing = getJourneyTiming(nextJourney, relogio());
-  const dias = groupByDay(nextJourney);
+  if (!estado.viagem) return [cabecalho('Viagem de demonstração', 'A carregar…'), ...semViagem()];
+  const timing = getJourneyTiming(estado.viagem, relogio());
+  const dias = groupByDay(estado.viagem);
   let posicao = -1;
 
   const itinerario = dias.map((dia) => el('div', {}, [
@@ -347,7 +393,7 @@ function ecraViagens() {
     : el('p', { class: 'suave', texto: 'Demonstração visual: não existem documentos reais nesta app. A versão de produção exigirá autenticação do dispositivo.' });
 
   return [
-    cabecalho('Viagem de demonstração', nextJourney.destination, 'Exemplo'),
+    cabecalho('Viagem de demonstração', estado.viagem.destination, 'Exemplo'),
     el('div', { class: 'heroi heroi-viagem' }, [
       el('span', { class: 'marca-heroi marca-viagem', texto: 'EXEMPLO NHCS' }),
       el('p', { class: 'eyebrow', texto: timing.datesLabel }),
@@ -661,9 +707,9 @@ function desenhar({ manterFoco = false } = {}) {
 
 function fracaoDaViagemAgora() {
   const agora = relogio().getTime();
-  const pontos = eventProgress(nextJourney);
+  const pontos = eventProgress(estado.viagem);
   let ultima = 0;
-  for (const [i, evento] of nextJourney.timeline.entries()) {
+  for (const [i, evento] of estado.viagem.timeline.entries()) {
     if (new Date(evento.at).getTime() <= agora) ultima = pontos[i].fraction;
   }
   return ultima;
@@ -752,3 +798,4 @@ function desenharFases() {
 
 desenharFases();
 desenhar();
+void carregarViagem();
