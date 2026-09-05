@@ -162,7 +162,15 @@ comparar_copia glaze glaze-demo
 # A NHCS não entra no comparar_copia porque não tem a mesma forma: não é um
 # irmão em ../, não é clonada em CI (é privada) e a cópia inclui código gerado
 # a partir do TypeScript da app. O script dela sabe verificar as duas coisas.
-./tools/sincronizar-nhcs.sh --verificar || falhou=1
+#
+# `bash tools/...` e não `./tools/...` de propósito. Este ficheiro foi commitado
+# de uma máquina Windows e foi para o git com modo 100644 em vez de 100755; num
+# clone limpo — que é o que o CI faz — `./tools/sincronizar-nhcs.sh` devolve
+# "Permission denied" com código 126, e o CI ficou vermelho em dois pushes
+# seguidos por causa de um bit. O modo já foi corrigido no índice; invocar por
+# `bash` é o cinto por cima dos suspensórios, porque a próxima vez que alguém
+# criar um script destes a partir do Windows vai acontecer o mesmo.
+bash tools/sincronizar-nhcs.sh --verificar || falhou=1
 
 # Cada biblioteca já guarda os seus próprios números — o tamanho do bundle e a
 # contagem de testes falham o CI dela se o README discordar. Esta página depois
