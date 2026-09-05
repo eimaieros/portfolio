@@ -546,3 +546,53 @@ button.fila { cursor: pointer; }
 .aviso-carregar p { margin: 0; }
 .aviso-carregar .botao-contorno { margin-left: auto; flex: none; }
 .roda-escura { border-color: rgba(41, 66, 54, .22); border-top-color: var(--forest); }
+
+/* ------------------------------------------------------------ mensagens
+ *
+ * A especificação pede "NHCS alerts and messages" no Início desde a V1 e nunca
+ * existiram. Numa app de serviço isto não é acessório: a relação com um
+ * concierge é feita de mensagens.
+ *
+ * A hierarquia é toda visual e toda redundante com o texto: quem pede acção
+ * tem a barra de acento e a etiqueta escrita; quem está por ler tem o fundo
+ * mais claro e o nome a negrito. Nada depende só da cor.
+ */
+.contador {
+  min-width: 22px; height: 22px; padding: 0 7px;
+  display: grid; place-items: center;
+  border-radius: 999px; background: var(--forest); color: #fff;
+  font: 800 11px var(--sans);
+}
+
+.mensagem {
+  position: relative;
+  display: block; width: 100%;
+  padding: 14px 16px; padding-left: 18px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  text-align: left; cursor: pointer; color: var(--ink);
+  transition: border-color 140ms ease, background 140ms ease;
+}
+.mensagem.por-ler { background: #fdfdf8; border-color: #cfd4c8; }
+.mensagem.por-ler .quem { font-weight: 800; }
+.mensagem.aberta { border-color: var(--forest); }
+
+/* A barra de acento: só nas que pedem resposta e ainda não foram lidas. */
+.mensagem.pede-accao::before {
+  content: "";
+  position: absolute; left: 0; top: 14px; bottom: 14px;
+  width: 3px; border-radius: 0 3px 3px 0;
+  background: var(--forest);
+}
+
+.mensagem .quem { font-size: 12px; color: var(--muted); }
+.mensagem .quando { flex: none; font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.mensagem .assunto { margin: 5px 0 0; font-size: 14px; font-weight: 700; line-height: 1.35; }
+.etiqueta-accao {
+  display: inline-block; margin-top: 8px;
+  padding: 4px 8px; border-radius: 999px;
+  background: var(--lime); color: var(--forest-deep);
+  font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .06em;
+}
+.corpo-mensagem { margin: 10px 0 0; font-size: 13px; line-height: 1.5; color: var(--muted); }

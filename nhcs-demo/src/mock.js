@@ -111,6 +111,42 @@ export const phaseCopy                                  = {
   },
 };
 
+/**
+ * Mensagens de demonstração.
+ *
+ * Duas informativas e uma que pede acção, de propósito: a ordenação e o
+ * destaque só se conseguem ver com as duas espécies presentes.
+ */
+export const messages            = [
+  {
+    id: 'msg-passaporte',
+    from: 'Marta Nunes · NHCS',
+    subject: 'Falta o número do passaporte',
+    body: 'Para emitir os bilhetes preciso do número e validade do passaporte de cada viajante. Pode responder por aqui.',
+    at: '2026-09-04T09:12:00+01:00',
+    read: false,
+    needsReply: true,
+  },
+  {
+    id: 'msg-transfer',
+    from: 'Marta Nunes · NHCS',
+    subject: 'Transfer à chegada confirmado',
+    body: 'O motorista espera na saída de bagagens com um cartão. Envio o contacto dele na véspera.',
+    at: '2026-09-02T16:40:00+01:00',
+    read: false,
+    needsReply: false,
+  },
+  {
+    id: 'msg-bemvindo',
+    from: 'Equipa NHCS',
+    subject: 'A sua viagem está a ser preparada',
+    body: 'Vamos acompanhando cada passo. Qualquer coisa que precise, é por aqui ou pelo concierge.',
+    at: '2026-08-28T11:05:00+01:00',
+    read: true,
+    needsReply: false,
+  },
+];
+
 export const promptSuggestions = [
   'Planeia uma surpresa',
   'Encontra uma praia quente durante 10 dias',
