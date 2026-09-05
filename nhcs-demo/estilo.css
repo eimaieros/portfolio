@@ -216,6 +216,92 @@ body {
 .heroi-viagem h2 { font-size: 39px; letter-spacing: -.045em; }
 .marca-viagem { left: 18px; right: auto; background: rgba(10, 24, 17, .42); border-color: rgba(255, 255, 255, .27); }
 
+/* ------------------------------------------------------------ a rota de voo
+ *
+ * O jato anda pelo arco à medida que se percorre o itinerário. Não é enfeite:
+ * os pontos no arco são os cinco momentos reais, colocados pela hora a que
+ * acontecem, e a posição do jato é o progresso pela lista. Ver o comentário
+ * grande em `vista.js`.
+ *
+ * Duas implementações da mesma coisa:
+ *
+ *   1. `animation-timeline: view()` — sem JavaScript, e o browser corre-a fora
+ *      da thread principal. Chrome, Edge e Safari 26+.
+ *   2. `--voo` escrito por JavaScript no scroll — para o Firefox, que à data de
+ *      hoje ainda tem isto atrás de uma flag.
+ *
+ * A declaração base usa `--voo`, portanto a 2 é o caminho por omissão e a 1
+ * sobrepõe-se onde existe. Sem nenhuma das duas, `--voo` fica a 0 e o jato
+ * pousa em Lisboa — parado, e nada parece partido.
+ */
+
+.rota-caixa { margin: 18px -6px 0; padding: 14px 10px 10px; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; }
+.rota-caixa .rotulo { padding: 0 6px; }
+.rota { display: block; width: 100%; height: auto; margin-top: 4px; overflow: visible; }
+
+.rota-traco { stroke: #c3c8bd; stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 5 4; }
+/* Um ponto por momento do itinerário, colocado pela hora. Nada mais vai ao
+   arco: ver o comentário em vista.js sobre os dois sistemas de coordenadas. */
+.rota-ponto { fill: var(--forest); opacity: .5; }
+
+.rota-jato {
+  offset-path: path("M 18 100 Q 89 22 160 84 Q 231 22 302 100");
+  /* Roda o nariz para a tangente do caminho — a descolagem e a aterragem saem
+     de graça, e o canto no Dubai levanta o nariz como deve ser. */
+  offset-rotate: auto;
+  offset-distance: calc(var(--voo, 0) * 100%);
+  offset-anchor: center;
+}
+
+/* O 3D. Um `rotateY` sobre o corpo encurta as asas e lê-se como inclinação de
+   curva; a perspetiva curta exagera-o o suficiente para se ver a 12 px de
+   altura. É transform puro, composto na GPU, e não mexe no layout. */
+.rota-jato-corpo {
+  fill: var(--forest);
+  transform: perspective(90px) rotateY(calc((var(--voo, 0) - .5) * -70deg));
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.itinerario { view-timeline-name: --itinerario; view-timeline-axis: block; }
+
+@supports (animation-timeline: view()) {
+  .rota-jato {
+    animation: voar linear both;
+    animation-timeline: --itinerario;
+    /* A mesma janela que o JavaScript mede: começa quando a lista entra por
+       baixo e acaba quando sai por cima. */
+    animation-range: entry 0% exit 100%;
+  }
+  .rota-jato-corpo {
+    animation: inclinar linear both;
+    animation-timeline: --itinerario;
+    animation-range: entry 0% exit 100%;
+  }
+}
+
+@keyframes voar { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+@keyframes inclinar {
+  from { transform: perspective(90px) rotateY(35deg); }
+  to { transform: perspective(90px) rotateY(-35deg); }
+}
+
+/* Com movimento reduzido não há animação nenhuma. O `--voo` é escrito uma vez
+   pelo JavaScript com a posição do momento em que a viagem vai — o jato fica
+   parado onde o cliente está, o que ainda é informação. */
+@media (prefers-reduced-motion: reduce) {
+  .rota-jato, .rota-jato-corpo { animation: none !important; }
+  .rota-jato-corpo { transform: none; }
+  .rota-traco { stroke-dasharray: none; }
+}
+
+.rota-paragens { display: flex; justify-content: space-between; margin-top: 2px; padding: 0 4px; }
+.rota-paragens span { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.rota-paragens strong { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; color: var(--ink); }
+.rota-paragens span span { font-size: 10px; color: var(--muted); }
+.rota-paragens span:first-child { align-items: flex-start; }
+.rota-paragens span:last-child { align-items: flex-end; }
+
 .dia { display: flex; align-items: center; gap: 10px; margin: 17px 0 11px; }
 .dia span { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; color: var(--forest); }
 .dia i { flex: 1; height: 1px; background: var(--line); }

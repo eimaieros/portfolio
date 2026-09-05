@@ -213,6 +213,44 @@ export function groupByDay(journey         )                {
   return days;
 }
 
+/**
+ * "EK091 · LIS → DXB → MLE".
+ *
+ * Antes era uma string escrita à mão dentro do ecrã. Uma rota é uma lista de
+ * sítios: escrita como texto não se pode desenhar nem contar, e passa a ser mais
+ * um facto a viver em dois lados. O desenho da rota de voo na demonstração web
+ * lê exactamente esta lista.
+ */
+export function routeLabel(journey         )         {
+  const paragens = journey.route.map((p) => p.code).join(' → ');
+  return journey.flightNumber ? `${journey.flightNumber} · ${paragens}` : paragens;
+}
+
+/**
+ * Onde cada momento do itinerário cai, entre 0 e 1, medido no tempo.
+ *
+ * É isto que torna a rota desenhada uma barra de progresso em vez de um
+ * enfeite: cada ponto no arco é um evento a sério, colocado pela hora a que
+ * acontece e não por espaçamento igual. Um itinerário com uma escala de doze
+ * horas mostra essa escala.
+ *
+ * Um itinerário com um único evento devolve 0 — não há intervalo, e dividir por
+ * zero daria NaN, que num atributo de SVG desenha um caminho partido.
+ */
+export function eventProgress(journey         )                  {
+  const instantes = journey.timeline.map((e) => parseMoment(e.at).epochMs);
+  if (!instantes.length) return [];
+
+  const inicio = Math.min(...instantes);
+  const fim = Math.max(...instantes);
+  const intervalo = fim - inicio;
+
+  return journey.timeline.map((evento, i) => ({
+    fraction: intervalo === 0 ? 0 : (instantes[i] - inicio) / intervalo,
+    id: evento.id,
+  }));
+}
+
 /** O próximo momento do itinerário, ou nulo se já passaram todos. */
 export function nextEvent(journey         , now       = new Date())                       {
   const currentMs = now.getTime();

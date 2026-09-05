@@ -21,6 +21,12 @@ export const nextJourney          = {
   departureAt: '2026-10-10T17:30:00+01:00',
   returnAt: '2026-10-20T22:00:00+01:00',
   status: 'Em preparação',
+  flightNumber: 'EK091',
+  route: [
+    { code: 'LIS', city: 'Lisboa' },
+    { code: 'DXB', city: 'Dubai' },
+    { code: 'MLE', city: 'Malé' },
+  ],
   timeline: [
     {
       id: 'check-in',
