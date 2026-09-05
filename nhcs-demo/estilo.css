@@ -356,3 +356,9 @@ button.fila { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
+
+.aviso-carregar { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
+.aviso-carregar h4 { margin: 0; font-size: 14px; }
+.aviso-carregar p { margin: 0; }
+.aviso-carregar .botao-contorno { margin-left: auto; flex: none; }
+.roda-escura { border-color: rgba(41, 66, 54, .22); border-top-color: var(--forest); }
