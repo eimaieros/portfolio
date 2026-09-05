@@ -100,6 +100,20 @@ export function formatDay(iso        )         {
 }
 
 /**
+ * "15 de janeiro de 2027" — data com ano.
+ *
+ * O `formatDay` chega para um cabeçalho dentro de uma viagem, onde o ano é
+ * óbvio pelo contexto. Não chega para a validade de um passaporte: "15 de
+ * janeiro" ao lado de uma viagem em Outubro de 2026 lê-se como Janeiro de
+ * 2027, mas também podia ser 2029, e a diferença entre os dois é a diferença
+ * entre embarcar e não embarcar.
+ */
+export function formatFullDay(iso        )         {
+  const moment = parseMoment(iso);
+  return `${moment.day} de ${MESES[moment.month - 1]} de ${moment.year}`;
+}
+
+/**
  * "10 – 20 de outubro de 2026", e as variantes quando o mês ou o ano mudam.
  *
  * Antes isto era um campo escrito à mão (`dates: '10 - 20 outubro 2026'`) ao

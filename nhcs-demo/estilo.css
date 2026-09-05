@@ -29,6 +29,8 @@
   --lime: #ddebb1;
   --muted: #5c675f;
   --line: #d9d9d0;
+  --alerta: #8a4423;
+  --alerta-lavado: #f7ede5;
 
   --serif: Georgia, "Times New Roman", serif;
   --sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -381,6 +383,39 @@ body {
 .doc .icone { width: 36px; height: 36px; flex: none; border-radius: 12px; background: #edefe5; display: grid; place-items: center; }
 .doc .nome { flex: 1; font-size: 14px; font-weight: 800; }
 .doc .demo { flex: none; background: #eef1e5; color: var(--forest); border-radius: 999px; padding: 5px 8px; font-family: var(--mono); font-size: 9px; letter-spacing: .06em; }
+
+/* A carteira com estado.
+   Terracota e não vermelho: um documento por entregar é uma coisa a tratar,
+   não uma avaria. Contraste calculado sobre --alerta-lavado: 6.21:1, e 7.10:1
+   sobre --paper — os dois acima do 4.5:1 do WCAG AA. O estado nunca vai só na
+   cor: vai no texto ao lado e na etiqueta que muda de DEMO para AÇÃO. */
+.doc { align-items: flex-start; padding-block: 13px; }
+.doc .nome { line-height: 1.35; }
+.doc .icone { margin-top: 1px; }
+.doc-accao .icone { background: var(--alerta-lavado); }
+.doc-accao .demo { background: var(--alerta-lavado); color: var(--alerta); }
+.estado-doc { margin: 3px 0 0; font-size: 12px; font-weight: 700; line-height: 1.4; color: var(--forest); }
+.estado-doc.grave { color: var(--alerta); }
+.nota-carteira { background: #f7f8f1; padding: 12px 14px; }
+.nota-carteira strong { display: block; font-size: 11px; line-height: 1.45; color: var(--forest); }
+.nota-carteira p { margin: 4px 0 0; font-size: 11px; line-height: 1.45; color: var(--muted); }
+
+/* O aviso no Início. Só aparece quando há alguma coisa a dizer. */
+.alerta-carteira {
+  display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 14px;
+  padding: 12px 14px; min-height: 64px; text-align: left; cursor: pointer;
+  background: var(--alerta-lavado); border: 1px solid rgba(138, 68, 35, .2); border-radius: 16px;
+}
+.alerta-carteira.suave { background: var(--paper); border-color: var(--line); }
+.alerta-carteira .icone {
+  flex: none; width: 30px; height: 30px; border-radius: 999px; display: grid; place-items: center;
+  background: rgba(138, 68, 35, .12); color: var(--alerta); font-weight: 900; font-size: 15px;
+}
+.alerta-carteira.suave .icone { background: #edefe5; color: var(--forest); }
+.alerta-carteira .texto { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.alerta-carteira .texto strong { font-size: 14px; font-weight: 800; color: var(--ink); }
+.alerta-carteira .texto span { font-size: 12px; color: var(--muted); }
+.alerta-carteira .seta { flex: none; color: var(--forest); font-size: 14px; }
 
 /* ------------------------------------------------------------ Concierge */
 

@@ -23,6 +23,11 @@ export const nextJourney          = {
   returnAt: '2026-10-20T22:00:00+01:00',
   status: 'Em preparação',
   flightNumber: 'EK091',
+  entryRequirements: {
+    passportValidityDaysAfterReturn: 180,
+    source:
+      'Valor de demonstração, não confirmado com nenhuma fonte oficial. Antes de um cliente ver este ecrã, o requisito de cada destino tem de vir da NHCS ou de fonte consular, com data.',
+  },
   route: [
     { code: 'LIS', city: 'Lisboa' },
     { code: 'DXB', city: 'Dubai' },
@@ -144,6 +149,72 @@ export const messages            = [
     at: '2026-08-28T11:05:00+01:00',
     read: true,
     needsReply: false,
+  },
+];
+
+/**
+ * Documentos de demonstração.
+ *
+ * Escolhidos para que cada estado da carteira seja visível sem alterar código:
+ * um por entregar, um válido mas insuficiente para a margem do destino, um
+ * seguro que acaba pouco depois do regresso e três sem validade nenhuma. Uma
+ * lista onde estivesse tudo bem não mostrava que a app sabe distinguir.
+ *
+ * O passaporte da Sofia liga-se à mensagem `msg-passaporte`: a NHCS pede-o por
+ * mensagem e a carteira mostra-o em falta. É o mesmo facto em dois sítios, o
+ * que é aceitável quando os dois são dados; deixaria de ser se fosse texto
+ * escrito à mão num ecrã.
+ */
+export const documents                   = [
+  {
+    id: 'doc-passaporte-rodrigo',
+    kind: 'passport',
+    title: 'Passaporte',
+    holder: 'Rodrigo Figueiredo',
+    expiresAt: '2027-01-15T00:00:00+01:00',
+    provided: true,
+    hasFile: false,
+  },
+  {
+    id: 'doc-passaporte-sofia',
+    kind: 'passport',
+    title: 'Passaporte',
+    holder: 'Sofia Figueiredo',
+    provided: false,
+    hasFile: false,
+  },
+  {
+    id: 'doc-seguro',
+    kind: 'insurance',
+    title: 'Seguro de viagem',
+    holder: 'Ambos os viajantes',
+    expiresAt: '2026-10-27T23:59:00+01:00',
+    provided: true,
+    hasFile: false,
+  },
+  {
+    id: 'doc-bilhete',
+    kind: 'ticket',
+    title: 'Bilhete de avião',
+    holder: 'Ambos os viajantes',
+    provided: true,
+    hasFile: false,
+  },
+  {
+    id: 'doc-voucher',
+    kind: 'voucher',
+    title: 'Voucher de hotel',
+    holder: 'Ambos os viajantes',
+    provided: true,
+    hasFile: false,
+  },
+  {
+    id: 'doc-transfer',
+    kind: 'transfer',
+    title: 'Transfer privado',
+    holder: 'Ambos os viajantes',
+    provided: true,
+    hasFile: false,
   },
 ];
 
