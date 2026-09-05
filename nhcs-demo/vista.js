@@ -139,17 +139,37 @@ function ecraInicio() {
 
 const ICONES = { flight: '✈', transfer: '→', stay: '⌂', experience: '✦' };
 
-const ROTA_SVG = 'M 18 100 Q 89 22 160 84 Q 231 22 302 100';
+const ROTA_LARGURA = 320;
+const ROTA_MARGEM = 18;
+const ROTA_SOLO = 100;
+const ROTA_TECTO = 22;
+
+export function caminhoDaRota(paragens) {
+  const n = Math.max(2, paragens);
+  const util = ROTA_LARGURA - ROTA_MARGEM * 2;
+  const passo = util / (n - 1);
+  const x = (i) => ROTA_MARGEM + passo * i;
+
+  const y = (i) => (i === 0 || i === n - 1 ? ROTA_SOLO : ROTA_SOLO - 16);
+
+  let d = `M ${x(0)} ${y(0)}`;
+  for (let i = 1; i < n; i++) {
+    const cx = (x(i - 1) + x(i)) / 2;
+    d += ` Q ${cx} ${ROTA_TECTO} ${x(i)} ${y(i)}`;
+  }
+  return d;
+}
 
 function rotaDeVoo() {
   const paragens = nextJourney.route;
   const progresso = eventProgress(nextJourney);
+  const d = caminhoDaRota(paragens.length);
 
-  const caminho = svg('path', { class: 'rota-traco', d: ROTA_SVG, fill: 'none' });
+  const caminho = svg('path', { class: 'rota-traco', d, fill: 'none' });
 
   const pontos = svg('g', { class: 'rota-pontos' });
 
-  const jato = svg('g', { class: 'rota-jato' }, [
+  const jato = svg('g', { class: 'rota-jato', style: `offset-path: path("${d}")` }, [
 
     svg('path', { class: 'rota-jato-corpo', d: 'M 9 0 L -6 5 L -3 0 L -6 -5 Z' }),
   ]);

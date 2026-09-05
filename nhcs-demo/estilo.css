@@ -198,7 +198,6 @@ body {
 .rota-ponto { fill: var(--forest); opacity: .5; }
 
 .rota-jato {
-  offset-path: path("M 18 100 Q 89 22 160 84 Q 231 22 302 100");
 
   offset-rotate: auto;
   offset-distance: calc(var(--voo, 0) * 100%);
