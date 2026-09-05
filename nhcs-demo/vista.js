@@ -344,7 +344,8 @@ function ecraConcierge() {
       el('span', { class: 'marca-nhcs', texto: 'NHCS' }),
       el('span', { class: 'conc-privado', texto: 'CONCIERGE PRIVADO' }),
     ]),
-    el('div', { class: 'orb', 'aria-hidden': 'true' }),
+
+    el('div', { class: 'orb orb-' + (estado.aPreparar || estado.aEnviar ? 'pensa' : proposta ? 'respondeu' : 'repouso'), 'aria-hidden': 'true' }),
     el('p', { class: 'eyebrow', texto: 'O seu concierge privado' }),
     el('h2', { class: 'conc-titulo' }, ['Diga-me', el('br'), 'o que tem', el('br'), 'em mente.']),
     el('p', { class: 'conc-intro', texto: 'A NHCS organiza intenção, opções e confirmação — sem o transformar num chat genérico.' }),
@@ -555,6 +556,9 @@ function desenhar({ manterFoco = false } = {}) {
   desenharNav();
   if (estado.separador === 'trips') ligarJato();
 
+  medirParallax();
+  ligarScrollGlobal();
+
   if (manterFoco) {
     vista.scrollTop = posicao;
     const campo = vista.querySelector('textarea');
@@ -597,6 +601,13 @@ function ligarJato() {
   conduzirJatoPorScroll(lista, alvo);
 }
 
+let ouvinteScrollLigado = false;
+function ligarScrollGlobal() {
+  if (ouvinteScrollLigado) return;
+  ouvinteScrollLigado = true;
+  vista.addEventListener('scroll', () => { medirParallax(); medirEspinha(); }, { passive: true });
+}
+
 function conduzirJatoPorScroll(lista, alvo) {
 
   if (!ouvinteVooLigado) {
@@ -606,13 +617,40 @@ function conduzirJatoPorScroll(lista, alvo) {
       const l = vista.querySelector('.itinerario');
       const a = vista.querySelector('.rota-jato');
       if (l && a) medirCom(l, a);
+      medirParallax();
+      medirEspinha();
     }, { passive: true });
   }
 
   medirCom(lista, alvo);
+  medirParallax();
+  medirEspinha();
 }
 
 let ouvinteVooLigado = false;
+
+function medirEspinha() {
+  const lista = vista.querySelector('.itinerario');
+  if (!lista) return;
+  const caixa = lista.getBoundingClientRect();
+  const alturaEcra = vista.clientHeight || 1;
+
+  const percorrido = (alturaEcra * 0.55 - caixa.top) / Math.max(1, caixa.height);
+  lista.style.setProperty('--espinha', (Math.min(1, Math.max(0, percorrido)) * 100).toFixed(1) + '%');
+}
+
+function medirParallax() {
+  if (semMovimento()) return;
+  const topo = vista.scrollTop;
+  for (const heroi of vista.querySelectorAll('.heroi')) {
+    const caixa = heroi.getBoundingClientRect();
+    const alturaEcra = vista.clientHeight || 1;
+
+    const rel = Math.max(-1, Math.min(1, (alturaEcra / 2 - (caixa.top + caixa.height / 2)) / alturaEcra));
+    heroi.style.setProperty('--parallax', (rel * 12).toFixed(2) + '%');
+  }
+  void topo;
+}
 
 function medirCom(lista, alvo) {
   const caixa = lista.getBoundingClientRect();
