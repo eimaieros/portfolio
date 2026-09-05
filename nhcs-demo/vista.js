@@ -1,4 +1,4 @@
-import { formatTime, getJourneyTiming, groupByDay, nextEvent } from './src/journey.js';
+import { eventProgress, formatTime, getJourneyTiming, groupByDay, nextEvent, routeLabel } from './src/journey.js';
 import { nextJourney, phaseCopy, planCategories, promptSuggestions } from './src/mock.js';
 import { conciergeService } from './src/concierge-service.js';
 
@@ -39,6 +39,17 @@ function el(tag, props = {}, filhos = []) {
     if (filho === null || filho === undefined || filho === false) continue;
     node.append(typeof filho === 'string' ? document.createTextNode(filho) : filho);
   }
+  return node;
+}
+
+function svg(tag, props = {}, filhos = []) {
+  const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const [chave, valor] of Object.entries(props)) {
+    if (valor === null || valor === undefined || valor === false) continue;
+    if (chave === 'texto') node.textContent = valor;
+    else node.setAttribute(chave, String(valor));
+  }
+  for (const filho of [].concat(filhos)) if (filho) node.append(filho);
   return node;
 }
 
@@ -128,6 +139,55 @@ function ecraInicio() {
 
 const ICONES = { flight: '✈', transfer: '→', stay: '⌂', experience: '✦' };
 
+const ROTA_SVG = 'M 18 100 Q 89 22 160 84 Q 231 22 302 100';
+
+function rotaDeVoo() {
+  const paragens = nextJourney.route;
+  const progresso = eventProgress(nextJourney);
+
+  const caminho = svg('path', { class: 'rota-traco', d: ROTA_SVG, fill: 'none' });
+
+  const pontos = svg('g', { class: 'rota-pontos' });
+
+  const jato = svg('g', { class: 'rota-jato' }, [
+
+    svg('path', { class: 'rota-jato-corpo', d: 'M 9 0 L -6 5 L -3 0 L -6 -5 Z' }),
+  ]);
+
+  const desenho = svg('svg', {
+    class: 'rota',
+    viewBox: '0 0 320 120',
+    preserveAspectRatio: 'xMidYMid meet',
+    'aria-hidden': 'true',
+    focusable: 'false',
+  }, [caminho, pontos, jato]);
+
+  const etiquetas = el('div', { class: 'rota-paragens' },
+    paragens.map((p) => el('span', {}, [
+      el('strong', { texto: p.code }),
+      el('span', { texto: p.city }),
+    ])));
+
+  const bloco = el('div', { class: 'rota-caixa' }, [
+    el('p', { class: 'rotulo', texto: routeLabel(nextJourney) }),
+    desenho,
+    etiquetas,
+  ]);
+
+  queueMicrotask(() => {
+    if (!caminho.getTotalLength) return;
+    const total = caminho.getTotalLength();
+    if (!total) return;
+
+    for (const { fraction, id } of progresso) {
+      const p = caminho.getPointAtLength(total * fraction);
+      pontos.append(svg('circle', { class: 'rota-ponto', cx: p.x, cy: p.y, r: 3, 'data-evento': id }));
+    }
+  });
+
+  return bloco;
+}
+
 function ecraViagens() {
   const timing = getJourneyTiming(nextJourney, relogio());
   const dias = groupByDay(nextJourney);
@@ -175,8 +235,10 @@ function ecraViagens() {
       el('h2', { texto: 'A sua pausa.' }),
       el('p', { class: 'meta', texto: 'Itinerário, documentos e assistência num só lugar.' }),
     ]),
+    rotaDeVoo(),
     seccao('Itinerário', 'Assistência', () => abrirConcierge('Preciso de ajuda com o meu itinerário.')),
-    el('div', {}, itinerario),
+
+    el('div', { class: 'itinerario' }, itinerario),
     el('div', { class: 'carteira-topo' }, [
       el('div', {}, [
         el('h3', { class: 'titulo-carteira', texto: 'Carteira de viagem' }),
@@ -436,6 +498,7 @@ function desenhar({ manterFoco = false } = {}) {
   vista.textContent = '';
   vista.append(...separador.ecra().filter(Boolean));
   desenharNav();
+  if (estado.separador === 'trips') ligarJato();
 
   if (manterFoco) {
     vista.scrollTop = posicao;
@@ -455,6 +518,59 @@ function desenhar({ manterFoco = false } = {}) {
     }
   }
   anterior = estado.separador;
+}
+
+const TEM_TIMELINE_NATIVA = typeof CSS !== 'undefined'
+  && typeof CSS.supports === 'function'
+  && CSS.supports('animation-timeline', 'view()');
+
+let pendenteVoo = false;
+
+function fracaoDaViagemAgora() {
+  const agora = relogio().getTime();
+  const pontos = eventProgress(nextJourney);
+  let ultima = 0;
+  for (const [i, evento] of nextJourney.timeline.entries()) {
+    if (new Date(evento.at).getTime() <= agora) ultima = pontos[i].fraction;
+  }
+  return ultima;
+}
+
+function ligarJato() {
+  const lista = vista.querySelector('.itinerario');
+  const alvo = vista.querySelector('.rota-jato');
+  if (!lista || !alvo) return;
+
+  if (semMovimento()) {
+    alvo.style.setProperty('--voo', String(fracaoDaViagemAgora()));
+    return;
+  }
+  if (TEM_TIMELINE_NATIVA) return;
+
+  if (!ouvinteVooLigado) {
+    ouvinteVooLigado = true;
+    vista.addEventListener('scroll', () => {
+      if (pendenteVoo) return;
+      pendenteVoo = true;
+      requestAnimationFrame(() => {
+        pendenteVoo = false;
+        const l = vista.querySelector('.itinerario');
+        const a = vista.querySelector('.rota-jato');
+        if (l && a) medirCom(l, a);
+      });
+    }, { passive: true });
+  }
+
+  medirCom(lista, alvo);
+}
+
+let ouvinteVooLigado = false;
+
+function medirCom(lista, alvo) {
+  const caixa = lista.getBoundingClientRect();
+  const alturaEcra = vista.clientHeight || 1;
+  const percorrido = (alturaEcra - caixa.top) / (alturaEcra + caixa.height);
+  alvo.style.setProperty('--voo', String(Math.min(1, Math.max(0, percorrido))));
 }
 
 const FASES = [

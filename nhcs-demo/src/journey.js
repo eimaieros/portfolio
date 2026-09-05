@@ -130,6 +130,25 @@ export function groupByDay(journey         )                {
   return days;
 }
 
+export function routeLabel(journey         )         {
+  const paragens = journey.route.map((p) => p.code).join(' → ');
+  return journey.flightNumber ? `${journey.flightNumber} · ${paragens}` : paragens;
+}
+
+export function eventProgress(journey         )                  {
+  const instantes = journey.timeline.map((e) => parseMoment(e.at).epochMs);
+  if (!instantes.length) return [];
+
+  const inicio = Math.min(...instantes);
+  const fim = Math.max(...instantes);
+  const intervalo = fim - inicio;
+
+  return journey.timeline.map((evento, i) => ({
+    fraction: intervalo === 0 ? 0 : (instantes[i] - inicio) / intervalo,
+    id: evento.id,
+  }));
+}
+
 export function nextEvent(journey         , now       = new Date())                       {
   const currentMs = now.getTime();
   for (const event of journey.timeline) {
