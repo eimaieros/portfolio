@@ -157,6 +157,14 @@ ALEGACOES = [
     ("glaze: testes (post)",
      r"[\d.]+ KB, zero dependencies, (\d+) tests", "glaze", "testes"),
     ("glaze: suite completa (post)", r"while all (\d+) tests", "glaze", "testes"),
+
+    # O site também afirma números, e durante meses ninguém os comparou com
+    # nada. A 9 de setembro de 2026 a ficha do cadence dizia "112 total · real
+    # Postgres" quando o README dizia 120, e o cartão do portefólio dizia
+    # "Next.js" numa página que não tem framework nenhum. Os dois estavam à
+    # vista de quem abrisse o site — que é toda a gente a quem ele se
+    # candidata.
+    ("site: testes do cadence", r"'Tests','(\d+) total", "cadence", "testes"),
 ]
 
 # Um padrão sem grupo rebenta com IndexError a meio da verificação, que foi
@@ -213,6 +221,51 @@ def verificar(nome_doc: str, texto: str, real: dict[str, dict[str, str]]) -> int
     return mal
 
 
+def verificar_lighthouse(html: str) -> int:
+    """
+    Os números de Lighthouse que o site afirma sobre si próprio têm de bater
+    certo com a tabela do PERFORMANCE.md.
+
+    Isto não corre o Lighthouse — corre no CI, sete vezes por perfil, e é de lá
+    que a tabela vem. O que isto apanha é a distância entre o que foi medido e
+    o que o site continua a dizer.
+
+    A 9 de setembro de 2026 essa distância era: o site dizia "Desktop 60 ·
+    mobile 77 · a11y 96", o PERFORMANCE.md dizia 59, 65 e 100. Os 60 e os 77
+    eram medianas de três corridas, e o próprio PERFORMANCE.md explica que três
+    amostras de uma métrica ruidosa é um estimador enviesado e que por isso se
+    passou a sete. A correcção ficou no ficheiro e não chegou à página.
+    """
+    perf = ler(RAIZ / "PERFORMANCE.md")
+    if not perf:
+        print("\nsite: Lighthouse")
+        print("  ..  PERFORMANCE.md nao esta ao lado; salto")
+        return 0
+
+    m = re.search(r"\|\s*\*\*Performance\*\*\s*\|\s*\*\*(\d+)\*\*\s*\|\s*\*\*(\d+)\*\*", perf)
+    if not m:
+        print("\nsite: Lighthouse")
+        print("  ..  nao encontrei a linha de Performance no PERFORMANCE.md; salto")
+        return 0
+    desktop, mobile = m.group(1), m.group(2)
+
+    n = re.search(r"'Lighthouse','Desktop (\d+) · mobile (\d+)", html)
+    if not n:
+        print("\nsite: Lighthouse")
+        print("  ..  o site ja nao diz 'Desktop N · mobile N'; se mudou de forma, muda este guarda")
+        return 0
+
+    print("\nsite: Lighthouse")
+    mal = 0
+    for rot, diz, e in (("desktop", n.group(1), desktop), ("mobile", n.group(2), mobile)):
+        if diz == e:
+            print(f"  ok  {rot}: {diz}")
+        else:
+            mal += 1
+            print(f"  !!  {rot}: o site diz {diz}, o PERFORMANCE.md mede {e}")
+    return mal
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--cv", default="../../Rodrigo_Figueiredo_CV.docx",
@@ -244,6 +297,14 @@ def main() -> int:
             mal += verificar(cv.name, t, real)
     else:
         print(f"\n  ..  {cv} nao existe — salto o CV")
+
+    # O próprio site. É o documento público mais lido dos três e era o único
+    # sem guarda nenhum.
+    sitio = RAIZ / "site" / "index.html"
+    t = ler(sitio)
+    if t:
+        mal += verificar("site/index.html", t, real)
+        mal += verificar_lighthouse(t)
 
     print()
     if mal:

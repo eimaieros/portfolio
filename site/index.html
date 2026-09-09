@@ -1454,7 +1454,11 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
         <span class="i">02</span>
         <span class="t">Portfolio<span class="code">CODE</span></span>
         <img class="shot" src="../assets/portfolio.webp" alt="This portfolio site" loading="lazy" decoding="async" width="640" height="400">
-        <span class="m">Next.js · GSAP<br>WebGL · Three.js</span>
+        <!-- Dizia "Next.js · GSAP". Esta página não é Next.js: é um ficheiro
+             HTML, sem framework e sem passo de compilação. Era a alegação mais
+             fácil de desmentir do site inteiro — quem a lê tem a página aberta
+             e as devtools a um atalho de distância. Corrigido a 09/09/2026. -->
+        <span class="m">One HTML file · GSAP<br>WebGL · Three.js</span>
         <span class="y">2026</span>
       </div>
       <div class="itm rv" data-cursor="Open" data-k="cad" data-seed="7" role="button" tabindex="0">
@@ -1911,14 +1915,14 @@ const CASES={
         ['What it taught me','That the interesting part of the job is not the code. It is knowing which risks matter on the night, and being reachable when they do.']]},
  pf:{k:'2026 · Personal',t:'This Portfolio',
   live:['https://github.com/eimaieros/portfolio','Read the code'],
-  meta:[['Role','Design & Development'],['Stack','Vanilla JS · GSAP · Lenis · WebGL'],['Focus','Motion within a budget'],['Lighthouse','Desktop 60 · mobile 77 · a11y 96 · SEO 100']],
+  meta:[['Role','Design & Development'],['Stack','One HTML file · GSAP · Lenis · WebGL'],['Focus','Motion within a budget'],['Lighthouse','Desktop 59 · mobile 65 · a11y 100 · SEO 100']],
   body:[['Why','For a web developer the portfolio is the work sample. Anything claimed on a CV should be visible in how this site is built.'],
         ['Approach','GSAP with ScrollTrigger for choreography, Lenis for scroll, and WebGL for the background and scroll-driven stage assembly. The stage geometry is allocated once, its second context is created only near the section, and the custom render loop is capped at 30 fps while interaction and accessibility remain on the browser clock.'],
         ['The constraint','Capped device pixel ratio, transform-only DOM animation, geometry allocated once rather than rebuilt, lazy fluid targets, and a reduced-motion path. The verification harness runs the page both with and without WebGL before building it.'],
-        ['Where it did not hold up','Before the final audit CI scored 59 median on desktop and 40 on mobile, with 12.2 seconds of mobile blocking and 7.1 seconds to largest paint. The first attempted fix made mobile worse at 35–36 and CI blocked it. The measured correction now scores 60 desktop and 77 mobile median: touch shows the real hero without a loader, decorative WebGL runs only during interaction and the touch path caps both frame rate and pixel ratio. Mobile TBT fell to 1.05 seconds and LCP to 1.70. Accessibility remains 96 and SEO 100. The failed reports stay in Actions because the path to the number matters as much as the number.']]},
+        ['Where it did not hold up','Mobile scored 40, with 12.2 seconds of blocking and 7.1 seconds to largest paint. The first attempted fix made it worse at 35–36 and CI blocked it. The correction — showing the real hero without a loader on touch, drawing decorative WebGL only during interaction, capping both frame rate and pixel ratio there — moved it to a 77 median over three runs. Seven runs of the same page then measured 65, and that is the number now quoted: three samples of a noisy metric is a biased estimator, and 77 was a good day. Desktop sits at 59, accessibility and SEO at 100. The failed reports stay in Actions because the path to the number matters as much as the number, and so does the day the number turns out to have been measured badly.']]},
  cad:{k:'2026 · Personal',t:'cadence',
   live:[['https://github.com/eimaieros/cadence','See the code']],
-  meta:[['Role','Design & Development'],['Stack','FastAPI · PostgreSQL · Next.js'],['Tests','112 total · real Postgres'],['Setup','docker compose up']],
+  meta:[['Role','Design & Development'],['Stack','FastAPI · PostgreSQL · Next.js'],['Tests','120 total · 96 against real Postgres'],['Setup','docker compose up']],
   body:[['The gap','Interview practice tools hand you a list of questions. A real interviewer listens to the answer and asks about the part you skipped. cadence is a technical interview that follows up on what you actually said, and ends with a scorecard that cites the moments which earned each score.'],
         ['What it is','A full application rather than a demo: FastAPI and PostgreSQL behind a Next.js front end, with accounts, sessions, questions streamed a word at a time, and a scored transcript. One command sets it up, and it runs with no API key at all — a scripted interviewer takes over and every code path stays identical, streaming included, so the whole thing is demoable offline.'],
         ['Why not EventSource','The browser’s EventSource API cannot send an Authorization header. The two usual workarounds are to put the token in the query string, where it lands in access logs, proxy logs, referrer headers and browser history — or to mint short-lived stream tickets, which means another table and an expiry job. fetch with a ReadableStream reads the same wire format, takes headers normally, and gives an AbortSignal, so navigating away actually cancels the request instead of leaving the server generating tokens nobody will read.'],
