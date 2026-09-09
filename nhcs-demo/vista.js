@@ -22,6 +22,7 @@ import { conciergeService } from './src/concierge-service.js';
 import { journeyRepository } from './src/journey-repository.js';
 import { messageRepository, relativeLabel, unreadCount } from './src/message-repository.js';
 import { documentLabel, documentRepository, documentStatus, sortForAttention, walletReadiness } from './src/document-repository.js';
+import { createMockClientSessionService, SignInError } from './src/client-session.js';
 
 /* ------------------------------------------------------------------ estado */
 
@@ -49,6 +50,16 @@ const estado = {
   documentos: [],
   mensagemAberta: null,
 
+  /* A porta. `null` é "ninguém entrou ainda", e é o estado inicial de propósito.
+     Até 9 de setembro a demonstração começava por dentro, tal como a app —
+     porque se assumia que a TIDE autenticaria o cliente final. Não autentica:
+     tem uma credencial só, ao nível do tenant, que abre os dados de toda a
+     gente. Ver `src/client-session.js` e
+     `_projeto-claude/08c-descoberta-tide-2026-09-09.md`. */
+  sessao: null,
+  aEntrar: false,
+  erroEntrada: null,
+
   /* Relógio da demonstração. `null` é o relógio a sério — que é o que a app
      usa. Os botões lá em baixo põem aqui uma data para mostrar as outras fases,
      e a página diz que o está a fazer. */
@@ -61,6 +72,11 @@ const estado = {
 let sequencia = 0;
 
 const relogio = () => (estado.agora ? new Date(estado.agora) : new Date());
+
+/* Um serviço só para a página inteira, criado fora de qualquer função: a
+   contagem de tentativas falhadas tem de sobreviver aos redesenhos, senão um
+   limite de cinco tentativas não é limite nenhum. */
+const sessaoService = createMockClientSessionService();
 
 /** Um símbolo por espécie de documento. Decorativo: o texto ao lado diz tudo. */
 const ICONES_DOC = { passport: '▣', visa: '◈', ticket: '⌁', voucher: '▤', transfer: '⇄', insurance: '⛨' };
@@ -81,7 +97,11 @@ function el(tag, props = {}, filhos = []) {
     if (valor === null || valor === undefined || valor === false) continue;
     if (chave === 'class') node.className = valor;
     else if (chave === 'texto') node.textContent = valor;
-    else if (chave === 'onclick') node.addEventListener('click', valor);
+    /* Qualquer `onalgumacoisa` que seja função vira listener. Era só `onclick`,
+       e o `onsubmit` do formulário de entrada caía no `setAttribute` do fim —
+       ficava o texto da função dentro de um atributo e o formulário não fazia
+       nada. O teste de fumo apanhou-o à primeira: "a recusa não apareceu". */
+    else if (chave.startsWith('on') && typeof valor === 'function') node.addEventListener(chave.slice(2), valor);
     else node.setAttribute(chave, valor === true ? '' : String(valor));
   }
   for (const filho of [].concat(filhos)) {
@@ -754,6 +774,92 @@ function abrirConcierge(pedido) {
 
 /* ---------------------------------------------------------------- desenho */
 
+
+/* ------------------------------------------------------------------ a porta
+ *
+ * A mesma razão do `components/SignInScreen.tsx` da app, e o mesmo desenho:
+ * marca, título, dois campos, um botão, e o erro num sítio de altura fixa para
+ * o botão não saltar debaixo do dedo.
+ *
+ * O movimento também é o mesmo: duas fases (texto, depois campos) para o olho
+ * pousar no nome antes de lhe pedirem alguma coisa, e um tremor curto no erro
+ * porque a mensagem aparece fora do sítio para onde a pessoa está a olhar. Tudo
+ * desligado com `prefers-reduced-motion`, e a mensagem é anunciada por
+ * `aria-live` — que é como quem não vê o tremor fica a saber na mesma.
+ */
+
+function mensagemDeErro(erro) {
+  if (erro instanceof SignInError) {
+    if (erro.reason === 'invalid-credentials') return 'Email ou palavra-passe incorretos.';
+    if (erro.reason === 'rate-limited') return 'Demasiadas tentativas. Aguarde um momento antes de tentar de novo.';
+    if (erro.reason === 'unreachable') return 'Não foi possível contactar a NHCS. Verifique a ligação e tente de novo.';
+  }
+  return 'Não foi possível entrar. Tente de novo.';
+}
+
+async function entrar(email, palavra) {
+  if (estado.aEntrar) return;
+  estado.aEntrar = true;
+  estado.erroEntrada = null;
+  desenhar({ manterCampos: { email, palavra } });
+  try {
+    estado.sessao = await sessaoService.signIn(email, palavra);
+    estado.aEntrar = false;
+    desenhar();
+    void carregarViagem();
+  } catch (e) {
+    estado.aEntrar = false;
+    estado.erroEntrada = mensagemDeErro(e);
+    desenhar({ manterCampos: { email, palavra }, tremer: true });
+  }
+}
+
+function ecraEntrada(campos = {}) {
+  const email = el('input', {
+    id: 'campo-email', type: 'email', autocomplete: 'email', inputmode: 'email',
+    placeholder: 'nome@exemplo.pt', value: campos.email ?? '', disabled: estado.aEntrar || null,
+  });
+  const palavra = el('input', {
+    id: 'campo-palavra', type: 'password', autocomplete: 'current-password',
+    placeholder: '••••••••', value: campos.palavra ?? '', disabled: estado.aEntrar || null,
+  });
+
+  const botao = el('button', {
+    class: 'entrar', type: 'submit', disabled: estado.aEntrar || null,
+    texto: estado.aEntrar ? 'A entrar…' : 'Entrar',
+  });
+
+  const forma = el('form', {
+    class: 'entrada-campos',
+    onsubmit: (ev) => { ev.preventDefault(); void entrar(email.value, palavra.value); },
+  }, [
+    el('label', { for: 'campo-email', texto: 'Email' }), email,
+    el('label', { for: 'campo-palavra', texto: 'Palavra-passe' }), palavra,
+    botao,
+    el('p', { class: 'entrada-erro', role: 'status', 'aria-live': 'polite', texto: estado.erroEntrada ?? '' }),
+  ]);
+
+  const texto = el('div', { class: 'entrada-texto' }, [
+    el('p', { class: 'entrada-marca', texto: 'NHCS' }),
+    el('h2', { texto: 'A sua viagem, quando quiser vê-la.' }),
+    el('p', { class: 'entrada-sub', texto: 'Entre com o email que usa com a NH Concierge Services.' }),
+  ]);
+
+  if (!semMovimento()) {
+    revelar(texto, 0);
+    revelar(forma, 90);
+  }
+
+  return [el('section', { class: 'entrada' }, [
+    texto,
+    forma,
+    el('p', { class: 'entrada-nota' }, [
+      'Demonstração. Nenhum dado real de cliente passa por aqui. Entre com ',
+      el('code', { texto: 'cliente@exemplo.pt' }), ' e ', el('code', { texto: 'demo-nhcs' }), '.',
+    ]),
+  ])];
+}
+
 const SEPARADORES = [
   { id: 'home', rotulo: 'Início', icone: '⌂', ecra: ecraInicio },
   { id: 'trips', rotulo: 'Viagens', icone: '◌', ecra: ecraViagens },
@@ -781,7 +887,32 @@ function desenharNav() {
 
 let anterior = null;
 
-function desenhar({ manterFoco = false } = {}) {
+function desenhar({ manterFoco = false, manterCampos = null, tremer = false } = {}) {
+  /* A porta primeiro. Sem sessão não há separadores, não há nav e não há
+     viagem — e o `carregarViagem()` só arranca depois de alguém entrar, para a
+     demonstração não pedir dados a ninguém antes de saber quem é. */
+  if (!estado.sessao) {
+    ecra.classList.remove('escuro');
+    vista.textContent = '';
+    vista.append(...ecraEntrada(manterCampos ?? {}));
+    nav.textContent = '';
+    nav.hidden = true;
+    if (tremer && !semMovimento()) {
+      const forma = vista.querySelector('.entrada-campos');
+      if (forma) {
+        forma.animate(
+          [{ transform: 'none' }, { transform: 'translateX(6px)' }, { transform: 'translateX(-6px)' },
+           { transform: 'translateX(6px)' }, { transform: 'none' }],
+          { duration: 220, easing: 'ease-in-out' },
+        );
+      }
+    }
+    const primeiro = vista.querySelector(manterCampos ? '.entrada-erro' : '#campo-email');
+    if (!manterCampos && primeiro && primeiro.focus) primeiro.focus();
+    return;
+  }
+  nav.hidden = false;
+
   const separador = SEPARADORES.find((s) => s.id === estado.separador);
   const escuro = estado.separador === 'concierge';
   ecra.classList.toggle('escuro', escuro);
@@ -987,4 +1118,6 @@ function desenharFases() {
 
 desenharFases();
 desenhar();
-void carregarViagem();
+/* `carregarViagem()` não arranca aqui. Arranca no `entrar()`, depois de haver
+   sessão — porque pedir a viagem antes de saber de quem ela é seria a
+   demonstração a fazer o contrário do que o produto tem de fazer. */

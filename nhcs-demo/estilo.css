@@ -631,3 +631,123 @@ button.fila { cursor: pointer; }
   font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .06em;
 }
 .corpo-mensagem { margin: 10px 0 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+
+/* ------------------------------------------------------------------ a porta
+ *
+ * O primeiro ecrã da demonstração desde 9 de setembro de 2026. Existe porque a
+ * TIDE não autentica clientes finais — tem uma credencial ao nível do tenant,
+ * que abre os dados de toda a gente — e portanto a identidade do cliente é da
+ * NHCS e a app precisa de uma entrada. Ver `src/client-session.js`.
+ *
+ * Mesmas medidas do `components/SignInScreen.tsx`: alvos de 48 px, faixa de
+ * erro com altura fixa para o botão não saltar debaixo do dedo, e contraste
+ * acima de 4.5:1 em tudo o que é texto.
+ */
+.entrada {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100%;
+  padding: 40px 28px;
+}
+
+.entrada-marca {
+  color: var(--forest);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  margin: 0 0 18px;
+}
+
+.entrada-texto h2 {
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.27;
+  margin: 0;
+}
+
+.entrada-sub {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.47;
+  margin: 10px 0 0;
+}
+
+.entrada-campos {
+  display: flex;
+  flex-direction: column;
+  margin-top: 34px;
+}
+
+.entrada-campos label {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.entrada-campos label + input { margin-bottom: 18px; }
+
+.entrada-campos input {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  min-height: 48px;
+  padding: 12px 14px;
+}
+
+.entrada-campos input:focus-visible {
+  border-color: var(--forest);
+  outline: 2px solid var(--forest);
+  outline-offset: 1px;
+}
+
+.entrada-campos input:disabled { opacity: .6; }
+
+.entrada-campos .entrar {
+  align-items: center;
+  background: var(--forest);
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  justify-content: center;
+  margin-top: 6px;
+  min-height: 52px;
+}
+
+.entrada-campos .entrar:disabled { cursor: default; opacity: .45; }
+
+/* Altura fixa: cabe uma linha de erro sem empurrar nada. */
+.entrada-erro {
+  color: var(--alerta);
+  font-size: 14px;
+  line-height: 1.43;
+  margin: 10px 0 0;
+  min-height: 34px;
+}
+
+.entrada-nota {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 28px 0 0;
+}
+
+.entrada-nota code {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 11px;
+  padding: 1px 5px;
+}
