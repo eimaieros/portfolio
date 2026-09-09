@@ -442,3 +442,61 @@ allowed to drift for months.
 `tools/medir-arranque.js` reproduces every measurement on this page. Paste it
 into the console on the live site. If a number here is ever questioned, the
 answer should be a re-run and not an argument.
+
+---
+
+## 9 September 2026 — the background shader now waits
+
+### What was measured
+
+`tools/medir-arranque.js`, against the live site, on an AMD Radeon 610M:
+
+| | ms |
+|---|---:|
+| First WebGL context | 6 |
+| Second WebGL context | 30.8 |
+| Empty fragment shader (compile + link + draw) | 9.2 |
+| **Fluid shader, 856 chars** | **52.7** |
+| **Background shader, 3031 chars** | **286.7** |
+
+Those GPU readings are **warm** — the page had already run, so the driver's
+shader cache and the GPU process were hot. The cold numbers are worse; an
+earlier cold reading in this same file has the background shader at 228 ms and
+the first context at 165 ms. Either way the shape is the same and it is not
+subtle: **one shader is most of the GPU cost, and it is paid in full on the
+first `render`.**
+
+Navigation timing on the same load: HTML complete at 691 ms, `domInteractive`
+at 2,960 ms, `load` at 4,778 ms.
+
+### What changed
+
+The background used to draw on the first ticker frame, which put the whole
+286 ms inside the window Lighthouse counts as blocking. Now the first draw
+waits for `requestIdleCallback` after `load`, with a 2.5 s timeout, a 6 s hard
+backstop, and an early release on the first real gesture — pointer, wheel, key
+or touch. The canvas starts at `opacity: 0` and fades in over 0.8 s.
+
+Nothing is hidden by this. `alpha:false` meant the canvas was already painting
+the same near-black the CSS paints behind it, so before the first frame there
+was never anything to see. What moves is *when* the shader compiles, from
+inside the load to after it.
+
+### What this does not claim
+
+**The score has not been re-measured.** Lighthouse needs the CI runner and
+seven runs; this was written from the instrument, not from the report. The
+prediction is that blocking time drops by roughly the shader's cold cost and
+that the score moves with it — and the honest place to find out is the next CI
+run, not this paragraph. If it does not move, this section stays and says so.
+
+The `lighthouserc.json` floor was **not** touched. It goes up when a median
+goes up, and never in anticipation.
+
+### Why not just make the shader cheaper
+
+It is five octaves of fbm. Dropping to four would compile faster and look
+different, and the site's whole argument is that the visual is the work. Moving
+*when* it compiles costs nothing visible; making it cheaper costs the thing
+being sold. If the deferral is not enough, that trade gets made deliberately
+and written down here — not silently.

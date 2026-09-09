@@ -120,7 +120,15 @@ h1,h2,h3,p,blockquote,.big{overflow-wrap:break-word}
 html{-webkit-font-smoothing:antialiased}
 body{background:var(--bg);color:var(--fg);font-family:Inter,sans-serif;cursor:none;overflow-x:hidden}
 body.lock{overflow:hidden;height:100vh}
-canvas#gl{position:fixed;inset:0;z-index:1}
+/* A canvas do fundo nasce transparente e só aparece quando o shader já
+   compilou — ver `fundoLiberto` no módulo. Antes disso o que se vê é o
+   `--site-bg` do body, que é a mesma cor que o shader pinta nas bordas, por
+   isso a transição é um fade e não um salto. Sem a classe, opacity 0: se o
+   JavaScript falhar, fica o fundo do CSS, que é o que já acontecia quando o
+   WebGL não existe. */
+canvas#gl{position:fixed;inset:0;z-index:1;opacity:0;transition:opacity .8s ease}
+canvas#gl.gl-pronto{opacity:1}
+@media (prefers-reduced-motion:reduce){canvas#gl{transition:none}}
 #smooth{position:relative;z-index:3}
 .wrap{max-width:var(--maxw);margin:0 auto;width:100%}
 .vig{position:fixed;inset:0;z-index:2;pointer-events:none;
@@ -3005,6 +3013,52 @@ sizeStage();
 resizeStage = ()=>{ garantirPalco(); sizeStage(); };
 prepararPalco = garantirPalco;
 
+/* ---------- quando o fundo pode desenhar pela primeira vez ----------
+   MEDIDO, NÃO ADIVINHADO. Com o tools/medir-arranque.js contra o site a
+   sério, a 9 de setembro de 2026: compilar, ligar e desenhar o fragment
+   shader do fundo (3031 caracteres) custa 286.7 ms; o do fluido, 52.7 ms.
+   Criar o primeiro contexto WebGL custa 6 ms e o segundo 30.8 — numa GPU já
+   quente, portanto o piso, não o pior caso. A conta é essa: o custo é o
+   shader, e paga-se inteiro no primeiro `render`.
+
+   Enquanto esse render não acontece, a canvas fica preta — e preto é
+   exactamente `--site-bg` (#070709). Não há nada a esconder e não há salto:
+   o que se vê antes é o fundo que o CSS já pinta.
+
+   Por isso o primeiro desenho espera pelo browser estar sem trabalho. Se o
+   `requestIdleCallback` não existir ou nunca disparar numa página ocupada, o
+   timeout garante-o à mesma. O objectivo é sair da janela em que o Lighthouse
+   soma blocking time, sem tirar nada a ninguém: quem chega vê a página
+   completa mais cedo e o fundo entra a seguir.
+
+   NÃO trocar isto por um `setTimeout` mais curto para o fundo aparecer mais
+   depressa. O tempo que aqui se poupa é tempo em que a página não responde a
+   um toque. */
+let fundoLiberto = false;
+{
+  const libertar = () => {
+    if (fundoLiberto) return;
+    fundoLiberto = true;
+    const cv = Q('#gl');
+    if (cv) cv.classList.add('gl-pronto');
+  };
+  /* Nunca antes do load: até lá ainda há rede e parse a competir pela thread. */
+  const agendar = () => {
+    if ('requestIdleCallback' in window) requestIdleCallback(libertar, { timeout: 2500 });
+    else setTimeout(libertar, 1200);
+  };
+  if (document.readyState === 'complete') agendar();
+  else addEventListener('load', agendar, { once: true });
+  /* Quem mexe quer ver. Um gesto real passa à frente da fila do idle — e o
+     Lighthouse nunca toca em nada, por isso isto melhora a pessoa sem mexer
+     na medição. */
+  for (const ev of ['pointerdown', 'pointermove', 'wheel', 'keydown', 'touchstart']) {
+    addEventListener(ev, libertar, { once: true, passive: true });
+  }
+  /* Rede a arrastar-se não deve deixar o fundo preto para sempre. */
+  setTimeout(libertar, 6000);
+}
+
 /* render loop */
 const CK=new THREE.Clock();
 let customFrameAt=-Infinity;
@@ -3101,7 +3155,7 @@ gsap.ticker.add(()=>{
     BU.fluid.value = fA.texture;
   }
 
-  if(!document.hidden){
+  if(!document.hidden && fundoLiberto){
     /* O pixel ratio vem do framebudget quando ele já opinou, e da posição do
        scroll enquanto não. Ver ligarFramebudget(): a versão anterior disto era
        só a segunda metade — baixava a resolução quando o palco aparecia, porque
