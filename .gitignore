@@ -32,7 +32,18 @@ __pycache__/
 # e pensamento sobre relocação e salário. Um recrutador que encontrasse isto
 # ficava a saber a que mais empresas te candidataste. Fica de fora, inteira.
 # ---------------------------------------------------------------------------
-docs/
+# `docs/*` e não `docs/`: o git nunca entra numa pasta ignorada, por isso um
+# `!docs/ficheiro` por baixo de `docs/` não faz nada — a excepção abaixo era
+# silenciosamente inútil até isto mudar.
+docs/*
+# ...com uma excepção, e só uma. O POSTS-LINKEDIN.md é o texto de posts que já
+# estão publicados no LinkedIn: não há nada lá que um recrutador não possa ler,
+# porque já leu. Vai versionado porque o `tools/numeros-publicos.py` o lê para
+# comparar os números com os READMEs, e num clone fresco — que é o que o CI faz
+# — um ficheiro ignorado não existe. O guarda dizia "não existe, salto" e
+# passava a verde. Era assim que os posts ficavam com 37 e 86 testes onde são
+# 58 e 91, durante semanas, sem ninguém dar por isso.
+!docs/POSTS-LINKEDIN.md
 cv/
 versions/
 design-options/
