@@ -4,6 +4,7 @@ import { conciergeService } from './src/concierge-service.js';
 import { journeyRepository } from './src/journey-repository.js';
 import { messageRepository, relativeLabel, unreadCount } from './src/message-repository.js';
 import { documentLabel, documentRepository, documentStatus, sortForAttention, walletReadiness } from './src/document-repository.js';
+import { createMockClientSessionService, SignInError } from './src/client-session.js';
 
 const estado = {
   separador: 'home',
@@ -22,12 +23,18 @@ const estado = {
   documentos: [],
   mensagemAberta: null,
 
+  sessao: null,
+  aEntrar: false,
+  erroEntrada: null,
+
   agora: null,
 };
 
 let sequencia = 0;
 
 const relogio = () => (estado.agora ? new Date(estado.agora) : new Date());
+
+const sessaoService = createMockClientSessionService();
 
 const ICONES_DOC = { passport: '▣', visa: '◈', ticket: '⌁', voucher: '▤', transfer: '⇄', insurance: '⛨' };
 
@@ -45,7 +52,8 @@ function el(tag, props = {}, filhos = []) {
     if (valor === null || valor === undefined || valor === false) continue;
     if (chave === 'class') node.className = valor;
     else if (chave === 'texto') node.textContent = valor;
-    else if (chave === 'onclick') node.addEventListener('click', valor);
+
+    else if (chave.startsWith('on') && typeof valor === 'function') node.addEventListener(chave.slice(2), valor);
     else node.setAttribute(chave, valor === true ? '' : String(valor));
   }
   for (const filho of [].concat(filhos)) {
@@ -610,6 +618,78 @@ function abrirConcierge(pedido) {
   desenhar();
 }
 
+function mensagemDeErro(erro) {
+  if (erro instanceof SignInError) {
+    if (erro.reason === 'invalid-credentials') return 'Email ou palavra-passe incorretos.';
+    if (erro.reason === 'rate-limited') return 'Demasiadas tentativas. Aguarde um momento antes de tentar de novo.';
+    if (erro.reason === 'unreachable') return 'Não foi possível contactar a NHCS. Verifique a ligação e tente de novo.';
+  }
+  return 'Não foi possível entrar. Tente de novo.';
+}
+
+async function entrar(email, palavra) {
+  if (estado.aEntrar) return;
+  estado.aEntrar = true;
+  estado.erroEntrada = null;
+  desenhar({ manterCampos: { email, palavra } });
+  try {
+    estado.sessao = await sessaoService.signIn(email, palavra);
+    estado.aEntrar = false;
+    desenhar();
+    void carregarViagem();
+  } catch (e) {
+    estado.aEntrar = false;
+    estado.erroEntrada = mensagemDeErro(e);
+    desenhar({ manterCampos: { email, palavra }, tremer: true });
+  }
+}
+
+function ecraEntrada(campos = {}) {
+  const email = el('input', {
+    id: 'campo-email', type: 'email', autocomplete: 'email', inputmode: 'email',
+    placeholder: 'nome@exemplo.pt', value: campos.email ?? '', disabled: estado.aEntrar || null,
+  });
+  const palavra = el('input', {
+    id: 'campo-palavra', type: 'password', autocomplete: 'current-password',
+    placeholder: '••••••••', value: campos.palavra ?? '', disabled: estado.aEntrar || null,
+  });
+
+  const botao = el('button', {
+    class: 'entrar', type: 'submit', disabled: estado.aEntrar || null,
+    texto: estado.aEntrar ? 'A entrar…' : 'Entrar',
+  });
+
+  const forma = el('form', {
+    class: 'entrada-campos',
+    onsubmit: (ev) => { ev.preventDefault(); void entrar(email.value, palavra.value); },
+  }, [
+    el('label', { for: 'campo-email', texto: 'Email' }), email,
+    el('label', { for: 'campo-palavra', texto: 'Palavra-passe' }), palavra,
+    botao,
+    el('p', { class: 'entrada-erro', role: 'status', 'aria-live': 'polite', texto: estado.erroEntrada ?? '' }),
+  ]);
+
+  const texto = el('div', { class: 'entrada-texto' }, [
+    el('p', { class: 'entrada-marca', texto: 'NHCS' }),
+    el('h2', { texto: 'A sua viagem, quando quiser vê-la.' }),
+    el('p', { class: 'entrada-sub', texto: 'Entre com o email que usa com a NH Concierge Services.' }),
+  ]);
+
+  if (!semMovimento()) {
+    revelar(texto, 0);
+    revelar(forma, 90);
+  }
+
+  return [el('section', { class: 'entrada' }, [
+    texto,
+    forma,
+    el('p', { class: 'entrada-nota' }, [
+      'Demonstração. Nenhum dado real de cliente passa por aqui. Entre com ',
+      el('code', { texto: 'cliente@exemplo.pt' }), ' e ', el('code', { texto: 'demo-nhcs' }), '.',
+    ]),
+  ])];
+}
+
 const SEPARADORES = [
   { id: 'home', rotulo: 'Início', icone: '⌂', ecra: ecraInicio },
   { id: 'trips', rotulo: 'Viagens', icone: '◌', ecra: ecraViagens },
@@ -637,7 +717,30 @@ function desenharNav() {
 
 let anterior = null;
 
-function desenhar({ manterFoco = false } = {}) {
+function desenhar({ manterFoco = false, manterCampos = null, tremer = false } = {}) {
+
+  if (!estado.sessao) {
+    ecra.classList.remove('escuro');
+    vista.textContent = '';
+    vista.append(...ecraEntrada(manterCampos ?? {}));
+    nav.textContent = '';
+    nav.hidden = true;
+    if (tremer && !semMovimento()) {
+      const forma = vista.querySelector('.entrada-campos');
+      if (forma) {
+        forma.animate(
+          [{ transform: 'none' }, { transform: 'translateX(6px)' }, { transform: 'translateX(-6px)' },
+           { transform: 'translateX(6px)' }, { transform: 'none' }],
+          { duration: 220, easing: 'ease-in-out' },
+        );
+      }
+    }
+    const primeiro = vista.querySelector(manterCampos ? '.entrada-erro' : '#campo-email');
+    if (!manterCampos && primeiro && primeiro.focus) primeiro.focus();
+    return;
+  }
+  nav.hidden = false;
+
   const separador = SEPARADORES.find((s) => s.id === estado.separador);
   const escuro = estado.separador === 'concierge';
   ecra.classList.toggle('escuro', escuro);
@@ -781,4 +884,3 @@ function desenharFases() {
 
 desenharFases();
 desenhar();
-void carregarViagem();
