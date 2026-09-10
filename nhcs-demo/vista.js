@@ -495,7 +495,7 @@ function ecraViagens() {
     ...dia.events.map((evento, indice) => {
       posicao += 1;
       /* O atraso pára ao quinto item: linear numa lista longa deixa de ser
-         hierarquia e passa a ser espera. Igual ao TimelineReveal da app. */
+         hierarquia e passa a ser espera. Igual ao `Revelar` da app. */
       return revelar(el('div', { class: 'evento' }, [
         el('div', { class: 'calha', 'aria-hidden': 'true' }, [
           el('div', { class: 'ponto', texto: ICONES[evento.kind] }),
@@ -510,8 +510,12 @@ function ecraViagens() {
     }),
   ]));
 
+  /* A carteira entra como tudo o resto entra nesta app. Era o único bloco que
+     aparecia de repente — e é o que aparece por acção directa da pessoa, que é
+     onde a revelação mais diz: liga o botão que se carregou ao que apareceu.
+     Em React Native é o mesmo `<Revelar chave="carteira">`. */
   const carteira = estado.carteiraAberta
-    ? el('div', { class: 'lista-doc' }, [
+    ? revelar(el('div', { class: 'lista-doc' }, [
         el('div', { class: 'doc-aviso' }, [
           el('strong', { texto: 'CARTEIRA DE DEMONSTRAÇÃO' }),
           el('p', { texto: 'Pré-visualização sem ficheiros pessoais, reserva ou autenticação ativa.' }),
@@ -535,7 +539,7 @@ function ecraViagens() {
           el('strong', { texto: `Requisito de entrada usado nesta conta: ${estado.viagem.entryRequirements.passportValidityDaysAfterReturn} dias de validade depois do regresso` }),
           el('p', { texto: estado.viagem.entryRequirements.source }),
         ]),
-      ])
+      ]))
     : el('p', { class: 'suave', texto: 'Demonstração visual: não existem documentos reais nesta app. A versão de produção exigirá autenticação do dispositivo.' });
 
   return [
