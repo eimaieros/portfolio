@@ -174,9 +174,9 @@ export const documents                   = [
 ];
 
 export const promptSuggestions = [
-  'Planeia uma surpresa',
-  'Encontra uma praia quente durante 10 dias',
-  'Marca jantar para esta noite',
+  'Planear uma surpresa',
+  'Encontrar uma praia quente durante 10 dias',
+  'Marcar jantar para esta noite',
 ];
 
 export const planCategories = [
