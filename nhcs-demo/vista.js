@@ -189,7 +189,7 @@ async function carregarViagem() {
 function semViagem() {
   if (estado.erroViagem) {
     return [el('div', { class: 'cartao aviso-carregar' }, [
-      el('h4', { texto: 'Não consegui carregar a viagem' }),
+      el('h3', { texto: 'Não consegui carregar a viagem' }),
       el('p', { class: 'suave', texto: estado.erroViagem }),
       el('button', { class: 'botao-contorno', texto: 'Tentar outra vez', onclick: () => void carregarViagem() }),
     ])];
@@ -238,7 +238,7 @@ function ecraInicio() {
     el('button', { class: 'heroi', 'aria-label': `Abrir a viagem às ${estado.viagem.destination}`, onclick: () => irPara('trips') }, [
       el('span', { class: 'marca-heroi', texto: 'EXEMPLO DE VIAGEM' }),
       el('p', { class: 'eyebrow', texto: copy.heroEyebrow }),
-      el('h2', { texto: estado.viagem.destination }),
+      el('h3', { texto: estado.viagem.destination }),
       el('p', { class: 'meta', texto: `${timing.datesLabel} · ${timing.relativeLabel}` }),
     ]),
     el('div', { class: 'cartao-voo' }, [
@@ -549,7 +549,7 @@ function ecraViagens() {
     el('div', { class: 'heroi heroi-viagem' }, [
       el('span', { class: 'marca-heroi marca-viagem', texto: 'EXEMPLO NHCS' }),
       el('p', { class: 'eyebrow', texto: timing.datesLabel }),
-      el('h2', { texto: 'A sua pausa.' }),
+      el('h3', { texto: 'A sua pausa.' }),
       el('p', { class: 'meta', texto: 'Itinerário, documentos e assistência num só lugar.' }),
     ]),
     rotaDeVoo(),
@@ -688,7 +688,7 @@ function ecraPerfil() {
     cabecalho('Perfil privado', 'Rodrigo'),
     el('div', { class: 'destaque-perfil' }, [
       el('p', { class: 'rotulo', texto: 'O seu estilo de viagem' }),
-      el('h4', { texto: 'Quiet luxury · 5 estrelas · transfers privados' }),
+      el('h3', { texto: 'Quiet luxury · 5 estrelas · transfers privados' }),
       el('p', { class: 'suave', texto: 'As suas preferências apoiam recomendações sem ter de repetir o contexto a cada pedido.' }),
     ]),
     seccao('Conta e preferências'),
@@ -702,7 +702,7 @@ function ecraPerfil() {
     ]),
     el('div', { class: 'cartao-acess' }, [
       el('p', { class: 'rotulo', texto: 'Acessibilidade' }),
-      el('h4', { texto: semMovimento() ? 'Movimento reduzido ativo' : 'Movimento reduzido segue a definição do dispositivo' }),
+      el('h3', { texto: semMovimento() ? 'Movimento reduzido ativo' : 'Movimento reduzido segue a definição do dispositivo' }),
       el('p', { class: 'suave', texto: 'Informação crítica nunca depende de animação; os controlos mantêm alvos de toque amplos.' }),
     ]),
   ];

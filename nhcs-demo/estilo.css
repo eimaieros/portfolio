@@ -254,7 +254,17 @@ body {
 .heroi::after { bottom: 0; height: 57%; background: linear-gradient(to bottom, transparent, rgba(10, 24, 17, .52)); }
 .heroi > * { position: relative; z-index: 1; }
 .heroi .eyebrow { color: #f5f8f2; letter-spacing: .12em; }
-.heroi h2 { font-family: var(--serif); font-size: 50px; line-height: 1.05; letter-spacing: -.05em; margin: 6px 0 0; font-weight: 400; }
+/* Os títulos dos heróis são `h3` e não `h2`.
+ *
+ * O `h2` de cada ecrã é o do `cabecalho()` — "Rodrigo.", "Maldivas", "O que
+ * podemos tratar por si?". O herói é um cartão dentro do ecrã, e portanto um
+ * nível abaixo. Estiveram em `h2` até 10 de setembro de 2026, e o resultado era
+ * um esquema de cabeçalhos com dois `h2` irmãos a dizer coisas diferentes, e um
+ * `h4` do Perfil antes do primeiro `h3`. Quem navega por cabeçalhos com um
+ * leitor de ecrã lê o índice da página, e o índice estava errado.
+ *
+ * O `tools/demo-fumo.mjs` passou a verificar a ordem em todos os ecrãs. */
+.heroi h3 { font-family: var(--serif); font-size: 50px; line-height: 1.05; letter-spacing: -.05em; margin: 6px 0 0; font-weight: 400; }
 .heroi .meta { margin: 6px 0 0; font-size: 13px; line-height: 1.45; }
 .marca-heroi {
   position: absolute; top: 18px; right: 18px; z-index: 2;
@@ -305,7 +315,7 @@ body {
 /* ------------------------------------------------------------ Viagens */
 
 .heroi-viagem { min-height: 214px; border-radius: 26px; padding: 22px; }
-.heroi-viagem h2 { font-size: 39px; letter-spacing: -.045em; }
+.heroi-viagem h3 { font-size: 39px; letter-spacing: -.045em; }
 .marca-viagem { left: 18px; right: auto; background: rgba(10, 24, 17, .42); border-color: rgba(255, 255, 255, .27); }
 
 /* ------------------------------------------------------------ a rota de voo
@@ -590,13 +600,13 @@ body {
 .plano-nhcs span { display: block; margin-top: 8px; font-size: 13px; line-height: 1.46; color: #d8e0d6; }
 
 .destaque-perfil { background: #ecefe3; border-radius: 21px; padding: 19px; }
-.destaque-perfil h4 { font-family: var(--serif); font-size: 24px; line-height: 1.2; letter-spacing: -.03em; margin: 8px 0 0; font-weight: 400; }
+.destaque-perfil h3 { font-family: var(--serif); font-size: 24px; line-height: 1.2; letter-spacing: -.03em; margin: 8px 0 0; font-weight: 400; }
 .fila { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 72px; padding: 0 16px; background: var(--paper); border: 1px solid var(--line); border-radius: 17px; text-align: left; color: var(--ink); }
 button.fila { cursor: pointer; }
 .fila strong { font-size: 15px; font-weight: 800; }
 .fila span { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); }
 .cartao-acess { margin-top: 21px; padding: 17px; background: #f0eee6; border: 1px solid var(--line); border-radius: 18px; }
-.cartao-acess h4 { margin: 7px 0 0; font-size: 15px; line-height: 1.4; }
+.cartao-acess h3 { margin: 7px 0 0; font-size: 15px; line-height: 1.4; }
 
 /* ------------------------------------------------------------ navegação */
 
@@ -653,7 +663,7 @@ button.fila { cursor: pointer; }
    "não chegou" passaram a ser dois estados com desenho próprio — que é o que a
    integração com a TIDE vai precisar. */
 .aviso-carregar { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
-.aviso-carregar h4 { margin: 0; font-size: 14px; }
+.aviso-carregar h3 { margin: 0; font-size: 14px; }
 .aviso-carregar p { margin: 0; }
 .aviso-carregar .botao-contorno { margin-left: auto; flex: none; }
 .roda-escura { border-color: rgba(41, 66, 54, .22); border-top-color: var(--forest); }
