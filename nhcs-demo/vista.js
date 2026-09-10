@@ -127,10 +127,15 @@ function svg(tag, props = {}, filhos = []) {
 /** Entrada curta, só opacity e transform, desligada por preferência do sistema. */
 function revelar(node, atrasoMs = 0) {
   if (semMovimento()) return node;
-  node.animate(
-    [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }],
-    { delay: atrasoMs, duration: 220, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' },
-  );
+  /* Duas animações e não uma: a opacidade acaba aos 150 ms e o deslocamento aos
+     220. É de propósito — o elemento lê-se como presente enquanto ainda está a
+     assentar, e o olho não espera pelo fim para começar a ler. Os números vêm
+     de `DURACOES` no `app/src/components/movimento.ts`, e o
+     `tools/gerar-demo.mjs --verificar` compara-os. */
+  node.animate([{ opacity: 0 }, { opacity: 1 }],
+    { delay: atrasoMs, duration: 150, easing: 'cubic-bezier(.16, 1, .3, 1)', fill: 'backwards' });
+  node.animate([{ transform: 'translateY(8px)' }, { transform: 'none' }],
+    { delay: atrasoMs, duration: 220, easing: 'cubic-bezier(.16, 1, .3, 1)', fill: 'backwards' });
   return node;
 }
 
@@ -903,7 +908,8 @@ function desenhar({ manterFoco = false, manterCampos = null, tremer = false } = 
         forma.animate(
           [{ transform: 'none' }, { transform: 'translateX(6px)' }, { transform: 'translateX(-6px)' },
            { transform: 'translateX(6px)' }, { transform: 'none' }],
-          { duration: 220, easing: 'ease-in-out' },
+          /* 4 x 55 ms, como as quatro Animated.timing do SignInScreen. */
+          { duration: 220, easing: 'cubic-bezier(.37, 0, .63, 1)' },
         );
       }
     }
@@ -941,12 +947,17 @@ function desenhar({ manterFoco = false, manterCampos = null, tremer = false } = 
   } else {
     vista.scrollTop = 0;
     /* Transição de ecrã: 180 ms de opacity, 260 ms de deslocação — os mesmos
-       valores do ScreenTransition da app. Só quando o separador muda. */
+       valores do ScreenTransition da app. Só quando o separador muda.
+
+       Este comentário estava certo e o código não: era uma animação só, de 260
+       ms, a mover as duas propriedades juntas. Ninguém repara na diferença de
+       80 ms num ecrã, repara-se em ver os dois lado a lado — e é exactamente
+       para isso que a demonstração existe. */
     if (anterior !== estado.separador && !semMovimento()) {
-      vista.animate(
-        [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }],
-        { duration: 260, easing: 'cubic-bezier(.16,1,.3,1)' },
-      );
+      vista.animate([{ opacity: 0 }, { opacity: 1 }],
+        { duration: 180, easing: 'cubic-bezier(.16, 1, .3, 1)' });
+      vista.animate([{ transform: 'translateY(10px)' }, { transform: 'none' }],
+        { duration: 260, easing: 'cubic-bezier(.16, 1, .3, 1)' });
     }
   }
   anterior = estado.separador;

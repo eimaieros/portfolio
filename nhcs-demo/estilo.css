@@ -511,9 +511,9 @@ body {
   opacity: 0;
 }
 
-.orb-repouso { animation: pulso 8.4s ease-in-out infinite; }
+.orb-repouso { animation: pulso 8.4s cubic-bezier(.37, 0, .63, 1) infinite; }
 
-.orb-pensa { animation: pulso-rapido 1.4s ease-in-out infinite; }
+.orb-pensa { animation: pulso-rapido 1.4s cubic-bezier(.37, 0, .63, 1) infinite; }
 .orb-pensa::after { opacity: 1; animation: anel 2.6s linear infinite; }
 
 .orb-respondeu { animation: assenta 900ms cubic-bezier(.16, 1, .3, 1) both; }
@@ -677,7 +677,7 @@ button.fila { cursor: pointer; }
   /* transform e opacity vêm de propósito na lista: a regra `:where(button)`
      lá em cima tem especificidade zero e esta ganha-lhe, por isso sem eles
      este seria o único cartão da app a saltar em vez de assentar. */
-  transition: border-color 140ms ease, background 140ms ease,
+  transition: border-color 140ms cubic-bezier(.2, 0, 0, 1), background 140ms cubic-bezier(.2, 0, 0, 1),
               transform 140ms cubic-bezier(.2, 0, 0, 1), opacity 140ms cubic-bezier(.2, 0, 0, 1);
 }
 .mensagem.por-ler { background: #fdfdf8; border-color: #cfd4c8; }
