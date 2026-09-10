@@ -161,3 +161,12 @@ export function nextEvent(journey         , now       = new Date())             
   }
   return null;
 }
+
+export function saudacaoDoDia(agora      )         {
+  const hora = agora.getHours();
+
+  if (hora < 6) return 'Boa noite';
+  if (hora < 13) return 'Bom dia';
+  if (hora < 20) return 'Boa tarde';
+  return 'Boa noite';
+}

@@ -1,4 +1,4 @@
-import { eventProgress, formatFullDay, formatTime, getJourneyTiming, groupByDay, nextEvent, routeLabel } from './src/journey.js';
+import { eventProgress, formatFullDay, formatTime, getJourneyTiming, groupByDay, nextEvent, routeLabel, saudacaoDoDia } from './src/journey.js';
 import { phaseCopy, planCategories, promptSuggestions } from './src/mock.js';
 import { conciergeService } from './src/concierge-service.js';
 import { journeyRepository } from './src/journey-repository.js';
@@ -166,7 +166,8 @@ function ecraInicio() {
   const proximo = nextEvent(estado.viagem, relogio());
 
   return [
-    cabecalho(copy.greeting, 'Rodrigo.'),
+
+    cabecalho(copy.greeting ?? saudacaoDoDia(relogio()), 'Rodrigo.'),
     el('button', { class: 'heroi', 'aria-label': `Abrir a viagem às ${estado.viagem.destination}`, onclick: () => irPara('trips') }, [
       el('span', { class: 'marca-heroi', texto: 'EXEMPLO DE VIAGEM' }),
       el('p', { class: 'eyebrow', texto: copy.heroEyebrow }),

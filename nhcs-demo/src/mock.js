@@ -56,7 +56,8 @@ export const nextJourney          = {
 
 export const phaseCopy                                  = {
   preparing: {
-    greeting: 'Bom dia',
+
+    greeting: null,
     heroEyebrow: 'A sua próxima viagem',
     sectionTitle: 'Antes de partir',
     calloutTitle: 'Há algo que a NHCS possa antecipar?',
