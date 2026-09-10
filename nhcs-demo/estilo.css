@@ -290,7 +290,8 @@ body {
   left: 23px;
   top: 60px;
   width: 2px;
-  height: var(--espinha, 0%);
+
+  height: var(--espinha, 100%);
   max-height: calc(100% - 90px);
   background: linear-gradient(to bottom, var(--forest), rgba(41, 66, 54, .25));
   border-radius: 2px;
