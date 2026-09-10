@@ -220,10 +220,31 @@ export const documents                   = [
   },
 ];
 
+/**
+ * As sugestões do concierge, no infinitivo.
+ *
+ * Estavam no imperativo de **tu** — *"Planeia"*, *"Encontra"*, *"Marca"* —, e a
+ * app trata o cliente por **você** em todo o lado: *"Diga-me o que tem em
+ * mente"*, *"Entre com o email que usa"*, *"Descreva o que pretende"*,
+ * *"Verifique a ligação"*. Ficava o cliente a tratar o concierge por tu e o
+ * concierge a tratá-lo por você, dentro do mesmo ecrã.
+ *
+ * O infinitivo é o que a interface portuguesa usa para isto e não escolhe forma
+ * de tratamento nenhuma, que é precisamente a vantagem: uma etiqueta de acção
+ * não tem de ter voz.
+ *
+ * (A página do site à volta do telemóvel continua a tratar por tu — *"Toca nos
+ * separadores em baixo"*. Aí é deliberado: é o Rodrigo a falar com quem visita
+ * o portefólio, e não a NHCS a falar com um cliente. O `estilo.css` diz o mesmo
+ * sobre as cores.)
+ *
+ * As palavras que o `buildConciergeProposal` procura — *praia*, *quente*,
+ * *jantar* — estão todas cá dentro na mesma.
+ */
 export const promptSuggestions = [
-  'Planeia uma surpresa',
-  'Encontra uma praia quente durante 10 dias',
-  'Marca jantar para esta noite',
+  'Planear uma surpresa',
+  'Encontrar uma praia quente durante 10 dias',
+  'Marcar jantar para esta noite',
 ];
 
 export const planCategories = [
