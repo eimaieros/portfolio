@@ -360,7 +360,7 @@ function ecraViagens() {
   ]));
 
   const carteira = estado.carteiraAberta
-    ? el('div', { class: 'lista-doc' }, [
+    ? revelar(el('div', { class: 'lista-doc' }, [
         el('div', { class: 'doc-aviso' }, [
           el('strong', { texto: 'CARTEIRA DE DEMONSTRAÇÃO' }),
           el('p', { texto: 'Pré-visualização sem ficheiros pessoais, reserva ou autenticação ativa.' }),
@@ -383,7 +383,7 @@ function ecraViagens() {
           el('strong', { texto: `Requisito de entrada usado nesta conta: ${estado.viagem.entryRequirements.passportValidityDaysAfterReturn} dias de validade depois do regresso` }),
           el('p', { texto: estado.viagem.entryRequirements.source }),
         ]),
-      ])
+      ]))
     : el('p', { class: 'suave', texto: 'Demonstração visual: não existem documentos reais nesta app. A versão de produção exigirá autenticação do dispositivo.' });
 
   return [
