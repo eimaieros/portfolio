@@ -29,14 +29,15 @@ export function notificacoesDaViagem(
       titulo: carteira.headline,
       corpo: `Faltam ${DIAS_DE_AVISO_DE_DOCUMENTOS} dias para a partida. A NHCS trata do resto assim que estiverem.`,
       destino: 'trips',
-      razao: `A carteira tem ${carteira.needsAction} documento(s) por tratar e faltam ${DIAS_DE_AVISO_DE_DOCUMENTOS} dias para a partida.`,
+      razao: `A carteira tem ${carteira.needsAction} ${carteira.needsAction === 1 ? 'documento' : 'documentos'} por tratar e faltam ${DIAS_DE_AVISO_DE_DOCUMENTOS} dias para a partida.`,
     });
   }
 
   fora.push({
     id: 'vespera',
     at: deslocar(journey.departureAt, { dias: -1, hora: 18 }),
-    titulo: `Amanhã parte para ${journey.destination}.`,
+
+    titulo: `${journey.destination}, amanhã.`,
     corpo: `${rota} · partida às ${formatTime(journey.departureAt)}. Está tudo pronto do nosso lado.`,
     destino: 'trips',
     razao: 'Véspera da partida, às 18:00 no relógio do aeroporto de saída.',
@@ -59,7 +60,8 @@ export function notificacoesDaViagem(
     fora.push({
       id: 'chegada',
       at: chegada.at,
-      titulo: `Bem-vindo a ${journey.destination}.`,
+
+      titulo: `${journey.destination}. Bem-vindo.`,
       corpo: `${chegada.title} · ${formatTime(chegada.at)}, hora local. ${chegada.detail}`,
       destino: 'trips',
       razao: 'O primeiro momento do itinerário noutro fuso horário — é assim que se sabe que chegou.',
