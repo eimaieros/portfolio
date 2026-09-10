@@ -1,5 +1,12 @@
 # Os posts do LinkedIn, como deviam estar
 
+> **Há dois ficheiros com este nome.** Este é o texto dos posts **publicados**,
+> com os números que eles afirmam. O outro — `docs/linkedin/POSTS-LINKEDIN.md` —
+> é o plano dos cinco posts e o estado de cada um. Desde 10 de setembro de 2026
+> o `tools/numeros-publicos.py` lê os dois: procura `POSTS-LINKEDIN*.md` em
+> `docs/` inteiro em vez de um caminho fixo, porque durante semanas leu só este
+> e os seis números do outro não eram comparados com nada.
+
 Este ficheiro existe por um motivo: **o `tools/numeros-publicos.py` procurava-o
 e ele não existia.** O guarda que devia manter os posts honestos nunca teve nada
 para ler, e por isso ninguém deu por os números terem envelhecido — o post do

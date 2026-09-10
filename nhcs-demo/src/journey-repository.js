@@ -18,7 +18,7 @@ import { nextJourney } from './mock.js';
  * instante em que o ecrã desenha. Passa a chegar mais tarde, ou a não chegar.
  *
  * A leitura da documentação da TIDE (5 de setembro, ver
- * `docs/TIDE_DISCOVERY_2026-09-05.md`) tornou isto concreto: existe mesmo uma
+ * `_projeto-claude/08b-descoberta-tide-2026-09-05.md`) tornou isto concreto: existe mesmo uma
  * API de cliente, com `GET /api/web/client/entry/list` e
  * `GET /api/web/client/entry/:id`. O que ainda não se sabe é a forma das
  * respostas — e é precisamente por isso que esta interface fala o vocabulário

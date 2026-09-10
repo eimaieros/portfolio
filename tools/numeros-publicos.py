@@ -271,8 +271,9 @@ def main() -> int:
     ap.add_argument("--cv", default="",
                     help="caminho do CV .docx (relativo a v1/). Vazio: procura "
                          "nos sitios habituais.")
-    ap.add_argument("--posts", default="docs/POSTS-LINKEDIN.md",
-                    help="caminho do ficheiro de posts (relativo a v1/)")
+    ap.add_argument("--posts", default="",
+                    help="caminho de um ficheiro de posts (relativo a v1/). "
+                         "Vazio: procura todos os POSTS-LINKEDIN*.md em docs/.")
     args = ap.parse_args()
 
     real = verdade()
@@ -286,10 +287,29 @@ def main() -> int:
         print("  " + proj + ": " + ", ".join(f"{k}={v}" for k, v in campos.items()))
 
     mal = 0
-    posts = RAIZ / args.posts
-    t = ler(posts)
-    if t:
-        mal += verificar(args.posts, t, real)
+
+    # Havia DOIS ficheiros chamados POSTS-LINKEDIN.md -- `docs/` e
+    # `docs/linkedin/` -- com conteudos diferentes e ambos com numeros de
+    # tamanho e de testes la dentro. Este guarda lia um so, o do caminho fixo,
+    # e o outro tinha 407 linhas de rascunhos que ninguem comparava com nada.
+    #
+    # E o mesmo defeito do `--cv` apontado a um caminho que mudou de nome: um
+    # guarda com um caminho fixo cala-se quando o ficheiro se muda ou se
+    # multiplica. Agora procura-os todos, e falha se nao encontrar nenhum.
+    if args.posts:
+        candidatos = [RAIZ / args.posts]
+    else:
+        candidatos = sorted((RAIZ / "docs").rglob("POSTS-LINKEDIN*.md"))
+
+    if not candidatos:
+        print("\nnumeros-publicos: nao encontrei nenhum POSTS-LINKEDIN*.md em docs/.")
+        print("  Ou os posts mudaram de nome, ou este guarda deixou de ter o que ler.")
+        mal += 1
+
+    for caminho in candidatos:
+        t = ler(caminho)
+        if t:
+            mal += verificar(str(caminho.relative_to(RAIZ)).replace("\\", "/"), t, real)
 
     # O CV muda de sitio e de nome mais vezes do que devia: ja foi
     # `Rodrigo_Figueiredo CV.docx` (com espaco) depois de uma exportacao do

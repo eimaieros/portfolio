@@ -9,7 +9,7 @@
 /**
  * Dados de demonstração. Nada aqui é uma reserva, uma disponibilidade ou um
  * preço: os identificadores de voo são ilustrativos e a interface diz isso em
- * cada ecrã. Ver `docs/PRODUCT_UX_SPEC_V1.md`, secção "Interaction integrity".
+ * cada ecrã. Ver `_projeto-claude/01-especificacao-produto-ux.md`, secção "Interaction integrity".
  *
  * As horas trazem o offset do sítio onde acontecem — +01:00 em Lisboa, +05:00
  * nas Maldivas. Não é decoração: é a razão pela qual a chegada às 07:00 aparece
