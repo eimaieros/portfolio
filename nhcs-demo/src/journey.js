@@ -27,7 +27,16 @@ export function parseMoment(iso        )              {
     hour: Number(hour),
     minute: Number(minute),
     epochMs: wallClockMs - offsetMinutes * 60_000,
+    zone,
   };
+}
+
+export function deslocar(iso        , { dias = 0, hora }                                  )         {
+  const m = parseMoment(iso);
+  const base = new Date(Date.UTC(m.year, m.month - 1, m.day + dias, hora ?? m.hour, hora === undefined ? m.minute : 0));
+  const p2 = (n        ) => String(n).padStart(2, '0');
+  return `${base.getUTCFullYear()}-${p2(base.getUTCMonth() + 1)}-${p2(base.getUTCDate())}`
+    + `T${p2(base.getUTCHours())}:${p2(base.getUTCMinutes())}:00${m.zone}`;
 }
 
 const pad = (value        ) => String(value).padStart(2, '0');
