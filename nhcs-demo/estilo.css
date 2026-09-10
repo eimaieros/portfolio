@@ -39,6 +39,68 @@
 
 * { box-sizing: border-box; }
 
+/* ---------------------------------------------------- O toque responde
+ *
+ * Até 10 de setembro de 2026 esta folha tinha **zero** regras `:active` e
+ * **uma** regra `:focus-visible` — só a dos campos da entrada. Carregar num
+ * cartão não dava sinal nenhum, e navegar com o teclado deixava o anel do
+ * browser, que sobre estes fundos claros quase não se vê.
+ *
+ * A app em React Native já dava o sinal (`styles.pressablePressed`) em sete
+ * dos vinte controlos. Ficava uma demonstração menos viva do que a coisa que
+ * demonstra, e uma inconsistência que aconteceu sozinha e em silêncio — que é
+ * a razão pela qual o `tools/toque-responde.mjs` passou a verificar isto.
+ *
+ * A ESCOLHA DO SINAL
+ *
+ * `scale(.985)` e `opacity: .9`. É pouco de propósito: o sinal tem de chegar
+ * ao dedo, não à retina de quem está a ver de longe. Sem transição na entrada
+ * — o retorno tem de ser instantâneo ou não é retorno — e com 140 ms na
+ * saída, que é onde uma superfície pesada parece pesada.
+ *
+ * `:where()` mantém a especificidade a zero, e por isso qualquer regra do
+ * ficheiro a pode contrariar sem precisar de `!important`.
+ *
+ * O ANEL DE FOCO, E PORQUE E QUE SAO DUAS CORES
+ *
+ * Verde sobre fundo claro, lima sobre fundo escuro. Não há uma cor que sirva
+ * as duas: este ecrã tem cartões creme e um ecrã de concierge quase preto, e
+ * um anel invisível é o mesmo que não ter anel. O `outline-offset` de 2px
+ * deixa passar o fundo entre o botão e o anel, que é o que faz um botão lima
+ * com anel lima continuar a ler-se como duas coisas.
+ */
+
+:where(button, [role="button"], input, textarea, select, a[href]):focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
+}
+
+/* Fundos escuros: o verde desaparece lá. */
+.ecra.escuro :where(button, textarea):focus-visible,
+:where(.heroi, .heroi-viagem, .chamada, .plano-nhcs, .nav .concierge):focus-visible {
+  outline-color: var(--lime);
+}
+
+/* A moldura da página é quase preta e tem o acento do site. */
+.fases :where(button):focus-visible { outline-color: var(--site-acc); }
+
+:where(button, [role="button"]):not(:disabled):active {
+  transform: scale(.985);
+  opacity: .9;
+}
+
+:where(button, [role="button"]) {
+  transition: transform 140ms cubic-bezier(.2, 0, 0, 1), opacity 140ms cubic-bezier(.2, 0, 0, 1);
+}
+
+@media (hover: hover) {
+  /* A demonstração é vista num ecrã com rato, mas o que ela demonstra é um
+     telemóvel. O hover existe para o visitante perceber que aquilo reage, e
+     não para inventar um estado que o telemóvel não tem: é meio passo do que
+     o `:active` faz. */
+  :where(button, [role="button"]):not(:disabled):hover { opacity: .94; }
+}
+
 html, body {
   margin: 0;
   background: var(--site-bg);
@@ -612,7 +674,11 @@ button.fila { cursor: pointer; }
   border: 1px solid var(--line);
   border-radius: 18px;
   text-align: left; cursor: pointer; color: var(--ink);
-  transition: border-color 140ms ease, background 140ms ease;
+  /* transform e opacity vêm de propósito na lista: a regra `:where(button)`
+     lá em cima tem especificidade zero e esta ganha-lhe, por isso sem eles
+     este seria o único cartão da app a saltar em vez de assentar. */
+  transition: border-color 140ms ease, background 140ms ease,
+              transform 140ms cubic-bezier(.2, 0, 0, 1), opacity 140ms cubic-bezier(.2, 0, 0, 1);
 }
 .mensagem.por-ler { background: #fdfdf8; border-color: #cfd4c8; }
 .mensagem.por-ler .quem { font-weight: 800; }
