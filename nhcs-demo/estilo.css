@@ -421,7 +421,21 @@ body {
   left: 23px;
   top: 60px;
   width: 2px;
-  height: var(--espinha, 0%);
+  /* O valor por omissão é **cheio**, e não vazio.
+   *
+   * `--espinha` é escrito pelo `vista.js` a cada scroll — mas só quando há
+   * movimento. Com `0%` por omissão, qualquer situação em que ninguém o
+   * escreva dava uma espinha vazia: movimento reduzido, um erro de script, um
+   * browser sem o listener registado. E "vazio" lê-se como *não percorreste
+   * nada*, que é uma informação errada, enquanto "cheio" é o estado de repouso
+   * que o React Native já tem por construção — lá, `parado` devolve um
+   * `transform: []` e o traço fica do tamanho natural.
+   *
+   * Descoberto a olhar para a demonstração com movimento reduzido, a 10 de
+   * setembro de 2026. O bloco `@media (prefers-reduced-motion: reduce)` mais
+   * abaixo continua a forçar o mesmo valor; isto é o que segura o caso em que
+   * a media query e o `semMovimento()` do JavaScript discordarem. */
+  height: var(--espinha, 100%);
   max-height: calc(100% - 90px);
   background: linear-gradient(to bottom, var(--forest), rgba(41, 66, 54, .25));
   border-radius: 2px;
