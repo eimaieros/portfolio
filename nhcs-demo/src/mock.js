@@ -83,7 +83,9 @@ export const nextJourney          = {
 
 export const phaseCopy                                  = {
   preparing: {
-    greeting: 'Bom dia',
+    /* Pela hora: esta fase dura semanas e a app abre-se a qualquer hora. As
+       outras três têm saudação própria, que não depende do relógio. */
+    greeting: null,
     heroEyebrow: 'A sua próxima viagem',
     sectionTitle: 'Antes de partir',
     calloutTitle: 'Há algo que a NHCS possa antecipar?',

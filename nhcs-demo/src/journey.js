@@ -273,3 +273,44 @@ export function nextEvent(journey         , now       = new Date())             
   }
   return null;
 }
+
+/**
+ * A saudação, pela hora a que se abre a app.
+ *
+ * PORQUE E QUE ISTO EXISTE
+ *
+ * O Início dizia **"Bom dia"** a qualquer hora. Às onze da noite, num produto
+ * cujo argumento é *alguém está a tratar de si*, uma saudação errada é a coisa
+ * mais barata de acertar e a mais cara de deixar mal: é a primeira linha do
+ * ecrã, e é sobre a pessoa.
+ *
+ * As outras três fases da viagem têm saudações que não dependem do relógio —
+ * "Está quase", "Boa viagem", "Bem-vindo de volta" —, e por isso só a fase de
+ * preparação pede esta. No `phaseCopy`, essa fase tem `greeting: null`, que se
+ * lê como *"a saudação é a da hora"*.
+ *
+ * AS FRONTEIRAS
+ *
+ * Boa noite até às 6h, bom dia até às 13h, boa tarde até às 20h, boa noite
+ * depois. É o uso corrente em Portugal: o "bom dia" acompanha a manhã de
+ * trabalho e estica-se até ao almoço, e a "boa noite" entra com o jantar e não
+ * com o pôr do sol — que anda entre as 17h30 e as 21h30 conforme o mês, e daria
+ * uma app a mudar de humor com as estações.
+ *
+ * A madrugada é a fronteira que se esquece. Quem abre uma app de viagem à uma
+ * da manhã não está a ter um bom dia.
+ *
+ * Recebe a data em vez de a ir buscar: uma função que lê o relógio por dentro
+ * não se testa sem mexer no relógio da máquina. A demonstração passa-lhe o seu
+ * relógio, que o visitante pode mudar nos botões de fase.
+ */
+export function saudacaoDoDia(agora      )         {
+  const hora = agora.getHours();
+  /* A madrugada é o caso que se esquece, e a primeira versão desta função
+     esquecia-o: `0 < 13` é verdade, e por isso devolvia "Bom dia" à meia-noite
+     e meia. Foi o teste que o apanhou, e não o contrário. */
+  if (hora < 6) return 'Boa noite';
+  if (hora < 13) return 'Bom dia';
+  if (hora < 20) return 'Boa tarde';
+  return 'Boa noite';
+}
