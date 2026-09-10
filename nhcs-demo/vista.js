@@ -76,10 +76,11 @@ function svg(tag, props = {}, filhos = []) {
 
 function revelar(node, atrasoMs = 0) {
   if (semMovimento()) return node;
-  node.animate(
-    [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }],
-    { delay: atrasoMs, duration: 220, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' },
-  );
+
+  node.animate([{ opacity: 0 }, { opacity: 1 }],
+    { delay: atrasoMs, duration: 150, easing: 'cubic-bezier(.16, 1, .3, 1)', fill: 'backwards' });
+  node.animate([{ transform: 'translateY(8px)' }, { transform: 'none' }],
+    { delay: atrasoMs, duration: 220, easing: 'cubic-bezier(.16, 1, .3, 1)', fill: 'backwards' });
   return node;
 }
 
@@ -731,7 +732,8 @@ function desenhar({ manterFoco = false, manterCampos = null, tremer = false } = 
         forma.animate(
           [{ transform: 'none' }, { transform: 'translateX(6px)' }, { transform: 'translateX(-6px)' },
            { transform: 'translateX(6px)' }, { transform: 'none' }],
-          { duration: 220, easing: 'ease-in-out' },
+
+          { duration: 220, easing: 'cubic-bezier(.37, 0, .63, 1)' },
         );
       }
     }
@@ -768,10 +770,10 @@ function desenhar({ manterFoco = false, manterCampos = null, tremer = false } = 
     vista.scrollTop = 0;
 
     if (anterior !== estado.separador && !semMovimento()) {
-      vista.animate(
-        [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }],
-        { duration: 260, easing: 'cubic-bezier(.16,1,.3,1)' },
-      );
+      vista.animate([{ opacity: 0 }, { opacity: 1 }],
+        { duration: 180, easing: 'cubic-bezier(.16, 1, .3, 1)' });
+      vista.animate([{ transform: 'translateY(10px)' }, { transform: 'none' }],
+        { duration: 260, easing: 'cubic-bezier(.16, 1, .3, 1)' });
     }
   }
   anterior = estado.separador;
