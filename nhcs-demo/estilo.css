@@ -509,7 +509,7 @@ body {
 .plano { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 91px; padding: 0 17px; background: var(--paper); border: 1px solid var(--line); border-radius: 18px; text-align: left; cursor: pointer; color: var(--ink); }
 .plano strong { font-size: 16px; font-weight: 900; }
 .plano .seta { flex: none; color: var(--forest); font-size: 21px; }
-.plano-nhcs { display: block; width: 100%; margin-top: 20px; padding: 21px; border: 0; border-radius: 22px; background: var(--forest); color: #fff; text-align: left; cursor: pointer; }
+.plano-nhcs { display: block; width: 100%; min-height: 44px; margin-top: 20px; padding: 21px; border: 0; border-radius: 22px; background: var(--forest); color: #fff; text-align: left; cursor: pointer; }
 .plano-nhcs strong { font-family: var(--serif); font-size: 25px; font-weight: 400; letter-spacing: -.035em; }
 .plano-nhcs span { display: block; margin-top: 8px; font-size: 13px; line-height: 1.46; color: #d8e0d6; }
 
@@ -602,6 +602,11 @@ button.fila { cursor: pointer; }
 .mensagem {
   position: relative;
   display: block; width: 100%;
+  /* O chão de 44px nunca se vê: com este padding e uma linha de assunto, a
+     mensagem mais curta já passa dos 60. Está aqui escrito na mesma porque um
+     alvo que só é grande por causa do conteúdo deixa de o ser no dia em que o
+     conteúdo encolhe, e ninguém volta a medir. */
+  min-height: 44px;
   padding: 14px 16px; padding-left: 18px;
   background: var(--paper);
   border: 1px solid var(--line);

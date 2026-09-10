@@ -3,28 +3,31 @@
 Este ficheiro existe por um motivo: **o `tools/numeros-publicos.py` procurava-o
 e ele não existia.** O guarda que devia manter os posts honestos nunca teve nada
 para ler, e por isso ninguém deu por os números terem envelhecido — o post do
-framebudget diz "8.3 KB, 37 tests" e o do glaze "16.3 KB, 86 tests", quando os
-reais são 11.7 KB / 58 e 17.2 KB / 91.
+framebudget dava um tamanho e uma contagem de testes de agosto, e o do glaze
+idem, quando os reais são 11.7 KB / 58 e 17.2 KB / 91.
 
 Os posts estavam certos no dia em que foram publicados. As bibliotecas cresceram
 e o LinkedIn não. É o mesmo defeito de sempre, e agora tem guarda: os números
 abaixo são comparados com os READMEs dos repositórios em cada corrida.
 
-**O que está aqui é a versão correcta. O que está publicado ainda não é.**
-Editar os dois posts no LinkedIn e trocar só as linhas indicadas.
+**Estado: corrigido no LinkedIn a 9 de setembro de 2026.** Os dois posts foram
+editados no próprio LinkedIn e aparecem agora com a etiqueta "Editado". O que
+está aqui e o que está publicado dizem o mesmo. Antes de publicar o próximo
+post, escrevê-lo aqui primeiro e deixar o guarda correr.
 
 ---
 
 ## framebudget — publicado a 2 de setembro de 2026
 
-**Linha a corrigir.** É a última antes dos links, a que dá o tamanho e a
-contagem de testes: o publicado diz **8,3 KB** e **37 testes**.
+**Linha corrigida a 09/09/2026.** É a última antes dos links, a que dá o tamanho
+e a contagem de testes. Dizia um tamanho de agosto e uma contagem de testes de
+agosto.
 
 > (a frase antiga não é reproduzida aqui de propósito — o guarda deste
 > repositório lê este ficheiro à procura exactamente desse padrão, e uma citação
 > do erro faria o guarda apanhar-se a si próprio)
 
-Passa a:
+Passou a:
 
 > 11.7 KB minified, 3.9 KB gzipped, zero dependencies, 58 tests (node:test), MIT.
 
@@ -51,23 +54,23 @@ Every decision in it came out of a bug I shipped first. The library is that expe
 
 ## glaze — publicado a 6 de setembro de 2026
 
-**Duas alterações.**
+**Duas alterações, ambas feitas a 09/09/2026.**
 
-**Primeira.** A última linha antes dos links, a do tamanho e dos testes: o
-publicado diz **16,3 KB** e **86 testes**. Passa a:
+**Primeira.** A última linha antes dos links, a do tamanho e dos testes, trazia
+os valores de agosto. Passou a:
 
 > 17.2 KB minified, 6.9 KB gzipped, zero dependencies, 91 tests, MIT.
 
 **Segunda, e esta é diferente.** A frase que começa "Six times it was reported
-as doing nothing while…" tem lá o número **83**. Passa a:
+as doing nothing while…" trazia lá um número de testes. Passou a:
 
 > Six times it was reported as doing nothing while the whole suite passed.
 
-**Não trocar o 83 por 91.** Aquela frase conta o que aconteceu num momento
-concreto, e nessa altura eram mesmo 83 testes. Pôr 91 tornava-a menos verdadeira,
-não mais. Tirar o número resolve as duas coisas de uma vez: a frase continua
-exacta e deixa de ser uma alegação que envelhece — que é a razão pela qual este
-ficheiro existe.
+**Não se trocou o número antigo por 91.** Aquela frase conta o que aconteceu num
+momento concreto, e nessa altura a contagem era mesmo a que lá estava. Pôr 91
+tornava-a menos verdadeira, não mais. Tirar o número resolve as duas coisas de
+uma vez: a frase continua exacta e deixa de ser uma alegação que envelhece — que
+é a razão pela qual este ficheiro existe.
 
 Texto completo, já corrigido:
 

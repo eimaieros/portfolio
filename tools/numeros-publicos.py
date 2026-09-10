@@ -268,8 +268,9 @@ def verificar_lighthouse(html: str) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--cv", default="../../Rodrigo_Figueiredo_CV.docx",
-                    help="caminho do CV .docx (relativo a v1/)")
+    ap.add_argument("--cv", default="",
+                    help="caminho do CV .docx (relativo a v1/). Vazio: procura "
+                         "nos sitios habituais.")
     ap.add_argument("--posts", default="docs/POSTS-LINKEDIN.md",
                     help="caminho do ficheiro de posts (relativo a v1/)")
     args = ap.parse_args()
@@ -290,13 +291,31 @@ def main() -> int:
     if t:
         mal += verificar(args.posts, t, real)
 
-    cv = (RAIZ / args.cv).resolve()
-    if cv.exists():
+    # O CV muda de sitio e de nome mais vezes do que devia: ja foi
+    # `Rodrigo_Figueiredo CV.docx` (com espaco) depois de uma exportacao do
+    # Word, e o guarda ficou calado a dizer "nao existe — salto o CV" em vez de
+    # falhar. Um guarda que salta em silencio nao e um guarda. Por isso: se nao
+    # for dado um caminho, procura-se nos dois sitios onde o ficheiro vive, e
+    # aceita-se qualquer .docx cujo nome comece por "Rodrigo_Figueiredo".
+    if args.cv:
+        candidatos = [(RAIZ / args.cv).resolve()]
+    else:
+        candidatos = []
+        for pasta in (RAIZ.parent.parent, RAIZ / "cv"):
+            if pasta.is_dir():
+                candidatos += sorted(
+                    p for p in pasta.glob("Rodrigo_Figueiredo*.docx")
+                    if not p.name.startswith("~$")
+                )
+    cv = next((p for p in candidatos if p.exists()), None)
+    if cv:
         t = texto_do_docx(cv)
         if t:
             mal += verificar(cv.name, t, real)
     else:
-        print(f"\n  ..  {cv} nao existe — salto o CV")
+        print("\n  ..  nao encontrei nenhum Rodrigo_Figueiredo*.docx — salto o CV")
+        print("      (procurei em " + str(RAIZ.parent.parent) + " e em "
+              + str(RAIZ / "cv") + ")")
 
     # O próprio site. É o documento público mais lido dos três e era o único
     # sem guarda nenhum.
