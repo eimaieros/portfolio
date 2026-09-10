@@ -16,12 +16,13 @@
  * passam a existir duas apps, e a que está na página é a que ninguém testa.
  */
 
-import { eventProgress, formatFullDay, formatTime, getJourneyTiming, groupByDay, nextEvent, routeLabel, saudacaoDoDia } from './src/journey.js';
+import { eventProgress, formatDay, formatFullDay, formatTime, getJourneyTiming, groupByDay, nextEvent, routeLabel, saudacaoDoDia } from './src/journey.js';
 import { phaseCopy, planCategories, promptSuggestions } from './src/mock.js';
 import { conciergeService } from './src/concierge-service.js';
 import { journeyRepository } from './src/journey-repository.js';
 import { messageRepository, relativeLabel, unreadCount } from './src/message-repository.js';
 import { documentLabel, documentRepository, documentStatus, sortForAttention, walletReadiness } from './src/document-repository.js';
+import { notificacoesDaViagem, porEnviar } from './src/notificacoes.js';
 import { createMockClientSessionService, SignInError } from './src/client-session.js';
 
 /* ------------------------------------------------------------------ estado */
@@ -677,6 +678,39 @@ function ecraPlanear() {
   ];
 }
 
+/**
+ * O que a NHCS enviaria, e porquê.
+ *
+ * A simulação de notificação local era o último critério de saída da Fase 2 por
+ * cumprir. Não é o envio — é a política, e as regras estão em
+ * `src/notificacoes.js`, gerado do TypeScript da app e testado lá.
+ *
+ * As horas vêm com o fuso do sítio onde o cliente vai estar: a véspera em
+ * Lisboa, as boas-vindas em Malé. É a mesma regra do itinerário, e a razão pela
+ * qual nada aqui passa pelo `Intl`.
+ */
+function politicaDeNotificacoes() {
+  if (!estado.viagem) return null;
+  const proximas = porEnviar(
+    notificacoesDaViagem(estado.viagem, estado.documentos, estado.mensagens),
+    relogio(),
+  );
+
+  return el('div', { class: 'cartao-notif' }, [
+    el('p', { class: 'rotulo', texto: 'Notificações' }),
+    el('h3', { texto: 'O que lhe vamos enviar' }),
+    el('p', { class: 'notif-nota', texto: 'Simulação: nesta demonstração não é enviada nenhuma. As horas são as do sítio onde vai estar — a véspera em Lisboa, as boas-vindas em Malé.' }),
+    ...(proximas.length === 0
+      ? [el('p', { class: 'suave', texto: 'Nada por enviar. Ou está tudo tratado, ou a viagem já passou.' })]
+      : proximas.map((n) => el('div', { class: 'notif' }, [
+          el('p', { class: 'notif-quando', texto: `${formatDay(n.at)} · ${formatTime(n.at)}` }),
+          el('h4', { texto: n.titulo }),
+          el('p', { class: 'notif-corpo', texto: n.corpo }),
+          el('p', { class: 'notif-razao', texto: `Porquê: ${n.razao}` }),
+        ]))),
+  ]);
+}
+
 function ecraPerfil() {
   const fila = (titulo, detalhe, aoClicar) => {
     const conteudo = [el('span', {}, [el('strong', { texto: titulo }), el('span', { texto: detalhe })])];
@@ -700,6 +734,7 @@ function ecraPerfil() {
       fila('Pagamentos', 'Métodos guardados pelo serviço de pagamentos'),
       fila('Privacidade e segurança', 'Sessão, dispositivos e permissões'),
     ]),
+    politicaDeNotificacoes(),
     el('div', { class: 'cartao-acess' }, [
       el('p', { class: 'rotulo', texto: 'Acessibilidade' }),
       el('h3', { texto: semMovimento() ? 'Movimento reduzido ativo' : 'Movimento reduzido segue a definição do dispositivo' }),

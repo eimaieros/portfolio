@@ -76,7 +76,28 @@ export function parseMoment(iso        )              {
     hour: Number(hour),
     minute: Number(minute),
     epochMs: wallClockMs - offsetMinutes * 60_000,
+    zone,
   };
+}
+
+/**
+ * Uma marca temporal nova, no mesmo relógio de outra.
+ *
+ * `deslocar('2026-10-10T17:30:00+01:00', { dias: -7, hora: 9 })` dá
+ * `'2026-10-03T09:00:00+01:00'` — sete dias antes da partida, às nove da manhã
+ * **no relógio do aeroporto de partida**, e não no do telemóvel de quem lê.
+ *
+ * A aritmética é feita no relógio de parede e não em milissegundos de propósito:
+ * "sete dias antes, às nove" é uma frase sobre o calendário, e somar
+ * `7 × 86 400 000` a um instante dá a hora errada sempre que houver mudança de
+ * hora pelo meio. `Date.UTC` normaliza os transbordos de mês e de ano.
+ */
+export function deslocar(iso        , { dias = 0, hora }                                  )         {
+  const m = parseMoment(iso);
+  const base = new Date(Date.UTC(m.year, m.month - 1, m.day + dias, hora ?? m.hour, hora === undefined ? m.minute : 0));
+  const p2 = (n        ) => String(n).padStart(2, '0');
+  return `${base.getUTCFullYear()}-${p2(base.getUTCMonth() + 1)}-${p2(base.getUTCDate())}`
+    + `T${p2(base.getUTCHours())}:${p2(base.getUTCMinutes())}:00${m.zone}`;
 }
 
 const pad = (value        ) => String(value).padStart(2, '0');
