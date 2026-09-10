@@ -357,7 +357,7 @@ const ICONES = { flight: '✈', transfer: '→', stay: '⌂', experience: '✦' 
  *
  * PORQUE E QUE ISTO NÃO CONTRARIA O SISTEMA DE DESIGN
  *
- * O `DESIGN_SYSTEM_V1_1.md` diz, com todas as letras: "Não usar parallax, 3D ou
+ * O `_projeto-claude/03-sistema-de-design.md` diz, com todas as letras: "Não usar parallax, 3D ou
  * animação contínua para transportar informação necessária", e a pesquisa
  * rejeita "parallax no scroll" e "movimento periférico". Um jato a passar por
  * cima do ecrã, só porque fica bem, seria exactamente isso.

@@ -266,6 +266,54 @@ def verificar_lighthouse(html: str) -> int:
     return mal
 
 
+def verificar_peso_do_site() -> int:
+    """
+    O peso comprimido que o ESTADO.md afirma e o peso comprimido a serio.
+
+    O `docs/site/ESTADO.md` tem uma tabela "Num relance" que e a primeira coisa
+    que qualquer pessoa (ou qualquer sessao) le sobre este projecto. Dizia
+    **66,3 KB comprimido**. A 10 de setembro de 2026 o ficheiro pesava 74,7 --
+    oito KB e meio de diferenca, acumulados versao a versao sem ninguem
+    recomparar.
+
+    Nao e uma questao de vaidade: o peso do HTML e o argumento do site ("um
+    ficheiro so, sem framework"), e um argumento com um numero errado e um
+    argumento fraco no dia em que alguem o mede.
+
+    O ESTADO.md esta no .gitignore -- tem a estrategia de procura de emprego --
+    e por isso este guarda so corre localmente. Ausente, salta e diz que saltou.
+    """
+    import gzip as _gzip
+
+    doc = RAIZ / "docs" / "site" / "ESTADO.md"
+    sitio = RAIZ / "site" / "index.html"
+    if not doc.exists() or not sitio.exists():
+        print("\n  ..  nao encontrei o ESTADO.md ou o site — salto o peso")
+        return 0
+
+    real_kb = len(_gzip.compress(sitio.read_bytes(), 9)) / 1024
+    texto = doc.read_text(encoding="utf-8", errors="replace")
+    achados = re.findall(r"(\d+[.,]\d+)\s*KB comprimid", texto)
+
+    print("\ndocs/site/ESTADO.md — peso do site")
+    if not achados:
+        print("  ..  o ESTADO.md deixou de dizer o peso comprimido.")
+        print("      Ou volta, ou este pedaco do guarda deixa de ter o que verificar.")
+        return 0
+
+    mal = 0
+    for diz in achados:
+        n = float(diz.replace(",", "."))
+        # Uma decima de tolerancia: o gzip do Python e o do servidor nao dao
+        # o mesmo byte a byte, e a tabela tem uma casa decimal.
+        if abs(n - real_kb) <= 0.6:
+            print(f"  ok  peso comprimido: {diz} KB")
+        else:
+            mal += 1
+            print(f"  !!  peso comprimido: diz {diz} KB, sao {real_kb:.1f} KB")
+    return mal
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--cv", default="",
@@ -344,6 +392,8 @@ def main() -> int:
     if t:
         mal += verificar("site/index.html", t, real)
         mal += verificar_lighthouse(t)
+
+    mal += verificar_peso_do_site()
 
     print()
     if mal:

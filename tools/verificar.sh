@@ -180,15 +180,21 @@ bash tools/sincronizar-nhcs.sh --verificar || falhou=1
 # ninguém instrumentou.
 py "numeros dos irmaos no site (numeros-irmaos.py)" tools/numeros-irmaos.py || falhou=1
 
-# E os números que saem daqui para fora — o CV e os posts do LinkedIn. Não
-# falha a build: o CV vive fora do repositório e o CI não o tem, por isso um
-# erro aqui seria vermelho por ausência e não por defeito. Avisa, que é o que
-# se quer de uma coisa que se lê antes de mandar uma candidatura.
+# E os números que saem daqui para fora — o CV, os posts do LinkedIn e o peso
+# do site declarado no ESTADO.md.
 #
 # Existe porque a 4 de setembro o CV dizia cadence 44 testes, framebudget
 # 7.3 KB e 24 testes, glaze 16.1 KB e 83 testes — cinco números todos
 # verdadeiros no dia em que foram escritos e nenhum verdadeiro nesse dia.
-py "numeros no CV e nos posts (numeros-publicos.py)" tools/numeros-publicos.py || true
+#
+# **Passou a falhar a build a 10 de setembro de 2026.** Estava com `|| true`,
+# com a justificação de que o CV vive fora do repositório e o CI não o tem —
+# "vermelho por ausência e não por defeito". A justificação era boa e a
+# conclusão era larga de mais: o script já distingue os dois casos. Quando não
+# encontra o CV imprime `..` e não conta; só conta números que estão mesmo
+# errados. Deitar fora o código de saída deitava fora essa distinção, e um
+# guarda que não pode falhar é um comentário.
+py "numeros no CV e nos posts (numeros-publicos.py)" tools/numeros-publicos.py || falhou=1
 
 titulo "8. Build"
 ./tools/build.sh > /dev/null && echo "  ok  dist/ gerado e verificado" || falhou=1
