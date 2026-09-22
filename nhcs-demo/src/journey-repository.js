@@ -5,7 +5,7 @@
  *     node tools/gerar-demo.mjs
  */
 
-import { nextJourney } from './mock.js';
+import { allJourneys, nextJourney } from './mock.js';
 
 /**
  * De onde vêm as viagens.
@@ -48,10 +48,19 @@ export function createMockJourneyRepository(options              = {})          
     return [{ ...nextJourney }];
   }
 
+  async function todasAsViagens()                     {
+    await pausa();
+    if (options.failWith) throw new Error(options.failWith);
+    return allJourneys.map((viagem) => ({ ...viagem }));
+  }
+
   return {
     list: todas,
+    listAll: todasAsViagens,
     async get(id) {
-      const viagens = await todas();
+      /* Procura em todas: uma viagem passada também se abre, e dizer "não
+         encontrei" a uma viagem que existe era um erro com ar de regra. */
+      const viagens = await todasAsViagens();
       const viagem = viagens.find((v) => v.id === id);
       if (!viagem) throw new Error(`Não encontrei a viagem ${id}.`);
       return viagem;

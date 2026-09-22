@@ -205,7 +205,11 @@ export function createMockClientSessionService(
         firstName: 'Rodrigo',
         accessToken: 'demo-nao-serve-para-nada',
         expiresAt: new Date(now().getTime() + ttl * 1000).toISOString(),
-        journeyIds: ['maldives-2026'],
+        /* Eram `['maldives-2026']`, um id que nenhuma viagem tem: a viagem do
+           mock chama-se `nhcs-demo-maldivas`. Ninguém deu por isso porque o
+           `canSee` ainda não era usado por nenhum ecrã — passou a ser, no
+           separador Journeys, e com o id antigo a lista ficava vazia. */
+        journeyIds: ['nhcs-demo-maldivas', 'nhcs-demo-nova-iorque', 'nhcs-demo-dubai'],
       };
       assertSemCredenciaisTide(nova);
       sessao = nova;

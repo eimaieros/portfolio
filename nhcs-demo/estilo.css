@@ -857,3 +857,191 @@ button.fila { cursor: pointer; }
   font-size: 11px;
   padding: 1px 5px;
 }
+
+/* ======================================================= Draft1 (v0.3.0)
+ *
+ * O Draft1 da NHCS (22 de setembro de 2026): quatro botões fixos,
+ * menu ≡, pedido de acesso, pesquisa manual de voos, verificação de
+ * documentos, as três listas de viagens, e os ecrãs da próxima viagem.
+ *
+ * Tudo o que se toca tem 44 px de chão — o `alvos-de-toque.mjs` verifica — e o
+ * sinal de toque é o universal do topo desta folha, não um por botão.
+ * ------------------------------------------------------------------------- */
+
+/* O ≡ do Draft1, no lugar do avatar. */
+.menu-botao {
+  width: 44px; height: 44px; min-height: 44px; flex: none;
+  display: grid; place-items: center;
+  border: 1px solid var(--line); border-radius: 50%;
+  background: var(--paper); color: var(--ink);
+  font: 700 20px var(--sans); cursor: pointer;
+}
+.escuro .menu-botao { background: none; border-color: rgba(255, 255, 255, .24); color: #fff; }
+
+/* Voltar: um passo atrás na hierarquia, sempre no mesmo sítio. */
+.voltar {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 44px; padding: 0 2px; margin: -6px 0 6px;
+  border: 0; background: none; color: var(--forest);
+  font: 800 12px var(--sans); cursor: pointer;
+}
+.escuro .voltar { color: var(--lime); }
+
+/* A porta: língua e pedir acesso. */
+.linguas { display: flex; gap: 6px; align-self: flex-end; margin-bottom: 24px; }
+.lingua {
+  min-height: 44px; min-width: 48px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--paper); color: var(--ink);
+  font: 700 12px var(--mono); letter-spacing: .06em; cursor: pointer;
+}
+.lingua[aria-pressed="true"] { background: var(--forest); border-color: var(--forest); color: #fff; }
+.pedir-acesso {
+  min-height: 48px; margin-top: 4px;
+  border: 1px solid var(--forest); border-radius: 12px;
+  background: none; color: var(--forest);
+  font: 600 15px var(--sans); cursor: pointer;
+}
+.acesso-recibo { margin-top: 28px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+.acesso-recibo p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink); }
+.acesso-recibo code { display: inline-block; margin-top: 10px; font-family: var(--mono); font-size: 12px; color: var(--forest); }
+.acesso-demo { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.acesso-demo .rotulo { margin-bottom: 6px; }
+
+/* Campos da pesquisa. */
+.form-voo { display: grid; gap: 12px; }
+.campo { display: grid; gap: 6px; }
+.campo label { color: var(--ink); font-size: 13px; font-weight: 600; }
+.campo input, .campo select {
+  min-height: 48px; width: 100%; padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: var(--paper); color: var(--ink);
+  font: inherit; font-size: 15px;
+}
+.campo input:focus-visible, .campo select:focus-visible { border-color: var(--forest); outline: 2px solid var(--forest); outline-offset: 1px; }
+.duas-colunas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sugestoes-aeroporto { display: grid; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--paper); }
+.sugestao-aeroporto {
+  min-height: 44px; padding: 0 12px; text-align: left;
+  border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--ink);
+  font: 500 13px var(--sans); cursor: pointer;
+}
+.sugestao-aeroporto:last-child { border-bottom: 0; }
+.sugestao-aeroporto strong { font-family: var(--mono); color: var(--forest); }
+
+.quantidade { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; font-size: 14px; color: var(--ink); }
+.quantidade-botoes { display: flex; align-items: center; gap: 10px; }
+.quantidade-botao {
+  width: 44px; height: 44px; min-height: 44px;
+  border: 1px solid var(--forest); border-radius: 50%;
+  background: none; color: var(--forest);
+  font: 700 18px var(--sans); cursor: pointer;
+}
+.quantidade-botao:disabled { opacity: .35; cursor: default; }
+.quantidade-valor { min-width: 18px; text-align: center; font-weight: 800; }
+
+.segmentos { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; }
+.segmento {
+  min-height: 44px; padding: 0 8px;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: var(--paper); color: var(--ink);
+  font: 700 12px var(--sans); cursor: pointer;
+}
+.segmento[aria-pressed="true"] { background: var(--forest); border-color: var(--forest); color: #fff; }
+
+/* O botão amarelo do Draft1 — "Check Travel Docs". Amarelo é o que o Draft1
+   pede; aqui é o lima da paleta, que é o amarelo desta app. */
+.botao-docs {
+  min-height: 48px; padding: 0 14px;
+  border: 1px solid var(--forest); border-radius: 12px;
+  background: var(--lime); color: var(--forest-deep);
+  font: 800 13px var(--sans); cursor: pointer;
+}
+.botao-principal {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; min-height: 52px; margin-top: 10px; padding: 0 16px;
+  border: 0; border-radius: 12px;
+  background: var(--forest); color: #fff;
+  font: 700 15px var(--sans); cursor: pointer;
+}
+.botao-principal:disabled { opacity: .5; cursor: default; }
+.erro-form { margin: 6px 0 0; color: var(--alerta); font-size: 13px; line-height: 1.45; }
+
+/* A verificação de documentos. O estado vai em texto e não só na cor. */
+.docs-verif { margin-top: 14px; padding: 14px 16px; border: 1px solid var(--line); border-left-width: 4px; border-radius: 14px; background: var(--paper); }
+.docs-verif h3 { margin: 6px 0 8px; font-size: 16px; }
+.docs-verif ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--ink); }
+.docs-verif li + li { margin-top: 6px; }
+.docs-ok { border-left-color: var(--moss); }
+.docs-atencao { border-left-color: #b8892a; }
+.docs-impeditivo { border-left-color: var(--alerta); background: var(--alerta-lavado); }
+.docs-desconhecido { border-left-color: var(--muted); }
+
+/* Resultados. */
+.meta-pesquisa { margin: -8px 0 10px; font-size: 13px; color: var(--muted); }
+.aviso-ilustrativo { margin: 10px 0; font-family: var(--mono); font-size: 10px; line-height: 1.5; letter-spacing: .02em; color: var(--muted); }
+.oferta {
+  display: grid; gap: 10px; width: 100%; min-height: 96px; margin-top: 10px; padding: 14px 16px;
+  border: 1px solid var(--line); border-radius: 16px;
+  background: var(--paper); color: var(--ink); text-align: left; cursor: pointer;
+}
+.oferta-horas { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; }
+.oferta-horas strong { display: block; font-size: 20px; font-weight: 800; }
+.oferta-horas small { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.oferta-meio { text-align: center; font-size: 11px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 4px; }
+.oferta-rodape { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--muted); }
+.oferta-preco { color: var(--forest-deep); font-size: 17px; font-weight: 900; }
+.oferta-preco small { font-size: 10px; font-weight: 500; color: var(--muted); }
+.oferta-lugares { justify-self: start; padding: 3px 8px; border-radius: 999px; background: var(--alerta-lavado); color: var(--alerta); font-size: 11px; font-weight: 700; }
+
+.linha-total { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 14px; color: var(--ink); }
+.linha-total.forte { margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--line); font-weight: 900; font-size: 16px; }
+
+.meio {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 0 16px;
+  border: 1px solid var(--line); border-radius: 14px;
+  background: var(--paper); color: var(--ink); text-align: left;
+  font: 600 14px var(--sans); cursor: pointer;
+}
+.meio.escolhido { border-color: var(--forest); box-shadow: inset 0 0 0 1px var(--forest); }
+.meio-marca { color: var(--forest); font-size: 16px; }
+
+.recibo-reserva code { display: block; margin-top: 6px; font-family: var(--mono); font-size: 18px; color: var(--forest-deep); }
+.passos-recibo { display: grid; gap: 10px; margin: 0 0 16px; padding: 0; list-style: none; }
+.passo-recibo { display: flex; gap: 12px; align-items: flex-start; }
+.passo-recibo b { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--line); font-size: 12px; }
+.passo-recibo.feito b { background: var(--forest); color: #fff; }
+.passo-recibo.simulado b { background: var(--lime); color: var(--forest-deep); }
+.passo-recibo strong { display: block; font-size: 14px; }
+.passo-recibo span span { display: block; margin-top: 2px; font-size: 12px; line-height: 1.45; color: var(--muted); }
+.recibo-reserva + .seccao + .passos-recibo ~ .botao-contorno { margin: 6px 8px 0 0; }
+
+/* Viagens: a lista, e os ecrãs da próxima viagem. */
+.heroi-lista { min-height: 180px; }
+.accoes-viagem { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 4px; }
+.botao-wow {
+  min-height: 44px; padding: 0 14px;
+  border: 0; border-radius: 999px;
+  background: var(--lime); color: var(--forest-deep);
+  font: 900 12px var(--sans); cursor: pointer;
+}
+.grupo-doc { margin-top: 18px; }
+.grupo-doc h3 { margin: 0; font-size: 15px; }
+.doc-pendente .estado-doc { color: var(--alerta); }
+.lembretes { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 13px; }
+.lembretes strong { font-family: var(--mono); font-size: 12px; color: var(--forest); margin-right: 6px; }
+.previsao { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.previsao-dia { display: grid; gap: 4px; padding: 12px 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); text-align: center; font-size: 12px; }
+.previsao-dia small { color: var(--muted); font-size: 10px; line-height: 1.3; }
+.dados-voo { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 12px 0 0; font-size: 13px; }
+.dados-voo dt { color: var(--muted); }
+.dados-voo dd { margin: 0; font-weight: 700; }
+.traduzido { margin: 6px 0 0; font-family: var(--serif); font-size: 22px; line-height: 1.3; }
+.frases { display: flex; flex-wrap: wrap; gap: 8px; }
+.frase {
+  min-height: 44px; padding: 0 12px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--paper); color: var(--ink);
+  font: 600 12px var(--sans); cursor: pointer;
+}
+.plano-inativo { cursor: default; opacity: .78; }

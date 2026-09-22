@@ -73,6 +73,123 @@ export const nextJourney          = {
 };
 
 /**
+ * As outras duas viagens do cliente de demonstração.
+ *
+ * O Draft1 da NHCS divide as viagens em três listas — a próxima, as futuras e
+ * as passadas — e com uma viagem só as listas não se conseguiam ver. Tal como a
+ * primeira, estas são ilustrativas: voos, horas e hotéis não são reservas.
+ *
+ * O Dubai já passou e fica para "as minhas viagens passadas"; Nova Iorque é em
+ * dezembro e fica nas futuras. As horas levam o offset do sítio, como tudo o
+ * resto: -05:00 em Nova Iorque em dezembro, +04:00 no Dubai.
+ */
+export const futureJourney          = {
+  id: 'nhcs-demo-nova-iorque',
+  destination: 'Nova Iorque',
+  departureAt: '2026-12-05T11:00:00+00:00',
+  returnAt: '2026-12-12T21:30:00-05:00',
+  status: 'Confirmada',
+  flightNumber: 'TP203',
+  entryRequirements: {
+    passportValidityDaysAfterReturn: 0,
+    source:
+      'Valor de demonstração, não confirmado com nenhuma fonte oficial. A regra real de cada destino vem da NHCS ou de fonte consular, com data.',
+  },
+  route: [
+    { code: 'LIS', city: 'Lisboa' },
+    { code: 'JFK', city: 'Nova Iorque' },
+  ],
+  timeline: [
+    {
+      id: 'ny-checkin',
+      at: '2026-12-05T08:30:00+00:00',
+      title: 'Check-in',
+      detail: 'TP203 · Lisboa, Terminal 1 · identificadores apenas ilustrativos',
+      kind: 'flight',
+    },
+    {
+      id: 'ny-voo',
+      at: '2026-12-05T11:00:00+00:00',
+      title: 'Partida para Nova Iorque',
+      detail: 'LIS → JFK · voo direto',
+      kind: 'flight',
+    },
+    {
+      id: 'ny-chegada',
+      at: '2026-12-05T14:05:00-05:00',
+      title: 'Chegada e motorista',
+      detail: 'JFK · meet & greet à saída da alfândega',
+      kind: 'transfer',
+    },
+    {
+      id: 'ny-hotel',
+      at: '2026-12-05T16:00:00-05:00',
+      title: 'Check-in no hotel',
+      detail: 'Midtown Manhattan · exemplo de alojamento',
+      kind: 'stay',
+    },
+    {
+      id: 'ny-broadway',
+      at: '2026-12-06T19:30:00-05:00',
+      title: 'Espetáculo na Broadway',
+      detail: 'Dois lugares · exemplo de uma experiência',
+      kind: 'experience',
+    },
+  ],
+};
+
+export const pastJourney          = {
+  id: 'nhcs-demo-dubai',
+  destination: 'Dubai',
+  departureAt: '2026-03-14T14:20:00+00:00',
+  returnAt: '2026-03-21T08:40:00+04:00',
+  status: 'Concluída',
+  flightNumber: 'EK192',
+  entryRequirements: {
+    passportValidityDaysAfterReturn: 180,
+    source:
+      'Valor de demonstração, não confirmado com nenhuma fonte oficial.',
+  },
+  route: [
+    { code: 'LIS', city: 'Lisboa' },
+    { code: 'DXB', city: 'Dubai' },
+  ],
+  timeline: [
+    {
+      id: 'dxb-voo',
+      at: '2026-03-14T14:20:00+00:00',
+      title: 'Partida para o Dubai',
+      detail: 'LIS → DXB · identificadores apenas ilustrativos',
+      kind: 'flight',
+    },
+    {
+      id: 'dxb-chegada',
+      at: '2026-03-15T01:05:00+04:00',
+      title: 'Chegada e transfer',
+      detail: 'DXB · motorista à saída',
+      kind: 'transfer',
+    },
+    {
+      id: 'dxb-safari',
+      at: '2026-03-16T16:00:00+04:00',
+      title: 'Safari no deserto',
+      detail: 'Com jantar · exemplo de uma experiência',
+      kind: 'experience',
+    },
+    {
+      id: 'dxb-jantar',
+      at: '2026-03-18T20:00:00+04:00',
+      title: 'Jantar no Nobu',
+      detail: 'Mesa para dois · exemplo de reserva de restaurante',
+      kind: 'experience',
+    },
+  ],
+};
+
+/** Todas as viagens do cliente de demonstração, pela ordem em que existem. */
+export const allJourneys            = [nextJourney, futureJourney, pastJourney];
+
+/**
  * O Início muda com a fase da viagem.
  *
  * Antes dizia sempre "A sua próxima viagem", em qualquer dia — inclusive com o

@@ -16,18 +16,34 @@
  * passam a existir duas apps, e a que está na página é a que ninguém testa.
  */
 
-import { eventProgress, formatDay, formatFullDay, formatTime, getJourneyTiming, groupByDay, nextEvent, routeLabel, saudacaoDoDia } from './src/journey.js';
-import { phaseCopy, planCategories, promptSuggestions } from './src/mock.js';
+import { eventProgress, formatDay, formatFullDay, formatTime, localDayKey, getJourneyTiming, groupByDay, nextEvent, routeLabel, saudacaoDoDia } from './src/journey.js';
+import { phaseCopy, promptSuggestions } from './src/mock.js';
 import { conciergeService } from './src/concierge-service.js';
 import { journeyRepository } from './src/journey-repository.js';
 import { messageRepository, relativeLabel, unreadCount } from './src/message-repository.js';
 import { documentLabel, documentRepository, documentStatus, sortForAttention, walletReadiness } from './src/document-repository.js';
 import { notificacoesDaViagem, porEnviar } from './src/notificacoes.js';
-import { createMockClientSessionService, SignInError } from './src/client-session.js';
+import { canSee, createMockClientSessionService, SignInError } from './src/client-session.js';
+/* O Draft1 da NHCS, 22 de setembro de 2026. Tudo o que decide vem do
+   TypeScript da app, gerado para `src/` — como o resto. */
+import { cartoesEmViagem, classificarViagens, lembretesDeHoje, traduzirFrase } from './src/viagens.js';
+import {
+  AVISO_DE_RESULTADOS, CLASSES, PREFERENCIAS, aeroporto, destinosPorClima, euros, ofertasDeVoo,
+  procurarAeroportos, rotuloDeDuracao, rotuloDePassageiros, totalDaOferta, validarPesquisa, verificarDocumentos,
+} from './src/pesquisa.js';
+import {
+  CONTACTOS_DE_EMERGENCIA, ESTADO_DO_VOO_DEMO, FRASES_DEMO, MEIOS_DE_PAGAMENTO_DEMO, NORMAIS_CLIMATICAS,
+  PREVISAO_DEMO, REGRAS_DE_ENTRADA, SIMULACAO_EM_VIAGEM, WHATSAPP_NHCS,
+} from './src/mock-servicos.js';
+import { agruparPorCategoria, DOCUMENTOS_DE_SERVICO_DEMO } from './src/carteira.js';
+import { LINGUAS, t } from './src/i18n.js';
+import { servicoDeAcesso } from './src/acesso.js';
+import { servicoDeReserva } from './src/reserva.js';
 
 /* ------------------------------------------------------------------ estado */
 
 const estado = {
+  /* Os quatro botões fixos do Draft1: 'home' | 'search' | 'journeys' | 'chat'. */
   separador: 'home',
   pedido: '',
   proposta: null,
@@ -65,6 +81,38 @@ const estado = {
      usa. Os botões lá em baixo põem aqui uma data para mostrar as outras fases,
      e a página diz que o está a fazer. */
   agora: null,
+
+  /* ---- Draft1 (v0.3.0) -------------------------------------------------- */
+
+  /* "Use native language": a entrada, os quatro botões e o menu. */
+  lingua: 'pt',
+  /* A porta tem duas portas: entrar e pedir acesso. */
+  entradaModo: 'entrar',
+  acesso: { aEnviar: false, recibo: null, erro: null },
+
+  /* Todas as viagens que a sessão pode ver, e as três listas do Draft1. */
+  todas: [],
+  /* 'listas' | 'futuras' | 'passadas' | 'viagem' */
+  vistaViagens: 'listas',
+  viagemAberta: null,
+  /* null (os seis botões) | 'itinerario' | 'documentos' | 'clima' | 'voo' | 'tradutor' | 'emergencia' */
+  subViagem: null,
+
+  /* Pesquisa: null é o painel com as três portas do Draft1. */
+  modoPesquisa: null,
+  categoria: null,
+  voo: null,
+  clima: { mes: 1, pref: 'calor' },
+  traducao: { texto: '', resultado: null },
+
+  /* O menu ≡ do Draft1: dados pessoais, família, pagamentos, legal. */
+  menuAberto: false,
+  menuSeccao: null,
+
+  /* Faturas que a reserva simulada deixou "por emitir". Entram na carteira. */
+  faturasNovas: [],
+  /* A viagem cujo itinerário está no ecrã — o jato e a espinha seguem-na. */
+  viagemDoJato: null,
 };
 
 /* Um pedido em curso deixa de valer assim que outro começa. Sem isto, uma
@@ -167,8 +215,14 @@ async function carregarViagem() {
   estado.documentos = [];
   desenhar();
   try {
-    const viagens = await journeyRepository.list();
-    estado.viagem = viagens[0] || null;
+    /* Duas leituras: a próxima, que é o que o Início mostra (e o que a app em
+       React Native lê), e todas, para as três listas do Draft1. Ambas passam
+       pelo `canSee` da sessão — a autorização do que cada cliente vê é da NHCS,
+       e a demonstração faz o que o produto tem de fazer. */
+    const [viagens, todas] = await Promise.all([journeyRepository.list(), journeyRepository.listAll()]);
+    const visivel = (v) => estado.sessao && canSee(estado.sessao, v.id);
+    estado.todas = todas.filter(visivel);
+    estado.viagem = viagens.find(visivel) || null;
     if (!estado.viagem) estado.erroViagem = 'Não há viagens nesta conta de demonstração.';
     if (estado.viagem) {
       /* Em paralelo, como na app: são duas leituras independentes e encadeá-las
@@ -206,9 +260,12 @@ function semViagem() {
 function cabecalho(eyebrow, titulo, selo) {
   return el('div', { class: 'cabecalho' }, [
     el('div', {}, [el('p', { class: 'eyebrow', texto: eyebrow }), el('h2', { class: 'titulo-ecra', texto: titulo })]),
+    /* O ≡ do Draft1 está em todos os ecrãs, no canto — e abre os dados
+       pessoais, a família, os pagamentos e a informação legal. Substitui o
+       avatar, que era decorativo e não abria nada. */
     selo
       ? el('span', { class: 'selo', texto: selo })
-      : el('div', { class: 'avatar', 'aria-label': 'Perfil de Rodrigo', role: 'img' }, [el('span', { 'aria-hidden': 'true', texto: 'R' })]),
+      : el('button', { class: 'menu-botao', 'aria-label': 'Abrir menu', onclick: abrirMenu }, [el('span', { 'aria-hidden': 'true', texto: '≡' })]),
   ]);
 }
 
@@ -236,7 +293,7 @@ function ecraInicio() {
     /* `null` quer dizer "pela hora" — e a hora é a do relógio da demonstração,
        que o visitante muda nos botões de fase. Ver `saudacaoDoDia`. */
     cabecalho(copy.greeting ?? saudacaoDoDia(relogio()), 'Rodrigo.'),
-    el('button', { class: 'heroi', 'aria-label': `Abrir a viagem às ${estado.viagem.destination}`, onclick: () => irPara('trips') }, [
+    el('button', { class: 'heroi', 'aria-label': `Abrir a viagem às ${estado.viagem.destination}`, onclick: () => abrirViagem(estado.viagem.id) }, [
       el('span', { class: 'marca-heroi', texto: 'EXEMPLO DE VIAGEM' }),
       el('p', { class: 'eyebrow', texto: copy.heroEyebrow }),
       el('h3', { texto: estado.viagem.destination }),
@@ -250,12 +307,13 @@ function ecraInicio() {
         ]),
         el('span', { class: 'pastilha', texto: 'EXEMPLO' }),
       ]),
-      el('button', { class: 'accao-inline', onclick: () => irPara('trips') }, [
+      el('button', { class: 'accao-inline', onclick: () => abrirViagem(estado.viagem.id, 'itinerario') }, [
         'Ver viagem', el('span', { 'aria-hidden': 'true', texto: '→' }),
       ]),
     ]),
     ...alertaDaCarteira(),
-    seccao(copy.sectionTitle, 'Ver viagem', () => irPara('trips')),
+    ...emViagemNoInicio(),
+    seccao(copy.sectionTitle, 'Ver viagem', () => abrirViagem(estado.viagem.id, 'itinerario')),
     el('div', { class: 'pilha' }, [
       proximo
         ? cartaoContexto(proximo.title, `${formatTime(proximo.at)}, hora local · ${proximo.detail}`, 'ITINERÁRIO')
@@ -263,6 +321,7 @@ function ecraInicio() {
       cartaoContexto(estado.viagem.destination, '28° · Céu limpo · exemplo de contexto de destino', 'DESTINO'),
     ]),
     ...mensagensDaNHCS(),
+    convitePlanear(),
     el('button', { class: 'chamada', onclick: () => abrirConcierge(copy.calloutPrompt) }, [
       el('span', {}, [el('strong', { texto: copy.calloutTitle }), el('span', { texto: copy.calloutText })]),
       el('span', { class: 'icone', 'aria-hidden': 'true', texto: '✦' }),
@@ -287,7 +346,7 @@ function alertaDaCarteira() {
   return [el('button', {
     class: grave ? 'alerta-carteira' : 'alerta-carteira suave',
     'aria-label': `${estadoCarteira.headline}. Abrir carteira.`,
-    onclick: () => { estado.carteiraAberta = true; irPara('trips'); },
+    onclick: () => abrirViagem(estado.viagem.id, 'itinerario', { carteira: true }),
   }, [
     el('span', { class: 'icone', 'aria-hidden': 'true', texto: grave ? '!' : '·' }),
     el('span', { class: 'texto' }, [
@@ -414,9 +473,9 @@ export function caminhoDaRota(paragens) {
   return d;
 }
 
-function rotaDeVoo() {
-  const paragens = estado.viagem.route;
-  const progresso = eventProgress(estado.viagem);
+function rotaDeVoo(viagem) {
+  const paragens = viagem.route;
+  const progresso = eventProgress(viagem);
   const d = caminhoDaRota(paragens.length);
 
   const caminho = svg('path', { class: 'rota-traco', d, fill: 'none' });
@@ -458,7 +517,7 @@ function rotaDeVoo() {
     ])));
 
   const bloco = el('div', { class: 'rota-caixa' }, [
-    el('p', { class: 'rotulo', texto: routeLabel(estado.viagem) }),
+    el('p', { class: 'rotulo', texto: routeLabel(viagem) }),
     desenho,
     etiquetas,
   ]);
@@ -487,10 +546,15 @@ function rotaDeVoo() {
   return bloco;
 }
 
-function ecraViagens() {
-  if (!estado.viagem) return [cabecalho('Viagem de demonstração', 'A carregar…'), ...semViagem()];
-  const timing = getJourneyTiming(estado.viagem, relogio());
-  const dias = groupByDay(estado.viagem);
+function ecraItinerario(viagem, tipo) {
+  /* O jato e a espinha medem-se a partir da viagem que está no ecrã, que já não
+     é sempre a próxima. */
+  estado.viagemDoJato = viagem;
+  const timing = getJourneyTiming(viagem, relogio());
+  const dias = groupByDay(viagem);
+  /* A carteira de embarque (passaportes, seguro) é da próxima viagem: é a que
+     o repositório de documentos carregou. */
+  const temCarteira = estado.viagem && viagem.id === estado.viagem.id;
   let posicao = -1;
 
   const itinerario = dias.map((dia) => el('div', {}, [
@@ -517,20 +581,20 @@ function ecraViagens() {
      aparecia de repente — e é o que aparece por acção directa da pessoa, que é
      onde a revelação mais diz: liga o botão que se carregou ao que apareceu.
      Em React Native é o mesmo `<Revelar chave="carteira">`. */
-  const carteira = estado.carteiraAberta
+  const carteira = !temCarteira ? null : estado.carteiraAberta
     ? revelar(el('div', { class: 'lista-doc' }, [
         el('div', { class: 'doc-aviso' }, [
           el('strong', { texto: 'CARTEIRA DE DEMONSTRAÇÃO' }),
           el('p', { texto: 'Pré-visualização sem ficheiros pessoais, reserva ou autenticação ativa.' }),
         ]),
-        ...sortForAttention(estado.documentos, estado.viagem).map((doc) => {
-          const st = documentStatus(doc, estado.viagem);
+        ...sortForAttention(estado.documentos, viagem).map((doc) => {
+          const st = documentStatus(doc, viagem);
           const grave = st === 'missing' || st === 'expired' || st === 'insufficient';
           return el('div', { class: grave ? 'doc doc-accao' : 'doc' }, [
             el('span', { class: 'icone', 'aria-hidden': 'true', texto: ICONES_DOC[doc.kind] || '⌁' }),
             el('span', { class: 'nome' }, [
               `${doc.title} · ${doc.holder}`,
-              el('p', { class: grave ? 'estado-doc grave' : 'estado-doc', texto: documentLabel(doc, estado.viagem) }),
+              el('p', { class: grave ? 'estado-doc grave' : 'estado-doc', texto: documentLabel(doc, viagem) }),
               doc.expiresAt ? el('p', { class: 'suave', texto: `Válido até ${formatFullDay(doc.expiresAt)}` }) : null,
             ].filter(Boolean)),
             el('span', { class: grave ? 'demo demo-accao' : 'demo', texto: grave ? 'AÇÃO' : 'DEMO' }),
@@ -539,25 +603,36 @@ function ecraViagens() {
         /* A proveniência do requisito, à vista. Um número sobre fronteiras sem
            origem é um palpite com ar de facto. */
         el('div', { class: 'nota-carteira' }, [
-          el('strong', { texto: `Requisito de entrada usado nesta conta: ${estado.viagem.entryRequirements.passportValidityDaysAfterReturn} dias de validade depois do regresso` }),
-          el('p', { texto: estado.viagem.entryRequirements.source }),
+          el('strong', { texto: `Requisito de entrada usado nesta conta: ${viagem.entryRequirements.passportValidityDaysAfterReturn} dias de validade depois do regresso` }),
+          el('p', { texto: viagem.entryRequirements.source }),
         ]),
       ]))
     : el('p', { class: 'suave', texto: 'Demonstração visual: não existem documentos reais nesta app. A versão de produção exigirá autenticação do dispositivo.' });
 
+  /* Os botões do Draft1 por baixo do itinerário: "My Concierge" e "Add WOW",
+     e o "Edit" para acrescentar, alterar ou cancelar. Seguem todos pelo
+     concierge, porque qualquer mudança a uma reserva passa por uma pessoa da
+     NHCS — é a regra do projecto, e a TIDE não tem outra porta para o cliente. */
+  const accoes = tipo === 'passada' ? null : el('div', { class: 'accoes-viagem' }, [
+    el('button', { class: 'botao-contorno', onclick: () => abrirConcierge(`Preciso de ajuda com a minha viagem a ${viagem.destination}.`) }, 'O meu concierge'),
+    el('button', { class: 'botao-wow', onclick: () => abrirConcierge(`Quero acrescentar um momento WOW à minha viagem a ${viagem.destination}.`) }, 'Adicionar WOW'),
+    el('button', { class: 'botao-contorno', onclick: () => abrirConcierge(`Quero acrescentar, alterar ou cancelar um serviço da minha viagem a ${viagem.destination}.`) }, 'Acrescentar, alterar ou cancelar'),
+  ]);
+
   return [
-    cabecalho('Viagem de demonstração', estado.viagem.destination, 'Exemplo'),
+    cabecalho('O meu itinerário', viagem.destination, 'Exemplo'),
     el('div', { class: 'heroi heroi-viagem' }, [
       el('span', { class: 'marca-heroi marca-viagem', texto: 'EXEMPLO NHCS' }),
       el('p', { class: 'eyebrow', texto: timing.datesLabel }),
       el('h3', { texto: 'A sua pausa.' }),
       el('p', { class: 'meta', texto: 'Itinerário, documentos e assistência num só lugar.' }),
     ]),
-    rotaDeVoo(),
+    rotaDeVoo(viagem),
     seccao('Itinerário', 'Assistência', () => abrirConcierge('Preciso de ajuda com o meu itinerário.')),
     /* A classe não é decorativa: é o `view-timeline` que o jato segue. */
     el('div', { class: 'itinerario' }, itinerario),
-    el('div', { class: 'carteira-topo' }, [
+    accoes,
+    !temCarteira ? null : el('div', { class: 'carteira-topo' }, [
       el('div', {}, [
         el('h3', { class: 'titulo-carteira', texto: 'Carteira de viagem' }),
         el('p', { class: 'suave', texto: 'Bilhetes, vouchers e documentos sensíveis.' }),
@@ -604,6 +679,8 @@ function ecraConcierge() {
     ]);
 
   return [
+    /* O concierge passou a ser uma das três portas da Pesquisa, como no Draft1. */
+    voltar('Pesquisa', () => { sequencia += 1; estado.modoPesquisa = null; estado.aPreparar = false; desenhar(); }),
     el('div', { class: 'conc-topo' }, [
       el('span', { class: 'marca-nhcs', texto: 'NHCS' }),
       el('span', { class: 'conc-privado', texto: 'CONCIERGE PRIVADO' }),
@@ -662,22 +739,6 @@ function ecraConcierge() {
   ];
 }
 
-function ecraPlanear() {
-  return [
-    cabecalho('Planear', 'O que podemos tratar por si?'),
-    el('p', { class: 'suave', texto: 'Comece por onde preferir, ou entregue o contexto à NHCS para receber uma proposta completa.' }),
-    el('div', { class: 'pilha pilha-plano' }, planCategories.map((categoria) =>
-      el('button', { class: 'plano', onclick: () => abrirConcierge(categoria.prompt) }, [
-        el('span', {}, [el('strong', { texto: categoria.title }), el('p', { class: 'suave', texto: categoria.detail })]),
-        el('span', { class: 'seta', 'aria-hidden': 'true', texto: '→' }),
-      ]))),
-    el('button', { class: 'plano-nhcs', onclick: () => abrirConcierge('Quero que a NHCS planeie a minha próxima viagem.') }, [
-      el('strong', { texto: 'Deixe a NHCS tratar do plano' }),
-      el('span', { texto: 'Conte-nos a intenção. Nós tratamos das perguntas certas, parceiros e detalhes.' }),
-    ]),
-  ];
-}
-
 /**
  * O que a NHCS enviaria, e porquê.
  *
@@ -711,36 +772,822 @@ function politicaDeNotificacoes() {
   ]);
 }
 
-function ecraPerfil() {
-  const fila = (titulo, detalhe, aoClicar) => {
-    const conteudo = [el('span', {}, [el('strong', { texto: titulo }), el('span', { texto: detalhe })])];
-    if (!aoClicar) return el('div', { class: 'fila' }, conteudo);
-    return el('button', { class: 'fila', onclick: aoClicar }, [...conteudo, el('span', { class: 'seta', 'aria-hidden': 'true', texto: '→' })]);
+/* ============================================================ Draft1 (v0.3.0)
+ *
+ * O Draft1 da NHCS (22 de setembro de 2026) redesenha a navegação:
+ * quatro botões fixos — Home, Search, Journeys, Chat — e um menu ≡ no topo. Os
+ * ecrãs abaixo são essa navegação. Como o resto deste ficheiro, **não decidem
+ * nada**: as regras vêm de `src/pesquisa.js`, `src/viagens.js`,
+ * `src/carteira.js`, `src/acesso.js` e `src/reserva.js`, que são TypeScript da
+ * app com testes.
+ * ------------------------------------------------------------------------- */
+
+const pausa = (ms) => new Promise((r) => setTimeout(r, ms));
+const seta = () => el('span', { class: 'seta', 'aria-hidden': 'true', texto: '→' });
+const roda = () => el('span', { class: 'roda', 'aria-hidden': 'true' });
+const MESES_PT = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const MARCA_CARTAO = { motorista: 'TRANSFER', bagagem: 'BAGAGEM', clima: 'CLIMA' };
+
+function voltar(rotulo, aoClicar) {
+  return el('button', { class: 'voltar', onclick: aoClicar }, [el('span', { 'aria-hidden': 'true', texto: '←' }), rotulo]);
+}
+
+function fila(titulo, detalhe, aoClicar) {
+  const conteudo = [el('span', {}, [el('strong', { texto: titulo }), detalhe ? el('span', { texto: detalhe }) : null])];
+  if (!aoClicar) return el('div', { class: 'fila' }, conteudo);
+  return el('button', { class: 'fila', onclick: aoClicar }, [...conteudo, seta()]);
+}
+
+function porta(titulo, detalhe, aoClicar) {
+  return el('button', { class: 'plano', onclick: aoClicar }, [
+    el('span', {}, [el('strong', { texto: titulo }), el('p', { class: 'suave', texto: detalhe })]),
+    seta(),
+  ]);
+}
+
+const viagemPorId = (id) => estado.todas.find((v) => v.id === id) || null;
+const viagensClassificadas = () => classificarViagens(estado.todas, relogio());
+
+function abrirViagem(id, sub = null, { carteira = false } = {}) {
+  estado.separador = 'journeys';
+  estado.menuAberto = false;
+  estado.vistaViagens = 'viagem';
+  estado.viagemAberta = id;
+  estado.subViagem = sub;
+  if (carteira) estado.carteiraAberta = true;
+  aviso('');
+  desenhar();
+}
+
+/* ---------------------------------------------------------------- Início */
+
+/** Motorista, bagagem e clima — os cartões "em viagem" do Draft1. */
+function emViagemNoInicio() {
+  const agora = relogio();
+  const cartoes = cartoesEmViagem(estado.viagem, agora, SIMULACAO_EM_VIAGEM);
+  const emViagem = getJourneyTiming(estado.viagem, agora).phase === 'travelling';
+  const hoje = emViagem ? lembretesDeHoje(estado.viagem, agora) : [];
+  if (!cartoes.length && !hoje.length) return [];
+  return [
+    seccao('Agora'),
+    el('div', { class: 'pilha' }, [
+      ...cartoes.map((c) => cartaoContexto(c.titulo, c.detalhe, MARCA_CARTAO[c.tipo])),
+      hoje.length
+        ? el('div', { class: 'cartao' }, [
+            el('div', { class: 'linha' }, [el('h4', { texto: 'Hoje' }), el('span', { class: 'marca', texto: 'LEMBRETES' })]),
+            el('ul', { class: 'lembretes' }, hoje.map((e) => el('li', {}, [el('strong', { texto: formatTime(e.at) }), ` ${e.title}`]))),
+          ])
+        : null,
+    ]),
+  ];
+}
+
+/** "Vamos começar a planear a sua próxima viagem?" — o Draft1, fora de viagem. */
+function convitePlanear() {
+  if (estado.viagem && getJourneyTiming(estado.viagem, relogio()).phase === 'travelling') return null;
+  return el('button', { class: 'plano-nhcs', onclick: () => irPara('search') }, [
+    el('strong', { texto: 'Vamos começar a planear a sua próxima viagem?' }),
+    el('span', { texto: 'Concierge, clima ou pesquisa manual — três portas para o mesmo sítio.' }),
+  ]);
+}
+
+/* -------------------------------------------------------------- Pesquisa */
+
+function ecraPesquisa() {
+  if (estado.modoPesquisa === 'concierge') return ecraConcierge();
+  if (estado.modoPesquisa === 'clima') return ecraPorClima();
+  if (estado.modoPesquisa === 'manual') return estado.categoria === 'voos' ? ecraVoos() : ecraCategorias();
+  return [
+    cabecalho('Pesquisa', 'Por onde quer começar?'),
+    el('div', { class: 'pilha pilha-plano' }, [
+      porta('Concierge IA', 'Diga o que quer em linguagem normal. Recebe uma proposta estruturada, e uma pessoa da NHCS confirma.', () => abrirConcierge()),
+      porta('Por clima', 'Escolha o mês e o tempo que quer encontrar. Sugerimos destinos.', () => {
+        estado.modoPesquisa = 'clima';
+        estado.clima.mes = relogio().getMonth() + 1;
+        desenhar();
+      }),
+      porta('Pesquisa manual', 'Voos, transfers, hotéis, atividades, restaurantes e serviços de concierge.', () => {
+        estado.modoPesquisa = 'manual';
+        estado.categoria = null;
+        desenhar();
+      }),
+    ]),
+  ];
+}
+
+const CATEGORIAS_PESQUISA = [
+  { id: 'voos', titulo: 'Voos', detalhe: 'Pesquisa completa, com verificação de documentos no destino e nas escalas.' },
+  { id: 'transfers', titulo: 'Transfers com meet & greet', pedido: 'Preciso de um transfer com meet & greet.' },
+  { id: 'hoteis', titulo: 'Hotéis', pedido: 'Quero reservar um hotel.' },
+  { id: 'atividades', titulo: 'Atividades', pedido: 'Quero reservar uma atividade.' },
+  { id: 'restaurantes', titulo: 'Restaurantes', pedido: 'Quero reservar um restaurante.' },
+  { id: 'concierge', titulo: 'Serviços de concierge', pedido: 'Preciso de um serviço de concierge.' },
+];
+
+function ecraCategorias() {
+  return [
+    voltar('Pesquisa', () => { estado.modoPesquisa = null; desenhar(); }),
+    cabecalho('Pesquisa manual', 'O que procura?'),
+    el('p', { class: 'suave', texto: 'Nesta versão a pesquisa de voos está completa. As outras cinco categorias seguem pelo concierge, que organiza o pedido para a equipa NHCS.' }),
+    el('div', { class: 'pilha pilha-plano' }, CATEGORIAS_PESQUISA.map((c) => porta(c.titulo, c.detalhe ?? 'Pelo concierge, nesta versão.', () => {
+      if (c.id !== 'voos') { abrirConcierge(c.pedido); return; }
+      estado.categoria = 'voos';
+      estado.voo ??= novaPesquisa();
+      desenhar();
+    }))),
+  ];
+}
+
+function ecraPorClima() {
+  const c = estado.clima;
+  const resultados = destinosPorClima(c.mes, c.pref, NORMAIS_CLIMATICAS);
+  const mes = el('select', { id: 'campo-mes' }, MESES_PT.map((nome, i) =>
+    el('option', { value: String(i + 1), selected: i + 1 === c.mes || null, texto: nome })));
+  mes.addEventListener('change', () => { c.mes = Number(mes.value); desenhar(); });
+  return [
+    voltar('Pesquisa', () => { estado.modoPesquisa = null; desenhar(); }),
+    cabecalho('Pesquisa por clima', 'Que tempo procura?'),
+    el('div', { class: 'campo' }, [el('label', { for: 'campo-mes', texto: 'Mês da viagem' }), mes]),
+    el('div', { class: 'segmentos', role: 'group', 'aria-label': 'Tempo que procura' }, PREFERENCIAS.map((p) =>
+      el('button', { class: 'segmento', 'aria-pressed': String(c.pref === p.id), texto: p.rotulo, onclick: () => { c.pref = p.id; desenhar(); } }))),
+    seccao('Sugestões'),
+    el('div', { class: 'pilha' }, resultados.map((r) => porta(
+      `${r.cidade} · ${r.maxima} °C`,
+      'Máxima média do mês · planear com o concierge',
+      () => abrirConcierge(`Quero ir a ${r.cidade} em ${MESES_PT[c.mes - 1]}.`),
+    ))),
+    el('p', { class: 'aviso-ilustrativo', texto: 'Normais climáticas aproximadas, de demonstração. Em produção, clima histórico da OpenWeather, como o Draft1 prevê.' }),
+  ];
+}
+
+/* ------------------------------------------------------ Pesquisa de voos */
+
+function novaPesquisa() {
+  return {
+    fase: 'form',
+    de: 'LIS', para: 'MIA', textoDe: 'LIS — Lisboa', textoPara: 'MIA — Miami',
+    data: '2026-10-20', regresso: '2026-10-27',
+    passageiros: { adultos: 2, criancas: 0, bebes: 0 },
+    classe: 'executiva', escalasMaximas: 1, malas: 1,
+    sugestoes: { campo: null, lista: [] },
+    aProcurar: false, ofertas: [], escolhida: null,
+    meio: MEIOS_DE_PAGAMENTO_DEMO[0].id, aConfirmar: false, recibo: null,
+    erro: null, docs: null,
   };
+}
+
+function pesquisaDoEstado() {
+  const v = estado.voo;
+  return { de: v.de, para: v.para, data: v.data, passageiros: v.passageiros, classe: v.classe, escalasMaximas: v.escalasMaximas, malas: v.malas };
+}
+
+function hojeNaDemo() {
+  const d = relogio();
+  const p2 = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+}
+
+/** O passaporte do titular, se já foi entregue. Vem da carteira de embarque. */
+function passaporteDoCliente() {
+  const p = estado.documentos.find((d) => d.kind === 'passport' && d.provided && d.expiresAt);
+  return p ? p.expiresAt : undefined;
+}
+
+function verificacaoDoVoo(escalas) {
+  const v = estado.voo;
+  const destino = aeroporto(v.para);
+  const dia = v.regresso || v.data;
+  return verificarDocumentos({
+    destino: v.para,
+    escalas,
+    regresso: `${dia}T12:00:00${destino ? destino.utcOffset : '+00:00'}`,
+    passaporteValidoAte: passaporteDoCliente(),
+    regras: REGRAS_DE_ENTRADA,
+  });
+}
+
+const TITULO_DOCS = {
+  ok: 'Documentos em ordem',
+  atencao: 'Há passos antes de embarcar',
+  impeditivo: 'Há um impedimento',
+  desconhecido: 'Sem regra para verificar',
+};
+
+function blocoDocumentos(ver, nota) {
+  return el('div', { class: `docs-verif docs-${ver.estado}` }, [
+    el('p', { class: 'rotulo', texto: 'Documentos de viagem · verificação de demonstração' }),
+    el('h3', { texto: TITULO_DOCS[ver.estado] }),
+    el('ul', {}, ver.itens.map((i) => el('li', {}, [
+      el('strong', { texto: `${i.papel === 'escala' ? 'Escala' : 'Destino'} · ${i.pais}: ` }), i.texto,
+    ]))),
+    el('p', { class: 'suave', texto: nota ?? 'Tabela de demonstração, não é o Timatic. Cada regra tem de vir de fonte oficial, com data, antes de um cliente a ver.' }),
+  ]);
+}
+
+function campoAeroporto(qual, rotulo) {
+  const v = estado.voo;
+  const id = `campo-${qual}`;
+  const input = el('input', {
+    id, type: 'text', autocomplete: 'off', spellcheck: 'false',
+    placeholder: 'Cidade, aeroporto ou código IATA',
+    value: qual === 'de' ? v.textoDe : v.textoPara,
+  });
+  input.addEventListener('input', () => {
+    if (qual === 'de') { v.textoDe = input.value; v.de = ''; } else { v.textoPara = input.value; v.para = ''; }
+    v.sugestoes = { campo: qual, lista: procurarAeroportos(input.value) };
+    v.docs = null;
+    desenhar({ manterFoco: true });
+  });
+  const lista = v.sugestoes.campo === qual && v.sugestoes.lista.length
+    ? el('div', { class: 'sugestoes-aeroporto', role: 'listbox', 'aria-label': rotulo }, v.sugestoes.lista.map((a) =>
+        el('button', {
+          class: 'sugestao-aeroporto', role: 'option',
+          onclick: () => {
+            if (qual === 'de') { v.de = a.code; v.textoDe = `${a.code} — ${a.city}`; } else { v.para = a.code; v.textoPara = `${a.code} — ${a.city}`; }
+            v.sugestoes = { campo: null, lista: [] };
+            desenhar();
+          },
+        }, [el('strong', { texto: a.code }), ` ${a.city}, ${a.country}`])))
+    : null;
+  return el('div', { class: 'campo' }, [el('label', { for: id, texto: rotulo }), input, lista]);
+}
+
+function campoData(id, rotulo, valor, aoMudar) {
+  const input = el('input', { id: `campo-${id}`, type: 'date', value: valor });
+  input.addEventListener('change', () => { aoMudar(input.value); estado.voo.docs = null; desenhar(); });
+  return el('div', { class: 'campo' }, [el('label', { for: `campo-${id}`, texto: rotulo }), input]);
+}
+
+function quantidade(rotulo, valor, aoMudar, minimo = 0) {
+  return el('div', { class: 'quantidade' }, [
+    el('span', { texto: rotulo }),
+    el('div', { class: 'quantidade-botoes' }, [
+      el('button', { class: 'quantidade-botao', 'aria-label': `${rotulo}: menos um`, disabled: valor <= minimo || null, texto: '−', onclick: () => aoMudar(valor - 1) }),
+      el('span', { class: 'quantidade-valor', 'aria-live': 'polite', texto: String(valor) }),
+      el('button', { class: 'quantidade-botao', 'aria-label': `${rotulo}: mais um`, texto: '+', onclick: () => aoMudar(valor + 1) }),
+    ]),
+  ]);
+}
+
+function ecraVoos() {
+  const v = estado.voo;
+  if (v.fase === 'resultados') return [voltar('Alterar pesquisa', () => { v.fase = 'form'; desenhar(); }), ...vooResultados()];
+  if (v.fase === 'resumo') return [voltar('Resultados', () => { v.fase = 'resultados'; desenhar(); }), ...vooResumo()];
+  if (v.fase === 'pagamento') return [voltar('A sua reserva', () => { v.fase = 'resumo'; desenhar(); }), ...vooPagamento()];
+  if (v.fase === 'recibo') return vooRecibo();
+  return [voltar('Categorias', () => { estado.categoria = null; desenhar(); }), ...vooFormulario()];
+}
+
+function vooFormulario() {
+  const v = estado.voo;
+  const mudar = (fn) => (n) => { fn(n); v.docs = null; desenhar(); };
+  const classe = el('select', { id: 'campo-classe' }, CLASSES.map((c) =>
+    el('option', { value: c.id, selected: c.id === v.classe || null, texto: c.rotulo })));
+  classe.addEventListener('change', () => { v.classe = classe.value; desenhar(); });
 
   return [
-    cabecalho('Perfil privado', 'Rodrigo'),
-    el('div', { class: 'destaque-perfil' }, [
-      el('p', { class: 'rotulo', texto: 'O seu estilo de viagem' }),
-      el('h3', { texto: 'Quiet luxury · 5 estrelas · transfers privados' }),
-      el('p', { class: 'suave', texto: 'As suas preferências apoiam recomendações sem ter de repetir o contexto a cada pedido.' }),
+    cabecalho('Pesquisa manual · Voos', 'Para onde vai?'),
+    el('div', { class: 'form-voo' }, [
+      campoAeroporto('de', 'De onde parte?'),
+      campoAeroporto('para', 'Para onde vai?'),
+      el('div', { class: 'duas-colunas' }, [
+        campoData('data', 'Partida', v.data, (x) => { v.data = x; }),
+        campoData('regresso', 'Regresso (opcional)', v.regresso, (x) => { v.regresso = x; }),
+      ]),
+      el('p', { class: 'rotulo', texto: 'Passageiros' }),
+      quantidade('Adultos', v.passageiros.adultos, mudar((n) => { v.passageiros.adultos = n; }), 1),
+      quantidade('Crianças', v.passageiros.criancas, mudar((n) => { v.passageiros.criancas = n; })),
+      quantidade('Bebés', v.passageiros.bebes, mudar((n) => { v.passageiros.bebes = n; })),
+      el('div', { class: 'campo' }, [el('label', { for: 'campo-classe', texto: 'Classe' }), classe]),
+      el('div', { class: 'segmentos', role: 'group', 'aria-label': 'Escalas' }, [
+        el('button', { class: 'segmento', 'aria-pressed': String(v.escalasMaximas === 0), texto: 'Só diretos', onclick: () => { v.escalasMaximas = 0; desenhar(); } }),
+        el('button', { class: 'segmento', 'aria-pressed': String(v.escalasMaximas === 1), texto: 'Até 1 escala', onclick: () => { v.escalasMaximas = 1; desenhar(); } }),
+      ]),
+      quantidade('Malas de porão por pessoa', v.malas, mudar((n) => { v.malas = Math.min(3, n); })),
+      el('button', {
+        class: 'botao-docs',
+        onclick: () => {
+          if (!aeroporto(v.para)) { aviso('Escolha o destino para verificar os documentos.'); return; }
+          v.docs = verificacaoDoVoo([]);
+          desenhar();
+        },
+      }, 'Verificar documentos de viagem'),
+      v.docs ? blocoDocumentos(v.docs, 'Só o destino, por agora: as escalas verificam-se quando escolher um voo. Tabela de demonstração, não é o Timatic.') : null,
+      el('button', { class: 'botao-principal', disabled: v.aProcurar || null, onclick: () => void pesquisarVoos() },
+        v.aProcurar ? [roda(), 'A pesquisar…'] : 'Pesquisar voos'),
+      v.erro ? el('p', { class: 'erro-form', role: 'status', texto: v.erro }) : null,
     ]),
-    seccao('Conta e preferências'),
+  ];
+}
+
+async function pesquisarVoos() {
+  const v = estado.voo;
+  if (v.aProcurar) return;
+  const erro = validarPesquisa(pesquisaDoEstado(), hojeNaDemo());
+  if (erro) { v.erro = erro; desenhar(); aviso(erro); return; }
+  v.erro = null;
+  v.aProcurar = true;
+  desenhar();
+  /* A mesma espera deliberada do concierge: o estado "a pesquisar" tem de
+     existir no ecrã antes de existir um fornecedor que demore a sério. */
+  await pausa(420);
+  v.ofertas = ofertasDeVoo(pesquisaDoEstado());
+  v.aProcurar = false;
+  v.fase = 'resultados';
+  desenhar();
+}
+
+const diaDaPesquisa = (data) => formatDay(`${data}T12:00:00+00:00`);
+
+function vooResultados() {
+  const v = estado.voo;
+  const q = pesquisaDoEstado();
+  const classe = CLASSES.find((c) => c.id === q.classe);
+  return [
+    cabecalho(`${aeroporto(q.de).city} → ${aeroporto(q.para).city}`, `${v.ofertas.length} ${v.ofertas.length === 1 ? 'opção' : 'opções'}`),
+    el('p', { class: 'meta-pesquisa', texto: `${diaDaPesquisa(q.data)} · ${rotuloDePassageiros(q.passageiros)} · ${classe ? classe.rotulo : ''}` }),
+    el('p', { class: 'aviso-ilustrativo', texto: AVISO_DE_RESULTADOS }),
+    ...(v.ofertas.length
+      ? v.ofertas.map(cartaoOferta)
+      : [el('div', { class: 'cartao' }, [
+          el('h3', { texto: 'Sem voos com estes filtros' }),
+          el('p', { class: 'suave', texto: q.escalasMaximas === 0 ? 'Não há voo direto nesta rota da demonstração. Experimente "Até 1 escala".' : 'Experimente outras datas ou outros aeroportos.' }),
+        ])]),
+  ];
+}
+
+function cartaoOferta(o) {
+  const primeira = o.pernas[0];
+  const ultima = o.pernas[o.pernas.length - 1];
+  const diaSeguinte = localDayKey(ultima.chegada) !== localDayKey(primeira.partida);
+  return el('button', { class: 'oferta', onclick: () => { estado.voo.escolhida = o; estado.voo.fase = 'resumo'; desenhar(); } }, [
+    el('span', { class: 'oferta-horas' }, [
+      el('span', {}, [el('strong', { texto: formatTime(primeira.partida) }), el('small', { texto: primeira.de })]),
+      el('span', { class: 'oferta-meio', texto: o.escalas.length ? `1 escala · ${o.escalas.join(', ')}` : 'Direto' }),
+      el('span', {}, [el('strong', { texto: formatTime(ultima.chegada) + (diaSeguinte ? ' +1' : '') }), el('small', { texto: ultima.para })]),
+    ]),
+    el('span', { class: 'oferta-rodape' }, [
+      el('span', { texto: `${rotuloDeDuracao(o.duracaoMin)} · ${o.companhia}` }),
+      el('span', { class: 'oferta-preco' }, [el('small', { texto: 'a partir de ' }), euros(o.precoPorLugar)]),
+    ]),
+    o.lugaresRestantes ? el('span', { class: 'oferta-lugares', texto: `${o.lugaresRestantes} lugares a este preço` }) : null,
+  ]);
+}
+
+function linhaTotal(rotulo, valor, texto = null, forte = false) {
+  return el('div', { class: 'linha-total' + (forte ? ' forte' : '') }, [el('span', { texto: rotulo }), el('span', { texto: texto ?? euros(valor) })]);
+}
+
+function vooResumo() {
+  const v = estado.voo;
+  const q = pesquisaDoEstado();
+  const o = v.escolhida;
+  const total = totalDaOferta(o, q);
+  const ver = verificacaoDoVoo(o.escalas);
+  return [
+    cabecalho('A sua reserva', `${aeroporto(q.de).city} → ${aeroporto(q.para).city}`),
+    seccao('Voos'),
+    el('div', { class: 'pilha' }, o.pernas.map((p) => el('div', { class: 'cartao' }, [
+      el('div', { class: 'linha' }, [el('h4', { texto: `${p.de} → ${p.para}` }), el('span', { class: 'marca', texto: p.numero })]),
+      el('p', { class: 'suave', texto: `${formatDay(p.partida)} · ${formatTime(p.partida)} → ${formatTime(p.chegada)} · horas locais de cada aeroporto` }),
+    ]))),
+    blocoDocumentos(ver),
+    seccao('Total'),
+    el('div', { class: 'cartao' }, [
+      linhaTotal(`Bilhetes · ${rotuloDePassageiros(q.passageiros)}`, total.bilhetes),
+      q.passageiros.bebes ? linhaTotal('Bebés ao colo', total.bebes) : null,
+      total.malas ? linhaTotal(`Malas de porão · ${q.malas} por pessoa`, total.malas) : linhaTotal('Malas de porão', 0, q.malas ? 'incluídas' : 'nenhuma'),
+      linhaTotal('Total', total.total, null, true),
+      el('p', { class: 'aviso-ilustrativo', texto: 'Preço ilustrativo. Em produção vem do fornecedor, no momento, e pode mudar até à confirmação.' }),
+    ]),
+    ver.estado === 'impeditivo'
+      ? el('button', {
+          class: 'botao-escalar',
+          onclick: () => abrirConcierge(`Quero voar de ${q.de} para ${q.para} a ${q.data}, mas a verificação de documentos encontrou um impedimento.`),
+        }, ['Pedir à NHCS para rever os documentos', seta()])
+      : el('button', { class: 'botao-principal', onclick: () => { v.fase = 'pagamento'; desenhar(); } }, 'Continuar para pagamento'),
+  ];
+}
+
+function vooPagamento() {
+  const v = estado.voo;
+  const total = totalDaOferta(v.escolhida, pesquisaDoEstado());
+  return [
+    cabecalho('Pagamento', 'Selecione o método'),
+    el('div', { class: 'pilha', role: 'radiogroup', 'aria-label': 'Método de pagamento' }, MEIOS_DE_PAGAMENTO_DEMO.map((m) => el('button', {
+      class: 'meio' + (v.meio === m.id ? ' escolhido' : ''), role: 'radio', 'aria-checked': String(v.meio === m.id),
+      onclick: () => { v.meio = m.id; desenhar(); },
+    }, [el('span', { class: 'meio-marca', 'aria-hidden': 'true', texto: v.meio === m.id ? '●' : '○' }), el('span', { texto: m.rotulo })]))),
+    el('p', { class: 'suave', texto: 'A app nunca vê o número do cartão: guarda só o que o fornecedor de pagamentos devolve — a marca, os últimos quatro dígitos e uma referência.' }),
+    el('div', { class: 'cartao' }, [linhaTotal('A pagar', total.total, null, true)]),
+    el('button', { class: 'botao-principal', disabled: v.aConfirmar || null, onclick: () => void confirmarReserva() },
+      v.aConfirmar ? [roda(), 'A confirmar…'] : 'Confirmar pagamento (simulado)'),
+    el('p', { class: 'aviso-ilustrativo', texto: 'Demonstração: nenhum pagamento é feito e nenhuma reserva é criada.' }),
+  ];
+}
+
+async function confirmarReserva() {
+  const v = estado.voo;
+  if (v.aConfirmar) return;
+  v.aConfirmar = true;
+  desenhar();
+  try {
+    const meio = MEIOS_DE_PAGAMENTO_DEMO.find((m) => m.id === v.meio);
+    v.recibo = await servicoDeReserva.confirmar(v.escolhida, pesquisaDoEstado(), meio);
+    estado.faturasNovas.push(v.recibo.fatura);
+    v.fase = 'recibo';
+    aviso('Reserva simulada. Nada foi cobrado.');
+  } catch (erro) {
+    aviso(erro instanceof Error ? erro.message : 'Não foi possível confirmar a reserva.');
+  } finally {
+    v.aConfirmar = false;
+    desenhar();
+  }
+}
+
+function vooRecibo() {
+  const r = estado.voo.recibo;
+  const passo = (n, titulo, detalhe, classe) => el('li', { class: 'passo-recibo ' + classe }, [
+    el('b', { 'aria-hidden': 'true', texto: String(n) }),
+    el('span', {}, [el('strong', { texto: titulo }), el('span', { texto: detalhe })]),
+  ]);
+  return [
+    cabecalho('Reserva enviada', 'Obrigado.'),
+    el('div', { class: 'cartao recibo-reserva' }, [
+      el('p', { class: 'rotulo', texto: 'Referência' }),
+      el('code', { texto: r.referencia }),
+      el('p', { class: 'aviso-ilustrativo', texto: r.mensagem }),
+    ]),
+    seccao('O que acontece a seguir'),
+    el('ol', { class: 'passos-recibo' }, [
+      passo(1, 'Pagamento confirmado', r.cobrado ? 'Cobrado.' : 'Simulado — nada foi cobrado.', 'feito'),
+      passo(2, 'Processo aberto na TIDE', `${r.processoTide === 'simulado' ? 'Simulado. ' : ''}Em produção é automático: ninguém da NHCS volta a escrever a reserva.`, 'simulado'),
+      passo(3, 'Fatura emitida pela TIDE', 'Por emitir.', 'pendente'),
+      passo(4, 'Fatura guardada na app', 'Aparece em Viagens, nas reservas desta sessão.', 'pendente'),
+    ]),
+    el('button', { class: 'botao-contorno', onclick: () => irPara('journeys') }, 'Ver em Viagens'),
+    el('button', { class: 'botao-contorno', onclick: () => { estado.voo = novaPesquisa(); desenhar(); } }, 'Nova pesquisa'),
+  ];
+}
+
+/* --------------------------------------------------------------- Viagens */
+
+function ecraViagensDraft() {
+  if (!estado.todas.length) return [cabecalho('As suas viagens', 'A carregar…'), ...semViagem()];
+
+  if (estado.vistaViagens === 'viagem') {
+    const v = viagemPorId(estado.viagemAberta);
+    if (v) return ecraUmaViagem(v);
+    estado.vistaViagens = 'listas';
+  }
+
+  const { proxima, futuras, passadas } = viagensClassificadas();
+
+  if (estado.vistaViagens === 'futuras' || estado.vistaViagens === 'passadas') {
+    const lista = estado.vistaViagens === 'futuras' ? futuras : passadas;
+    return [
+      voltar('Viagens', () => { estado.vistaViagens = 'listas'; desenhar(); }),
+      cabecalho('As suas viagens', estado.vistaViagens === 'futuras' ? 'As próximas' : 'As que já fez'),
+      lista.length
+        ? el('div', { class: 'pilha' }, lista.map((v) => {
+            const tv = getJourneyTiming(v, relogio());
+            return fila(v.destination, `${tv.datesLabel} · ${tv.relativeLabel}`, () => abrirViagem(v.id));
+          }))
+        : el('p', { class: 'suave', texto: 'Nenhuma, por agora.' }),
+    ];
+  }
+
+  const tp = proxima ? getJourneyTiming(proxima, relogio()) : null;
+  return [
+    cabecalho('As suas viagens', proxima ? proxima.destination : 'Sem viagem marcada'),
+    proxima
+      ? el('button', { class: 'heroi heroi-lista', 'aria-label': `Abrir a viagem a ${proxima.destination}`, onclick: () => abrirViagem(proxima.id) }, [
+          el('span', { class: 'marca-heroi', texto: tp.phase === 'travelling' ? 'EM CURSO' : 'A PRÓXIMA' }),
+          el('p', { class: 'eyebrow', texto: tp.relativeLabel }),
+          el('h3', { texto: proxima.destination }),
+          el('p', { class: 'meta', texto: tp.datesLabel }),
+        ])
+      : convitePlanear(),
     el('div', { class: 'pilha' }, [
-      fila('Informação pessoal', 'Dados de contacto e identidade'),
-      fila('Família', 'Viajantes e preferências partilhadas'),
-      fila('Preferências de viagem', 'Voos, hotéis, transfers e seguros'),
-      fila('Documentos de viagem', 'Acesso protegido na carteira', () => { estado.carteiraAberta = true; irPara('trips'); }),
-      fila('Pagamentos', 'Métodos guardados pelo serviço de pagamentos'),
-      fila('Privacidade e segurança', 'Sessão, dispositivos e permissões'),
+      fila('As próximas', `${futuras.length} ${futuras.length === 1 ? 'viagem' : 'viagens'}`, () => { estado.vistaViagens = 'futuras'; desenhar(); }),
+      fila('As que já fez', `${passadas.length} ${passadas.length === 1 ? 'viagem' : 'viagens'}`, () => { estado.vistaViagens = 'passadas'; desenhar(); }),
     ]),
-    politicaDeNotificacoes(),
+    ...reservasDaSessao(),
+  ];
+}
+
+/** O que a pesquisa de voos deixou — a fatura "por emitir" que a TIDE emitiria. */
+function reservasDaSessao() {
+  if (!estado.faturasNovas.length) return [];
+  return [
+    seccao('Reservas desta sessão'),
+    el('div', { class: 'lista-doc' }, estado.faturasNovas.map((f) => el('div', { class: 'doc doc-pendente' }, [
+      el('span', { class: 'icone', 'aria-hidden': 'true', texto: '€' }),
+      el('span', { class: 'nome' }, [f.titulo, el('p', { class: 'estado-doc', texto: `${f.referencia} · fatura por emitir pela ${f.emitidoPor}` })]),
+      el('span', { class: 'demo', texto: 'DEMO' }),
+    ]))),
+  ];
+}
+
+function ecraUmaViagem(v) {
+  const { proxima, futuras } = viagensClassificadas();
+  const tipo = proxima && v.id === proxima.id ? 'proxima' : futuras.some((f) => f.id === v.id) ? 'futura' : 'passada';
+  const paraViagem = voltar(v.destination, () => { estado.subViagem = null; desenhar(); });
+
+  switch (estado.subViagem) {
+    case 'itinerario': return [paraViagem, ...ecraItinerario(v, tipo)];
+    case 'documentos': return [paraViagem, ...ecraDocumentos(v)];
+    case 'clima': return [paraViagem, ...ecraClima(v)];
+    case 'voo': return [paraViagem, ...ecraEstadoDoVoo(v)];
+    case 'tradutor': return [paraViagem, ...ecraTradutor()];
+    case 'emergencia': return [paraViagem, ...ecraEmergencia(v)];
+    default: break;
+  }
+
+  const tv = getJourneyTiming(v, relogio());
+  const opcoes = [
+    ['itinerario', 'O meu itinerário', 'Todos os serviços, por dia, à hora local'],
+    ['documentos', 'Os meus documentos', 'Vouchers e documentos fiscais'],
+  ];
+  if (tipo !== 'passada') opcoes.push(['clima', 'Meteorologia', 'A previsão no destino']);
+  if (tipo === 'proxima') {
+    opcoes.push(
+      ['voo', 'Estado do voo', 'Horários, terminal e porta'],
+      ['tradutor', 'Tradutor', 'Escrever ou falar'],
+      ['emergencia', 'Contactos de emergência', 'No destino'],
+    );
+  }
+  const titulo = { proxima: 'A próxima viagem', futura: 'Viagem futura', passada: 'Viagem passada' }[tipo];
+  return [
+    voltar('Viagens', () => { estado.vistaViagens = 'listas'; estado.subViagem = null; desenhar(); }),
+    cabecalho(titulo, v.destination),
+    el('p', { class: 'meta-pesquisa', texto: `${tv.datesLabel} · ${tv.relativeLabel}` }),
+    el('div', { class: 'pilha' }, opcoes.map(([id, rotulo, detalhe]) => fila(rotulo, detalhe, () => { estado.subViagem = id; desenhar(); }))),
+  ];
+}
+
+function ecraDocumentos(v) {
+  const daProxima = estado.viagem && v.id === estado.viagem.id;
+  const grupos = agruparPorCategoria(daProxima ? DOCUMENTOS_DE_SERVICO_DEMO : []);
+  const linha = (d) => el('div', { class: 'doc' + (d.estado === 'por-emitir' ? ' doc-pendente' : '') }, [
+    el('span', { class: 'icone', 'aria-hidden': 'true', texto: d.tipo === 'fiscal' ? '€' : '▤' }),
+    el('span', { class: 'nome' }, [
+      d.titulo,
+      el('p', { class: 'estado-doc', texto: d.estado === 'por-emitir' ? `Por emitir · ${d.emitidoPor}` : `${d.referencia} · ${d.emitidoPor}` }),
+    ]),
+    el('span', { class: 'demo', texto: d.tipo === 'fiscal' ? 'FISCAL' : 'VOUCHER' }),
+  ]);
+  return [
+    cabecalho('Os meus documentos', v.destination),
+    el('p', { class: 'suave', texto: 'Demonstração: localizadores ilustrativos e nenhum ficheiro real. As faturas são emitidas pela TIDE e aparecem aqui quando existem.' }),
+    ...grupos.map((g, i) => el('div', { class: 'grupo-doc' }, [
+      el('h3', { texto: `${String(i + 1).padStart(2, '0')}. ${g.rotulo}` }),
+      g.vouchers.length || g.fiscais.length
+        ? el('div', { class: 'lista-doc' }, [...g.vouchers.map(linha), ...g.fiscais.map(linha)])
+        : el('p', { class: 'suave', texto: 'Sem documentos nesta categoria.' }),
+    ])),
+    daProxima
+      ? el('button', { class: 'botao-contorno', onclick: () => { estado.carteiraAberta = true; estado.subViagem = 'itinerario'; desenhar(); } }, 'Passaportes e seguro — carteira de embarque')
+      : null,
+  ];
+}
+
+function ecraClima(v) {
+  const p = v.id === SIMULACAO_EM_VIAGEM.journeyId ? PREVISAO_DEMO : null;
+  return [
+    cabecalho('Meteorologia', p ? p.cidade : v.destination),
+    p
+      ? el('div', { class: 'previsao' }, p.dias.map((d) => el('div', { class: 'previsao-dia' }, [
+          el('strong', { texto: d.dia }), el('span', { texto: `${d.maxima}° / ${d.minima}°` }), el('small', { texto: d.resumo }),
+        ])))
+      : el('p', { class: 'suave', texto: 'A previsão aparece nos cinco dias antes da partida.' }),
+    el('p', { class: 'aviso-ilustrativo', texto: `Simulado. Fornecedor previsto: ${PREVISAO_DEMO.fornecedorPrevisto}.` }),
+  ];
+}
+
+function ecraEstadoDoVoo(v) {
+  const e = ESTADO_DO_VOO_DEMO;
+  const par = (termo, valor) => [el('dt', { texto: termo }), el('dd', { texto: valor })];
+  return [
+    cabecalho('Estado do voo', `${v.flightNumber} · ${routeLabel(v)}`),
+    el('div', { class: 'cartao' }, [
+      el('div', { class: 'linha' }, [el('h3', { texto: e.estado }), el('span', { class: 'marca', texto: `+${e.atrasoMinutos} MIN` })]),
+      el('dl', { class: 'dados-voo' }, [
+        ...par('Partida prevista', `${formatDay(v.departureAt)}, ${formatTime(v.departureAt)} (hora de Lisboa)`),
+        ...par('Atraso estimado', `${e.atrasoMinutos} minutos`),
+        ...par('Terminal', e.terminal),
+        ...par('Porta', e.porta),
+      ]),
+    ]),
+    el('p', { class: 'aviso-ilustrativo', texto: `Simulado. Fornecedor previsto: ${e.fornecedorPrevisto} — serviço pago, com contrato.` }),
+  ];
+}
+
+function ecraTradutor() {
+  const tr = estado.traducao;
+  const campo = el('input', { id: 'campo-traduzir', type: 'text', placeholder: 'Escreva em português…', value: tr.texto });
+  campo.addEventListener('input', () => { tr.texto = campo.value; });
+  campo.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') traduzir(); });
+  return [
+    cabecalho('Tradutor', 'Português → inglês'),
+    el('div', { class: 'campo' }, [el('label', { for: 'campo-traduzir', texto: 'Escrever ou falar' }), campo]),
+    el('button', { class: 'botao-principal', onclick: traduzir }, 'Traduzir'),
+    tr.resultado
+      ? el('div', { class: 'cartao', 'aria-live': 'polite' }, [el('p', { class: 'rotulo', texto: 'Inglês' }), el('p', { class: 'traduzido', texto: tr.resultado })])
+      : null,
+    seccao('Frases'),
+    el('div', { class: 'frases' }, FRASES_DEMO.map((f) => el('button', { class: 'frase', texto: f.pt, onclick: () => { tr.texto = f.pt; traduzir(); } }))),
+    el('p', { class: 'aviso-ilustrativo', texto: 'Simulado: só as frases desta lista. Em produção, uma API de tradução — texto e voz — com custo por uso.' }),
+  ];
+}
+
+function traduzir() {
+  const tr = estado.traducao;
+  tr.resultado = traduzirFrase(tr.texto, FRASES_DEMO);
+  desenhar();
+}
+
+function ecraEmergencia(v) {
+  const destino = aeroporto(v.route[v.route.length - 1].code);
+  const c = destino ? CONTACTOS_DE_EMERGENCIA[destino.countryCode] : null;
+  return [
+    cabecalho('Contactos de emergência', c ? c.pais : v.destination),
+    c
+      ? el('div', { class: 'pilha' }, c.contactos.map((x) => fila(x.nome, x.numero ?? 'Por configurar pela NHCS')))
+      : el('p', { class: 'suave', texto: 'Sem contactos para este destino nesta demonstração.' }),
+    c ? el('p', { class: 'aviso-ilustrativo', texto: c.source }) : null,
+  ];
+}
+
+/* ------------------------------------------------------------------ Chat */
+
+function ecraChat() {
+  return [
+    cabecalho('Chat', 'Fale connosco'),
+    el('div', { class: 'pilha pilha-plano' }, [
+      WHATSAPP_NHCS
+        ? el('a', { class: 'plano', href: `https://wa.me/${WHATSAPP_NHCS}`, target: '_blank', rel: 'noopener' }, [
+            el('span', {}, [el('strong', { texto: 'WhatsApp' }), el('p', { class: 'suave', texto: 'Conversa direta com a equipa NHCS.' })]), seta(),
+          ])
+        : el('div', { class: 'plano plano-inativo' }, [
+            el('span', {}, [
+              el('strong', { texto: 'WhatsApp' }),
+              el('p', { class: 'suave', texto: 'Por configurar: falta o número de WhatsApp da NHCS. Com ele, este botão abre a conversa com a equipa.' }),
+            ]),
+          ]),
+      porta('Concierge IA', 'Para planear e pedir a qualquer hora. Fora de horas é por aqui que a NHCS recebe o pedido.', () => abrirConcierge()),
+    ]),
+    ...mensagensDaNHCS(),
+  ];
+}
+
+/* ------------------------------------------------------------------ Menu ≡ */
+
+function abrirMenu() {
+  estado.menuAberto = true;
+  estado.menuSeccao = null;
+  aviso('');
+  desenhar();
+}
+
+function ecraMenu() {
+  const L = estado.lingua;
+  if (estado.menuSeccao) {
+    return [voltar(t('menu.titulo', L), () => { estado.menuSeccao = null; desenhar(); }), ...seccaoDoMenu(estado.menuSeccao)];
+  }
+  const itens = ['pessoal', 'familia', 'pagamentos', 'legal', 'notificacoes'];
+  return [
+    voltar('Fechar', () => { estado.menuAberto = false; desenhar(); }),
+    cabecalho(t('menu.titulo', L), estado.sessao ? estado.sessao.firstName : '', 'Menu'),
+    el('div', { class: 'pilha' }, itens.map((id) => fila(t(`menu.${id}`, L), null, () => { estado.menuSeccao = id; desenhar(); }))),
     el('div', { class: 'cartao-acess' }, [
       el('p', { class: 'rotulo', texto: 'Acessibilidade' }),
       el('h3', { texto: semMovimento() ? 'Movimento reduzido ativo' : 'Movimento reduzido segue a definição do dispositivo' }),
       el('p', { class: 'suave', texto: 'Informação crítica nunca depende de animação; os controlos mantêm alvos de toque amplos.' }),
     ]),
+    el('button', { class: 'botao-contorno', onclick: sair }, t('menu.sair', L)),
   ];
+}
+
+function seccaoDoMenu(id) {
+  if (id === 'pessoal') {
+    return [
+      cabecalho('Os meus dados', 'Rodrigo Figueiredo'),
+      el('div', { class: 'pilha' }, [
+        fila('Email', 'cliente@exemplo.pt'),
+        fila('Nacionalidade', 'Portuguesa · cidadão da UE'),
+        estado.viagem
+          ? fila('Documento de identidade', 'Passaporte · na carteira de embarque', () => abrirViagem(estado.viagem.id, 'itinerario', { carteira: true }))
+          : fila('Documento de identidade', 'Passaporte · na carteira de embarque'),
+        fila('Preferências de viagem', 'Quiet luxury · 5 estrelas · transfers privados'),
+      ]),
+      el('p', { class: 'aviso-ilustrativo', texto: 'Dados de demonstração. Em produção o perfil vive no backend da NHCS — encriptado, com regras de retenção — e não na TIDE.' }),
+    ];
+  }
+  if (id === 'familia') {
+    const titulares = [...new Set(estado.documentos.filter((d) => d.kind === 'passport').map((d) => d.holder))];
+    return [
+      cabecalho('A minha família', 'Viajantes'),
+      el('div', { class: 'pilha' }, titulares.map((nome, i) => fila(nome, i === 0 ? 'Titular da conta' : 'Viajante · vê as viagens partilhadas'))),
+      el('p', { class: 'aviso-ilustrativo', texto: 'Quem vê o quê numa viagem de família é uma decisão da NHCS ainda por tomar (questão 5 das bloqueadoras).' }),
+    ];
+  }
+  if (id === 'pagamentos') {
+    return [
+      cabecalho('Meios de pagamento', 'Guardados'),
+      el('div', { class: 'pilha' }, MEIOS_DE_PAGAMENTO_DEMO.map((m) => fila(m.rotulo, m.tipo === 'cartao' ? 'Guardado pelo fornecedor de pagamentos' : 'Sem dados guardados'))),
+      el('p', { class: 'aviso-ilustrativo', texto: 'A app nunca guarda números de cartão — só a referência que o fornecedor de pagamentos devolve. Guardar o número põe a NHCS no âmbito do PCI DSS.' }),
+    ];
+  }
+  if (id === 'legal') {
+    return [
+      cabecalho('Informação legal', 'Termos e privacidade'),
+      el('div', { class: 'pilha' }, [
+        fila('Termos de utilização', 'Por publicar'),
+        fila('Política de privacidade', 'A NHCS é a responsável pelo tratamento'),
+        fila('Política de acesso à app', 'A que segue a quem pede acesso sem ser cliente'),
+        fila('Subcontratantes', 'TIDE, pagamentos, alojamento — por confirmar'),
+      ]),
+    ];
+  }
+  return [cabecalho('Notificações', 'O que lhe vamos enviar'), politicaDeNotificacoes()];
+}
+
+function sair() {
+  sessaoService.signOut();
+  estado.sessao = null;
+  estado.menuAberto = false;
+  estado.menuSeccao = null;
+  estado.separador = 'home';
+  estado.entradaModo = 'entrar';
+  desenhar();
+}
+
+/* ------------------------------------------------------ A porta: pedir acesso */
+
+async function pedirAcesso(email) {
+  const a = estado.acesso;
+  if (a.aEnviar) return;
+  a.email = email;
+  a.aEnviar = true;
+  a.erro = null;
+  desenhar({ manterCampos: {} });
+  try {
+    a.recibo = await servicoDeAcesso.pedir(email);
+  } catch (erro) {
+    a.erro = erro instanceof Error ? erro.message : 'Não foi possível enviar o pedido.';
+  } finally {
+    a.aEnviar = false;
+    desenhar({ manterCampos: {} });
+  }
+}
+
+function ecraPedirAcesso(linguas) {
+  const L = estado.lingua;
+  const a = estado.acesso;
+  const email = el('input', {
+    id: 'campo-acesso', type: 'email', autocomplete: 'email', inputmode: 'email',
+    placeholder: 'nome@exemplo.pt', value: a.email ?? '', disabled: a.aEnviar || null,
+  });
+  const forma = el('form', {
+    class: 'entrada-campos',
+    onsubmit: (ev) => { ev.preventDefault(); void pedirAcesso(email.value); },
+  }, [
+    el('label', { for: 'campo-acesso', texto: t('entrada.email', L) }), email,
+    el('button', { class: 'entrar', type: 'submit', disabled: a.aEnviar || null, texto: a.aEnviar ? '…' : t('entrada.pedirAcesso.enviar', L) }),
+    el('p', { class: 'entrada-erro', role: 'status', 'aria-live': 'polite', texto: a.erro ?? '' }),
+  ]);
+
+  const recibo = a.recibo
+    ? el('div', { class: 'acesso-recibo', role: 'status' }, [
+        el('p', { texto: a.recibo.mensagem }),
+        el('code', { texto: a.recibo.referencia }),
+        el('div', { class: 'acesso-demo' }, [
+          el('p', { class: 'rotulo', texto: 'Só na demonstração · o que seguiria por email' }),
+          el('p', { texto: a.recibo.ramoDemo === 'cliente'
+            ? 'Este email é de um cliente: seguiria o link para o formulário de registo.'
+            : 'Este email não é de um cliente: seguiria a política de acesso à app.' }),
+          el('p', { class: 'suave', texto: 'Em produção o ecrã não diz isto — senão bastava escrever emails num formulário para saber quem é cliente da NHCS.' }),
+        ]),
+      ])
+    : null;
+
+  return [el('section', { class: 'entrada' }, [
+    linguas,
+    el('div', { class: 'entrada-texto' }, [
+      el('p', { class: 'entrada-marca', texto: 'NHCS' }),
+      el('h2', { texto: t('entrada.pedirAcesso', L) }),
+      el('p', { class: 'entrada-sub', texto: t('entrada.pedirAcesso.texto', L) }),
+    ]),
+    recibo ?? forma,
+    el('button', {
+      class: 'pedir-acesso', type: 'button',
+      onclick: () => { estado.entradaModo = 'entrar'; estado.acesso = { aEnviar: false, recibo: null, erro: null }; desenhar(); },
+    }, t('entrada.voltar', L)),
+    el('p', { class: 'entrada-nota' }, [
+      'Demonstração. Experimente ', el('code', { texto: 'cliente@exemplo.pt' }), ' (cliente) e qualquer outro email (não cliente).',
+    ]),
+  ])];
 }
 
 /* ------------------------------------------------------------------ acções */
@@ -797,15 +1644,24 @@ async function pedirPessoa() {
   }
 }
 
+/**
+ * Os quatro botões fixos. Tocar num deles leva ao topo dessa secção — é o que
+ * se espera de uma barra fixa, e é o que o Draft1 desenha.
+ */
 function irPara(separador) {
   estado.separador = separador;
+  estado.menuAberto = false;
+  if (separador === 'search') { estado.modoPesquisa = null; estado.categoria = null; }
+  if (separador === 'journeys') { estado.vistaViagens = 'listas'; estado.subViagem = null; }
   aviso('');
   desenhar();
 }
 
 function abrirConcierge(pedido) {
   sequencia += 1;
-  estado.separador = 'concierge';
+  estado.separador = 'search';
+  estado.modoPesquisa = 'concierge';
+  estado.menuAberto = false;
   estado.aPreparar = false;
   estado.proposta = null;
   estado.referencia = null;
@@ -861,6 +1717,16 @@ async function entrar(email, palavra) {
 }
 
 function ecraEntrada(campos = {}) {
+  const L = estado.lingua;
+  /* "Use native language" — o seletor de língua do Draft1, no canto do ecrã
+     de entrada. Esta primeira fatia traduz a entrada, os quatro botões e o
+     menu; o resto da app continua em português. */
+  const linguas = el('div', { class: 'linguas', role: 'group', 'aria-label': 'Língua' }, LINGUAS.map((x) => el('button', {
+    class: 'lingua', type: 'button', 'aria-pressed': String(L === x.id), texto: x.rotulo,
+    onclick: () => { estado.lingua = x.id; desenhar({ manterCampos: campos }); },
+  })));
+  if (estado.entradaModo === 'pedir') return ecraPedirAcesso(linguas);
+
   const email = el('input', {
     id: 'campo-email', type: 'email', autocomplete: 'email', inputmode: 'email',
     placeholder: 'nome@exemplo.pt', value: campos.email ?? '', disabled: estado.aEntrar || null,
@@ -872,22 +1738,22 @@ function ecraEntrada(campos = {}) {
 
   const botao = el('button', {
     class: 'entrar', type: 'submit', disabled: estado.aEntrar || null,
-    texto: estado.aEntrar ? 'A entrar…' : 'Entrar',
+    texto: estado.aEntrar ? '…' : t('entrada.entrar', L),
   });
 
   const forma = el('form', {
     class: 'entrada-campos',
     onsubmit: (ev) => { ev.preventDefault(); void entrar(email.value, palavra.value); },
   }, [
-    el('label', { for: 'campo-email', texto: 'Email' }), email,
-    el('label', { for: 'campo-palavra', texto: 'Palavra-passe' }), palavra,
+    el('label', { for: 'campo-email', texto: t('entrada.email', L) }), email,
+    el('label', { for: 'campo-palavra', texto: t('entrada.password', L) }), palavra,
     botao,
     el('p', { class: 'entrada-erro', role: 'status', 'aria-live': 'polite', texto: estado.erroEntrada ?? '' }),
   ]);
 
   const texto = el('div', { class: 'entrada-texto' }, [
     el('p', { class: 'entrada-marca', texto: 'NHCS' }),
-    el('h2', { texto: 'A sua viagem, quando quiser vê-la.' }),
+    el('h2', { texto: t('entrada.titulo', L) }),
     el('p', { class: 'entrada-sub', texto: 'Entre com o email que usa com a NH Concierge Services.' }),
   ]);
 
@@ -897,8 +1763,15 @@ function ecraEntrada(campos = {}) {
   }
 
   return [el('section', { class: 'entrada' }, [
+    linguas,
     texto,
     forma,
+    /* O segundo botão do Draft1. Ver `src/acesso.js` para o porquê de o ecrã
+       responder sempre o mesmo, seja quem for que pede. */
+    el('button', {
+      class: 'pedir-acesso', type: 'button',
+      onclick: () => { estado.entradaModo = 'pedir'; estado.acesso = { aEnviar: false, recibo: null, erro: null }; desenhar(); },
+    }, t('entrada.pedirAcesso', L)),
     el('p', { class: 'entrada-nota' }, [
       'Demonstração. Nenhum dado real de cliente passa por aqui. Entre com ',
       el('code', { texto: 'cliente@exemplo.pt' }), ' e ', el('code', { texto: 'demo-nhcs' }), '.',
@@ -906,27 +1779,29 @@ function ecraEntrada(campos = {}) {
   ])];
 }
 
+/* Os quatro botões fixos do Draft1, pela ordem dele: Home, Search, Journeys,
+   Chat. Eram cinco — Início, Viagens, Concierge, Planear, Perfil. O Concierge
+   e o Planear passaram a ser portas da Pesquisa; o Perfil passou para o ≡. */
 const SEPARADORES = [
-  { id: 'home', rotulo: 'Início', icone: '⌂', ecra: ecraInicio },
-  { id: 'trips', rotulo: 'Viagens', icone: '◌', ecra: ecraViagens },
-  { id: 'concierge', rotulo: 'Concierge', icone: '✦', ecra: ecraConcierge },
-  { id: 'plan', rotulo: 'Planear', icone: '+', ecra: ecraPlanear },
-  { id: 'profile', rotulo: 'Perfil', icone: '○', ecra: ecraPerfil },
+  { id: 'home', chave: 'nav.home', icone: '⌂', ecra: ecraInicio },
+  { id: 'search', chave: 'nav.search', icone: '⌕', ecra: ecraPesquisa },
+  { id: 'journeys', chave: 'nav.journeys', icone: '◌', ecra: ecraViagensDraft },
+  { id: 'chat', chave: 'nav.chat', icone: '✉', ecra: ecraChat },
 ];
 
 function desenharNav() {
   nav.textContent = '';
   for (const separador of SEPARADORES) {
-    const activo = separador.id === estado.separador;
+    const activo = separador.id === estado.separador && !estado.menuAberto;
+    const rotulo = t(separador.chave, estado.lingua);
     nav.append(el('button', {
       role: 'tab',
       'aria-selected': String(activo),
-      'aria-label': separador.rotulo,
-      class: separador.id === 'concierge' ? 'concierge' : null,
-      onclick: () => (separador.id === 'concierge' ? abrirConcierge() : irPara(separador.id)),
+      'aria-label': rotulo,
+      onclick: () => irPara(separador.id),
     }, [
       el('span', { class: 'icone', 'aria-hidden': 'true', texto: separador.icone }),
-      el('span', { 'aria-hidden': 'true', texto: separador.rotulo }),
+      el('span', { 'aria-hidden': 'true', texto: rotulo }),
     ]));
   }
 }
@@ -960,18 +1835,23 @@ function desenhar({ manterFoco = false, manterCampos = null, tremer = false } = 
   }
   nav.hidden = false;
 
-  const separador = SEPARADORES.find((s) => s.id === estado.separador);
-  const escuro = estado.separador === 'concierge';
+  const separador = SEPARADORES.find((s) => s.id === estado.separador) || SEPARADORES[0];
+  const escuro = !estado.menuAberto && estado.separador === 'search' && estado.modoPesquisa === 'concierge';
   ecra.classList.toggle('escuro', escuro);
 
   const posicao = vista.scrollTop;
-  const focoEraCampo = manterFoco && document.activeElement && document.activeElement.tagName === 'TEXTAREA';
-  const cursor = focoEraCampo ? document.activeElement.selectionStart : null;
+  /* O foco volta ao campo onde se estava a escrever: o do concierge (sem id)
+     ou os da pesquisa de voos (com id). Sem isto, cada letra redesenhava o
+     ecrã e o cursor ia parar ao início da página. */
+  const activoAntes = manterFoco ? document.activeElement : null;
+  const focoEraCampo = !!activoAntes && (activoAntes.tagName === 'TEXTAREA' || activoAntes.tagName === 'INPUT');
+  const idDoFoco = focoEraCampo && activoAntes.id ? activoAntes.id : null;
+  const cursor = focoEraCampo ? activoAntes.selectionStart : null;
 
   vista.textContent = '';
-  vista.append(...separador.ecra().filter(Boolean));
+  vista.append(...(estado.menuAberto ? ecraMenu() : separador.ecra()).filter(Boolean));
   desenharNav();
-  if (estado.separador === 'trips') ligarJato();
+  if (vista.querySelector('.itinerario')) ligarJato();
   /* O Início também tem herói. O ouvinte de scroll é o mesmo — está preso ao
      `.vista`, que não é recriado — mas a primeira medição tem de acontecer a
      cada desenho, senão o herói novo fica sem posição até alguém tocar. */
@@ -980,10 +1860,10 @@ function desenhar({ manterFoco = false, manterCampos = null, tremer = false } = 
 
   if (manterFoco) {
     vista.scrollTop = posicao;
-    const campo = vista.querySelector('textarea');
+    const campo = idDoFoco ? document.getElementById(idDoFoco) : vista.querySelector('textarea');
     if (focoEraCampo && campo) {
       campo.focus();
-      if (cursor !== null) campo.setSelectionRange(cursor, cursor);
+      try { if (cursor !== null && campo.setSelectionRange) campo.setSelectionRange(cursor, cursor); } catch { /* `type=email` não tem cursor */ }
     }
   } else {
     vista.scrollTop = 0;
@@ -994,14 +1874,20 @@ function desenhar({ manterFoco = false, manterCampos = null, tremer = false } = 
        ms, a mover as duas propriedades juntas. Ninguém repara na diferença de
        80 ms num ecrã, repara-se em ver os dois lado a lado — e é exactamente
        para isso que a demonstração existe. */
-    if (anterior !== estado.separador && !semMovimento()) {
+    if (anterior !== chaveDoEcra() && !semMovimento()) {
       vista.animate([{ opacity: 0 }, { opacity: 1 }],
         { duration: 180, easing: 'cubic-bezier(.16, 1, .3, 1)' });
       vista.animate([{ transform: 'translateY(10px)' }, { transform: 'none' }],
         { duration: 260, easing: 'cubic-bezier(.16, 1, .3, 1)' });
     }
   }
-  anterior = estado.separador;
+  anterior = chaveDoEcra();
+}
+
+/** Que ecrã está à vista — para a transição correr ao mudar de ecrã, e não a cada tecla. */
+function chaveDoEcra() {
+  return [estado.separador, estado.menuAberto, estado.menuSeccao, estado.modoPesquisa, estado.categoria,
+    estado.voo && estado.voo.fase, estado.vistaViagens, estado.viagemAberta, estado.subViagem].join('|');
 }
 
 /* ------------------------------------------------ o jato, quando o CSS não chega
@@ -1020,9 +1906,10 @@ function desenhar({ manterFoco = false, manterCampos = null, tremer = false } = 
 
 function fracaoDaViagemAgora() {
   const agora = relogio().getTime();
-  const pontos = eventProgress(estado.viagem);
+  const viagem = estado.viagemDoJato || estado.viagem;
+  const pontos = eventProgress(viagem);
   let ultima = 0;
-  for (const [i, evento] of estado.viagem.timeline.entries()) {
+  for (const [i, evento] of viagem.timeline.entries()) {
     if (new Date(evento.at).getTime() <= agora) ultima = pontos[i].fraction;
   }
   return ultima;
@@ -1144,6 +2031,10 @@ function medirCom(lista, alvo) {
 const FASES = [
   { rotulo: 'A preparar', data: null, nota: 'relógio a sério' },
   { rotulo: 'Faltam 2 dias', data: '2026-10-09T09:00:00+01:00' },
+  /* Os dois momentos em que o Início do Draft1 muda a sério: a bagagem no
+     tapete depois de aterrar, e o transfer à espera. */
+  { rotulo: 'Aterrou em Malé', data: '2026-10-11T07:30:00+05:00' },
+  { rotulo: 'Antes do hidroavião', data: '2026-10-11T09:25:00+05:00' },
   { rotulo: 'Em viagem', data: '2026-10-15T12:00:00+05:00' },
   { rotulo: 'Concluída', data: '2026-10-22T10:00:00+01:00' },
 ];
