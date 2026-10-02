@@ -60,6 +60,12 @@
     "creating WebGL contexts and compiling shaders. See the performance notes, and",
     "tools/medir-arranque.js if you would rather not take its word for it.",
     "",
+    "RAISED TO 0.60 ON 2 OCTOBER 2026, by the rule above and nothing else. The six",
+    "CI runs after the background shader stopped compiling inside the load",
+    "(9 September) measured seven-run medians of 63-70; the lowest is 63, and the",
+    "floor sits three points under it. It stayed at 0.55 for three weeks after",
+    "the page got better because nobody read the run summaries.",
+    "",
     "Paint is fast: FCP and LCP both land at 0.7s and CLS at 0.05. Those three",
     "are asserted at values the site already meets, so making the score better",
     "cannot come from making the loading worse."
@@ -85,7 +91,7 @@
         "categories:performance": [
           "error",
           {
-            "minScore": 0.55
+            "minScore": 0.6
           }
         ],
         "categories:accessibility": [

@@ -40,6 +40,10 @@
     "the same mistake as the performance floor, one metric down. They now sit far",
     "enough out to catch a regression and not a bad afternoon on a shared runner.",
     "",
+    "The warning moved from 0.68 to 0.71 on 2 October 2026: the six runs since",
+    "9 September read 74, 75, 74, 74, 81 and 76, and 71 is three under the",
+    "lowest. Still a warning — that spread is seven points, not two.",
+    "",
     "History worth keeping: a 0.38 floor once caught a real regression at 35–36",
     "and it was fixed rather than lowered. Before the mobile work this page",
     "scored 40 with a 7.1s LCP. See the performance notes for all of it."
@@ -64,7 +68,7 @@
         "categories:performance": [
           "warn",
           {
-            "minScore": 0.68
+            "minScore": 0.71
           }
         ],
         "first-contentful-paint": [

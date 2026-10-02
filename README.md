@@ -26,8 +26,9 @@ choreographer and inertial scrolling is not a good use of anyone's time.
 geometry allocated once and interpolated rather than rebuilt, and full
 `prefers-reduced-motion` support.
 
-**Where that lands, measured rather than claimed.** Seven runs each: desktop
-median **57–60**, mobile **66–75**. Accessibility **100**, best practices
+**Where that lands, measured rather than claimed.** Seven runs per profile, and
+the six CI runs since 9 September: desktop **63–70**, mobile **74–81**
+(it was 57–60 and 65–75 before). Accessibility **100**, best practices
 **100**, SEO **100** — all three asserted at 1.0 in CI, so they cannot slip back
 without failing a build.
 
@@ -41,14 +42,14 @@ read 96 where CI reads 100, for a reason that was chosen rather than missed. The
 two numbers answer different questions and it is worth knowing which one is on
 screen.
 
-Performance is the one that has not moved. It is also the one that moves
-constantly: the same unchanged page has produced blocking times between 1,410
-and 2,690 ms across consecutive runs. That is why the score is a ratchet and the
-timings are not.
+Performance moved once, on 9 September, when the background shader stopped
+compiling inside the load: blocking time went from 1,410–2,690 ms to 400–630 ms.
+It is also the number that moves most between runs of an unchanged page, which
+is why the score is a ratchet and the timings are not.
 
 Part of that score is a decision rather than a backlog item. Desktop speed index
-is 7.4–7.9 s against a 0.7 s largest contentful paint, and speed index is 10% of
-the total. A one-variable experiment
+is 6.8 s (7.4–7.9 s before September) against a 0.7 s largest contentful paint,
+and speed index is 10% of the total. A one-variable experiment
 ([`diagnostico.yml`](.github/workflows/diagnostico.yml)) measured the page with
 the loader removed and everything else untouched: **6.9 s**, about a second, when
 the normal runs already spread half a second between themselves. It is not the
@@ -87,8 +88,11 @@ random, and a check that goes red at random gets ignored. Both numbers are
 printed into every run summary so the spread stays visible instead of being
 averaged into a sentence.
 
-FCP and LCP are about 0.7 s on desktop. Mobile FCP is 1.02 s, LCP 1.70 s and
-CLS 0.006. Before the final audit mobile scored 40, LCP was 7.1 s and TBT was
+Since 9 September the same profiles read 400–630 ms of blocking time; the
+before-and-after table is at the top of [the performance notes](the performance notes).
+
+FCP and LCP are about 0.7 s on desktop. On CI's simulated mobile profile they
+are 2.7–3.0 s, with CLS at 0.006. Before the final audit mobile scored 40, LCP was 7.1 s and TBT was
 12.2 s. What cost that score was continuous decorative GPU work and a loader
 in front of the real content — not the most visible number in the repository:
 589 KB of the 715 KB of JavaScript on this page is Three.js.

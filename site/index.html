@@ -100,10 +100,11 @@ h1,h2,h3,p,blockquote,.big{overflow-wrap:break-word}
   --dim:#7d7d88;--faint:#7b7b86;--line:rgba(255,255,255,.07);
   /* --acc é escrito por JS ao longo do scroll: a página muda de temperatura
      como muda um festival — véspera fria, carga quente, pico incandescente,
-     e o verde de quem aguentou. Este valor é só o ponto de partida. */
-  --acc:#ff3d1f;
-  --acc-soft:rgba(255,61,31,.14);
-  --acc-glow:rgba(255,61,31,.45);
+     e o verde de quem aguentou. O ponto de partida tem de ser a primeira
+     paragem da PALETTE (o índigo da véspera) — ver o SISTEMA DE COR. */
+  --acc:rgb(122,134,240);
+  --acc-soft:rgba(122,134,240,.14);
+  --acc-glow:rgba(122,134,240,.45);
   --e:cubic-bezier(.16,1,.3,1);
   /* unidade base fluida: 1u ≈ 1% da largura útil, com travões */
   --u: clamp(14px, 0.92vw, 26px);
@@ -350,6 +351,14 @@ html.dragging *{-webkit-user-select:none!important;user-select:none!important}
   padding-bottom:.9em;white-space:nowrap}
 #pre .pct{font-family:Syne,sans-serif;font-weight:800;font-size:clamp(5rem,17vw,24rem);
   line-height:.74;letter-spacing:-.045em}
+/* Três casas fixas, uma por algarismo, cada uma com a largura do algarismo
+   tabular da Syne 800 (1055 u − letter-spacing). Um número a crescer encostado
+   à direita mudava de largura a cada valor e era a maior mudança de layout do
+   arranque — ver the performance notes, 2 de outubro. Os zeros à esquerda ficam
+   como fantasmas. */
+#pre .pct .dg{display:flex}
+#pre .pct i{font-style:normal;width:1.01em;font-variant-numeric:tabular-nums}
+#pre .pct i.z{opacity:.14}
 #pbar{position:fixed;left:0;bottom:0;height:2px;background:var(--acc);width:0;z-index:10000;
   transition:width .32s linear}
 
@@ -357,7 +366,8 @@ html.dragging *{-webkit-user-select:none!important;user-select:none!important}
 #cur{position:fixed;width:8px;height:8px;border:1px solid var(--fg);border-radius:50%;
   z-index:9998;pointer-events:none;transform:translate(-50%,-50%);
   transition:width .55s var(--e),height .55s var(--e),border-color .4s,background .4s}
-#cur.on{width:calc(var(--u)*6);height:calc(var(--u)*6);border-color:var(--acc);background:rgba(255,61,31,.06)}
+#cur.on{width:calc(var(--u)*6);height:calc(var(--u)*6);border-color:var(--acc);background:rgba(255,61,31,.06);
+  background:color-mix(in srgb,var(--acc) 6%,transparent)}   /* segue a cor da página; o rgba fica para browsers sem color-mix */
 #cur span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   font-family:'JetBrains Mono',monospace;font-size:calc(var(--u)*.66);letter-spacing:.18em;text-transform:uppercase;
   color:var(--acc);opacity:0;transition:opacity .3s}
@@ -429,6 +439,11 @@ html.kbd #cur{display:none}
 .rv.in{opacity:1;transform:none}
 
 /* hero */
+/* Escondido enquanto é medido, só onde o loader já o tapa (com rato): o que
+   muda debaixo do loader não se vê, mas conta como layout shift. Se o JS
+   morrer antes do `ready`, a animação mostra-o aos 4 s. */
+html.arranque:not(.ready) .hero{visibility:hidden;animation:heroFailsafe 0s 4s forwards}
+@keyframes heroFailsafe{to{visibility:visible}}
 .hero{height:100svh;display:flex;flex-direction:column;justify-content:center;
   padding:0 var(--pad);position:relative;max-width:var(--maxw);margin:0 auto;width:100%;
   container-type:inline-size}
@@ -437,8 +452,11 @@ html.kbd #cur{display:none}
 .tag i{display:block;font-style:normal;transform:translateY(120%);
   transition:transform 1.05s var(--e)}
 html.ready .tag i{transform:translateY(0)}
+/* O tamanho base já é o final: "FIGUEIREDO" mede 10,241 em na Syne 800 com
+   este letter-spacing, e o fitH1 deixa-a a 98,5% da largura do herói (um
+   container, daí o cqi): 0,985/10,241 = 9,618cqi. O fitH1 passa a confirmar. */
 h1{font-family:Syne,sans-serif;font-weight:800;
-  font-size:var(--h1s,clamp(2.6rem,9.6vw,17rem));
+  font-size:var(--h1s,9.618cqi);
   line-height:.82;letter-spacing:-.05em;text-transform:uppercase;width:100%}
 h1 .ln i{white-space:nowrap}
 /* O nome reage ao cursor: uma fonte de luz atravessa as letras e cada linha
@@ -677,6 +695,17 @@ html.ready .sdown{opacity:1}
   opacity:0;transition:opacity .3s}
 #case.on ~ #caseProg{opacity:1}
 #case.on{clip-path:inset(0)}
+/* View Transitions do caso de estudo (ver transicaoCaso()): só o título voa;
+   a raiz não anima e o painel entra com o clip-path de sempre. O original sem
+   nome esconde-se durante a transição, senão via-se o título duas vezes. */
+::view-transition-old(root){animation:none;opacity:0}
+::view-transition-new(root){animation:none}
+::view-transition-group(caso-titulo){animation-duration:.85s;animation-timing-function:cubic-bezier(.16,1,.3,1)}
+::view-transition-old(caso-titulo),::view-transition-new(caso-titulo){animation-duration:.45s}
+::view-transition-old(caso-codigo),::view-transition-new(caso-codigo){animation-duration:.25s}
+html.vtCaso #case .inner>h3{opacity:1;transform:none;transition:none}
+.itm.vtFonte .t{opacity:0}
+html.vtFecho #case .inner>h3{opacity:0}
 #case .inner{max-width:calc(var(--u)*66);margin:0 auto;padding:calc(var(--u)*9) var(--pad) calc(var(--u)*8)}
 #case .kicker{font-family:'JetBrains Mono',monospace;font-size:var(--t-micro);letter-spacing:.28em;
   text-transform:uppercase;color:var(--acc);margin-bottom:22px}
@@ -1262,7 +1291,7 @@ html.caseOpen #stageCanvas{position:fixed;inset:0}
   <div class="top"><span>Rodrigo Figueiredo</span><span>Portfolio 2026</span></div>
   <div class="preFoot">
     <div class="preStat" aria-hidden="true">Booting</div>
-    <div class="pct">0</div>
+    <div class="pct"><span class="sr">0%</span><span class="dg" aria-hidden="true"><i class="z">0</i><i class="z">0</i><i>0</i></span></div>
   </div>
 </div>
 <div id="pbar"></div>
@@ -1829,7 +1858,9 @@ const RECS = [
 ];
 
 const MEDIA = {
-  rir: {img:'../assets/rir-hero.webp',  video:'../assets/rir-hero.mp4'},
+  /* video:null: o ficheiro não existe, e cada visita dava um 404 na consola,
+     logo por baixo da mensagem para developers. Com vídeo autorizado, volta. */
+  rir: {img:'../assets/rir-hero.webp',  video:null},
   pf:  {img:'../assets/portfolio.webp', video:null},
   cad: {img:'../assets/cadence.webp',   video:null},
   fbg: {img:'../assets/framebudget.webp', video:null},
@@ -1872,6 +1903,9 @@ if(!HAS_GSAP){
 }
 gsap.registerPlugin(ScrollTrigger);
 if(!HAS_WEBGL) Q('#gl').style.display='none';
+/* Ver `html.arranque` no CSS do herói. Só com rato: no toque não há loader por
+   cima, e o herói tem de estar visível desde o primeiro paint. */
+if(!COARSE) document.documentElement.classList.add('arranque');
 
 M('lenis');
 /* ================= LENIS ================= */
@@ -1915,11 +1949,11 @@ const CASES={
         ['What it taught me','That the interesting part of the job is not the code. It is knowing which risks matter on the night, and being reachable when they do.']]},
  pf:{k:'2026 · Personal',t:'This Portfolio',
   live:['https://github.com/eimaieros/portfolio','Read the code'],
-  meta:[['Role','Design & Development'],['Stack','One HTML file · GSAP · Lenis · WebGL'],['Focus','Motion within a budget'],['Lighthouse','Desktop 59 · mobile 65 · a11y 100 · SEO 100']],
+  meta:[['Role','Design & Development'],['Stack','One HTML file · GSAP · Lenis · WebGL'],['Focus','Motion within a budget'],['Lighthouse','Desktop 63 · mobile 76 · a11y 100 · SEO 100']],
   body:[['Why','For a web developer the portfolio is the work sample. Anything claimed on a CV should be visible in how this site is built.'],
         ['Approach','GSAP with ScrollTrigger for choreography, Lenis for scroll, and WebGL for the background and scroll-driven stage assembly. The stage geometry is allocated once, its second context is created only near the section, and the custom render loop is capped at 30 fps while interaction and accessibility remain on the browser clock.'],
         ['The constraint','Capped device pixel ratio, transform-only DOM animation, geometry allocated once rather than rebuilt, lazy fluid targets, and a reduced-motion path. The verification harness runs the page both with and without WebGL before building it.'],
-        ['Where it did not hold up','Mobile scored 40, with 12.2 seconds of blocking and 7.1 seconds to largest paint. The first attempted fix made it worse at 35–36 and CI blocked it. The correction — showing the real hero without a loader on touch, drawing decorative WebGL only during interaction, capping both frame rate and pixel ratio there — moved it to a 77 median over three runs. Seven runs of the same page then measured 65, and that is the number now quoted: three samples of a noisy metric is a biased estimator, and 77 was a good day. Desktop sits at 59, accessibility and SEO at 100. The failed reports stay in Actions because the path to the number matters as much as the number, and so does the day the number turns out to have been measured badly.']]},
+        ['Where it did not hold up','Mobile scored 40, with 12.2 seconds of blocking and 7.1 seconds to largest paint. The first attempted fix made it worse at 35–36 and CI blocked it. The correction — showing the real hero without a loader on touch, drawing decorative WebGL only during interaction, capping both frame rate and pixel ratio there — moved it to a 77 median over three runs. Seven runs of the same page then measured 65: three samples of a noisy metric is a biased estimator, and 77 was a good day. Desktop sat at 59 until a measurement showed where its blocking time went — one background shader, compiled inside the load. Compiling it after the load took blocking time from about 1.4 s to 0.4–0.6 s, and the five CI runs since then score 63–70 on desktop and 74–81 on mobile. Accessibility and SEO stay at 100. The failed reports stay in Actions because the path to the number matters as much as the number, and so does the day the number turns out to have been measured badly.']]},
  cad:{k:'2026 · Personal',t:'cadence',
   live:[['https://github.com/eimaieros/cadence','See the code']],
   meta:[['Role','Design & Development'],['Stack','FastAPI · PostgreSQL · Next.js'],['Tests','120 total · 96 against real Postgres'],['Setup','docker compose up']],
@@ -1934,7 +1968,7 @@ const CASES={
   live:[['/framebudget/','Run the demo'],
         ['https://github.com/eimaieros/framebudget','See the code']],
   meta:[['Role','Design & Development'],['Stack','Vanilla JavaScript'],['Size','11.7 KB minified'],['Dependencies','None']],
-  body:[['The gap','Every performance tool we have measures loading - LCP, CLS, TTFB, INP - and then stops. What happens over the next ninety seconds, while someone scrolls through a site, is measured by nothing at all. That is exactly where heavily animated sites fall apart, and it is why most award-winning sites score around 40 on Lighthouse.'],
+  body:[['The gap','Every performance tool we have measures loading - LCP, CLS, TTFB, INP - and then stops. What happens over the next ninety seconds, while someone scrolls through a site, is measured by nothing at all. That is exactly where heavily animated sites fall apart, and none of those numbers will show it.'],
         ['What it does','Samples real frame timing in production, detects long tasks, and automatically degrades animation quality before the user feels the stutter - then climbs back when there is headroom. Three tiers, driven by percentiles rather than averages.'],
         ['Why percentiles','59 frames at 16 ms and one at 400 ms averages to 19 ms, which looks healthy. Nobody perceives an average. They perceive the 400 ms frame and call it stuttering. Smoothness lives in the tail, so the library works in p50 and p95.'],
         ['The hard part','Adaptive quality oscillates unless you fight it: drop, improve, raise, degrade, drop again. The controller uses asymmetric thresholds, a dwell time, and a regret counter that makes a tier costlier to re-enter after it has failed once. The constructor refuses parameters that would guarantee oscillation.'],
@@ -1971,8 +2005,32 @@ M('cursor');
 /* ================= CURSOR ================= */
 const cur=Q('#cur'),curL=Q('span',cur);
 let mx=innerWidth/2,my=innerHeight/2;
-const curX=gsap.quickTo(cur,'x',{duration:.5,ease:'power3'});
-const curY=gsap.quickTo(cur,'y',{duration:.5,ease:'power3'});
+/* ---------- molas ----------
+   Mola amortecida em vez de easing: guarda a velocidade, passa um nada do alvo
+   e volta. Passo em tempo (igual a 60 ou 144 Hz), subdividido para o Euler
+   semi-implícito ficar estável. `z` < 1 ultrapassa; 1 seria o quickTo antigo.
+   Com prefers-reduced-motion salta para o alvo. */
+function mola({f=4.5, z=.72, x=0}={}){
+  const w=2*Math.PI*f; let v=0, alvo=x;
+  return {
+    alvo(n){ alvo=n; },
+    passo(ms){
+      if(REDUCE){ x=alvo; v=0; return x; }
+      const dt=Math.min(ms,64)/1000, n=Math.ceil(dt/0.008), h=dt/n;
+      for(let i=0;i<n;i++){ v+=(w*w*(alvo-x)-2*z*w*v)*h; x+=v*h; }
+      return x;
+    },
+    parada(){ return Math.abs(alvo-x)<0.05 && Math.abs(v)<0.5; },
+  };
+}
+/* 95% do caminho em ~215 ms (o quickTo antigo: ~316) e 2–3% de ultrapassagem. */
+const curMX=mola({f:2.4,z:.74,x:mx}), curMY=mola({f:2.4,z:.74,x:my});
+const curX=n=>curMX.alvo(n), curY=n=>curMY.alvo(n);
+gsap.ticker.add((t,dt)=>{
+  if(curMX.parada() && curMY.parada()) return;          /* parado: não toca no DOM */
+  const x=curMX.passo(dt), y=curMY.passo(dt);
+  cur.style.transform=`translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) translate(-50%,-50%)`;
+});
 /* ---------- teclado vs rato ----------
    Ao primeiro Tab assume-se navegação por teclado: volta o cursor do sistema
    e o anel de foco fica visível. Ao primeiro clique volta-se ao cursor
@@ -2003,13 +2061,14 @@ addEventListener('mousedown',()=>document.documentElement.classList.remove('kbd'
        A suavização é feita aqui à mão, com um lerp por frame, em vez de se
        confiar que o GSAP interpola variáveis CSS. Menos suposições, e o valor
        escrito é sempre uma string com unidade, que é o que o CSS espera. */
-    const alvo = lines.map(()=>0), atual = lines.map(()=>0);
-    const lx = lines.map((el,i)=>v=>{ alvo[i]=v; });
-    gsap.ticker.add(()=>{
+    /* Uma mola por linha, mais lenta e solta do que a do cursor. Era um lerp
+       por frame, que a 144 Hz andava o dobro do que a 60. */
+    const molas = lines.map((el,i)=>mola({f:i===0?1.9:1.6, z:.55}));
+    const lx = lines.map((el,i)=>v=>molas[i].alvo(v));
+    gsap.ticker.add((t,dt)=>{
       for(let i=0;i<lines.length;i++){
-        if(Math.abs(alvo[i]-atual[i]) < 0.05) continue;
-        atual[i] = lerp(atual[i], alvo[i], 0.09);
-        lines[i].style.setProperty('--px', atual[i].toFixed(2)+'px');
+        if(molas[i].parada()) continue;
+        lines[i].style.setProperty('--px', molas[i].passo(dt).toFixed(2)+'px');
       }
     });
     let raf=0;
@@ -2090,6 +2149,23 @@ M('preloader');
    as fontes a chegar, as bibliotecas presentes, o primeiro frame desenhado.
    Um contador falso é fácil de escrever e fácil de detetar. */
 const pre=Q('#pre'),pct=Q('.pct',pre),pbar=Q('#pbar');let p=0,introDone=false;
+/* O contador escreve em três casas fixas (ver o CSS de #pre .pct). O texto para
+   leitores de ecrã é à parte e só muda de dez em dez: a região é aria-live, e
+   anunciar cada um dos cem valores era ruído, não informação. */
+const pctCasas=QA('.dg i',pct), pctSr=Q('.sr',pct);
+let pctDezena=0;
+function pintarPct(n){
+  const s=String(n).padStart(3,'0');
+  let lider=true;
+  for(let i=0;i<3;i++){
+    const c=s[i];
+    if(pctCasas[i].textContent!==c) pctCasas[i].textContent=c;
+    lider = lider && i<2 && c==='0';
+    pctCasas[i].classList.toggle('z', lider);
+  }
+  const d=Math.floor(n/10);
+  if(d!==pctDezena && pctSr){ pctDezena=d; pctSr.textContent=(d*10)+'%'; }
+}
 const preStat=Q('.preStat',pre);
 
 /* ---------- campo de células do arranque ----------
@@ -2178,7 +2254,7 @@ const pi=setInterval(()=>{
   /* aproxima-se do real sem nunca saltar para trás nem ficar preso a 99 */
   p = Math.min(100, p + Math.max(1.7, (target*100 - p)*0.24));
   if(target>=1 && p>=99.4){p=100;clearInterval(pi);setTimeout(intro,260)}
-  pct.textContent=Math.floor(p);pbar.style.width=p+'%';
+  pintarPct(Math.floor(p));pbar.style.width=p+'%';
   preGrid.draw(p);
   /* o estado diz o que está mesmo a acontecer — não é teatro:
      lê-se dos mesmos sinais que movem a barra */
@@ -2614,6 +2690,7 @@ function drawPv(){
 
 
 let R=null;
+let corAo3D=null;            /* ver o comentário junto ao edgeMat */
 if(HAS_THREE){
   try{
     R=new THREE.WebGLRenderer({canvas:Q('#gl'),antialias:false,alpha:false,powerPreference:'high-performance'});
@@ -2699,10 +2776,9 @@ const BU={t:{value:0},res:{value:new THREE.Vector2(innerWidth,innerHeight)},
           m:{value:new THREE.Vector2(.5,.5)},s:{value:0},v:{value:0},
           fluid:{value:null},hasFluid:{value:0},
           accCol:{value:new THREE.Color(1,.239,.121)}};
-const bgScene=new THREE.Scene(),bgCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
-bgScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({uniforms:BU,
- vertexShader:'void main(){gl_Position=vec4(position,1.);}',
- fragmentShader:`precision highp float;uniform float t,s,v,hasFluid;uniform vec2 res,m;
+/* O fragment shader do fundo. Fica num objecto com a chave `fragmentShader`
+   porque é assim que o tools/medir-arranque.js o encontra na página. */
+const FUNDO={fragmentShader:`precision highp float;uniform float t,s,v,hasFluid;uniform vec2 res,m;
   uniform sampler2D fluid;uniform vec3 accCol;
   float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
   float n(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);
@@ -2756,7 +2832,87 @@ bgScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial
     /* grão: película, não ruído digital — pesa mais nas zonas escuras */
     float gr=h(gl_FragCoord.xy+floor(t*24.));
     col+=(gr-.5)*.05*(1.-min(col.r*3.,1.));
-    gl_FragColor=vec4(col,1.);}`})));
+    gl_FragColor=vec4(col,1.);}`};
+
+/* ---------- O FUNDO COMPILA SEM PARAR A PÁGINA ----------
+   Ligar este programa custa 228–287 ms de thread principal (the performance notes).
+   Com KHR_parallel_shader_compile o driver compila noutra thread: pede-se a
+   ligação, pergunta-se a cada frame se acabou (COMPLETION_STATUS_KHR não
+   espera) e só se desenha depois. O Three r128 não sabe — o getProgram() pede
+   os uniforms logo a seguir a ligar, e isso bloqueia — por isso este programa
+   é à mão: um triângulo e oito uniforms. O resto, fluido incluído, fica no
+   Three. Não é o "reescrever o fundo em WebGL puro" do the performance notes (esse
+   poupava o parse e deixava a compilação). Sem a extensão (o SwiftShader do CI)
+   a primeira pergunta bloqueia como antes. O canvas aparece no 1.º desenho. */
+const fundo=(()=>{
+  const gl=R.getContext();
+  const gl2=typeof WebGL2RenderingContext!=='undefined' && gl instanceof WebGL2RenderingContext;
+  const par=gl.getExtension('KHR_parallel_shader_compile');
+  const extVao=gl2?null:gl.getExtension('OES_vertex_array_object');
+  let prog=null, fs=null, estado='parado', loc=null, vao=null, buf=null;
+  const ligarVao=v=>{ if(gl2) gl.bindVertexArray(v); else if(extVao) extVao.bindVertexArrayOES(v); };
+  return {
+    get estado(){ return estado; },
+    compilar(){
+      if(estado!=='parado') return;
+      estado='a-compilar';
+      const vs=gl.createShader(gl.VERTEX_SHADER);
+      gl.shaderSource(vs,'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}');
+      gl.compileShader(vs);
+      fs=gl.createShader(gl.FRAGMENT_SHADER);
+      gl.shaderSource(fs,FUNDO.fragmentShader);
+      gl.compileShader(fs);
+      prog=gl.createProgram();
+      gl.attachShader(prog,vs); gl.attachShader(prog,fs);
+      gl.bindAttribLocation(prog,0,'p');
+      gl.linkProgram(prog);                 /* pedido, não espera */
+    },
+    pronto(){
+      if(estado==='pronto') return true;
+      if(estado!=='a-compilar') return false;
+      if(par && !gl.getProgramParameter(prog,par.COMPLETION_STATUS_KHR)) return false;
+      if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){
+        console.warn('[portfolio] fundo: o programa não ligou —',
+          gl.getProgramInfoLog(prog)||gl.getShaderInfoLog(fs));
+        estado='falhou'; return false;
+      }
+      loc={};
+      for(const u of ['t','s','v','hasFluid','res','m','fluid','accCol']) loc[u]=gl.getUniformLocation(prog,u);
+      buf=gl.createBuffer();
+      vao=gl2?gl.createVertexArray():(extVao?extVao.createVertexArrayOES():null);
+      ligarVao(vao);
+      gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+      gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1, 3,-1, -1,3]),gl.STATIC_DRAW);
+      if(vao){ gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0); }
+      ligarVao(null);
+      R.resetState();
+      estado='pronto';
+      return true;
+    },
+    desenhar(){
+      gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+      gl.viewport(0,0,gl.drawingBufferWidth,gl.drawingBufferHeight);
+      gl.disable(gl.BLEND); gl.disable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE); gl.disable(gl.SCISSOR_TEST);
+      gl.colorMask(true,true,true,true);
+      gl.useProgram(prog);
+      if(vao) ligarVao(vao);
+      else{ gl.bindBuffer(gl.ARRAY_BUFFER,buf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0); }
+      gl.uniform1f(loc.t,BU.t.value); gl.uniform1f(loc.s,BU.s.value); gl.uniform1f(loc.v,BU.v.value);
+      gl.uniform1f(loc.hasFluid,BU.hasFluid.value);
+      gl.uniform2f(loc.res,BU.res.value.x,BU.res.value.y);
+      gl.uniform2f(loc.m,BU.m.value.x,BU.m.value.y);
+      const c=BU.accCol.value; gl.uniform3f(loc.accCol,c.r,c.g,c.b);
+      /* a textura do fluido é do Three: vai-se buscar o objecto GL que ele criou */
+      const tx=(BU.hasFluid.value>.5 && BU.fluid.value) ? R.properties.get(BU.fluid.value).__webglTexture : null;
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,tx||null); gl.uniform1i(loc.fluid,0);
+      gl.drawArrays(gl.TRIANGLES,0,3);
+      if(vao) ligarVao(null);
+      /* o Three guarda em cache o estado que julga ter posto; isto apaga a cache
+         e repõe os valores por omissão, e ele volta a pôr o que precisa */
+      R.resetState();
+    },
+  };
+})();
 
 M('assembly');
 /* ================= ASSEMBLY: peças que se montam com o scroll ================= */
@@ -2769,6 +2925,11 @@ const pieceMat = new THREE.MeshBasicMaterial({
   color:0xffffff, transparent:true, opacity:0.055, side:THREE.DoubleSide });
 const edgeMat  = new THREE.LineBasicMaterial({
   color:0xff5a3c, transparent:true, opacity:0.55 });
+/* Ponte para o SISTEMA DE COR. Ele perguntava `typeof BU` — mas o BU e o
+   edgeMat vivem dentro deste if(R){…}, e lá fora são sempre undefined: o CSS
+   mudava de cor ao longo da página e o fundo e o palco ficavam laranja do
+   princípio ao fim. A função nasce aqui, onde os dois existem. */
+corAo3D = (r,g,b)=>{ BU.accCol.value.setRGB(r,g,b); edgeMat.color.setRGB(r,g,b); };
 
 const STAGE_SC  = new THREE.Scene();
 STAGE_SC.fog = new THREE.FogExp2(0x08080a, 0.016);
@@ -3038,13 +3199,14 @@ prepararPalco = garantirPalco;
    NÃO trocar isto por um `setTimeout` mais curto para o fundo aparecer mais
    depressa. O tempo que aqui se poupa é tempo em que a página não responde a
    um toque. */
-let fundoLiberto = false;
+let fundoLiberto = false, fundoVisivel = false;
 {
+  /* Libertar é pedir a compilação (ver `fundo` acima). O canvas só fica
+     visível no primeiro desenho, dentro do ciclo de render. */
   const libertar = () => {
     if (fundoLiberto) return;
     fundoLiberto = true;
-    const cv = Q('#gl');
-    if (cv) cv.classList.add('gl-pronto');
+    fundo.compilar();
   };
   /* Nunca antes do load: até lá ainda há rede e parse a competir pela thread. */
   const agendar = () => {
@@ -3159,7 +3321,9 @@ gsap.ticker.add(()=>{
     BU.fluid.value = fA.texture;
   }
 
-  if(!document.hidden && fundoLiberto){
+  /* `fundo.pronto()` é false enquanto o driver compila (ver `fundo`): nesses
+     frames não se desenha nada e a página continua a responder. */
+  if(!document.hidden && fundoLiberto && fundo.pronto()){
     /* O pixel ratio vem do framebudget quando ele já opinou, e da posição do
        scroll enquanto não. Ver ligarFramebudget(): a versão anterior disto era
        só a segunda metade — baixava a resolução quando o palco aparecia, porque
@@ -3167,8 +3331,10 @@ gsap.ticker.add(()=>{
        biblioteca que existe para não adivinhar é a 04 desta mesma página. */
     const teto = tetoPixelRatio();
     if(teto!==pixelRatioAplicado){ pixelRatioAplicado=teto; R.setPixelRatio(teto); }
-    R.autoClear=true;R.render(bgScene,bgCam);
+    fundo.desenhar();
+    if(!fundoVisivel){ fundoVisivel=true; Q('#gl').classList.add('gl-pronto'); }
   }
+  if(fundo.estado==='falhou' && !fundoVisivel){ fundoVisivel=true; Q('#gl').style.display='none'; }
   const pvOn = pv.classList.contains('on');
   pvState.open = lerp(pvState.open, pvOn?1:0, 0.12);
   if(pvOn || pvState.open>0.01) drawPv();
@@ -3315,6 +3481,35 @@ safe('massa',()=>{
 M('work');
 /* ================= WORK ================= */
 const caseEl=Q('#case'),caseIn=Q('.inner',caseEl);
+/* ---------- View Transitions entre a lista e o caso de estudo ----------
+   Mesmo documento: Chrome/Edge 111+, Safari 18+, Firefox 144+. Sem a API, ou
+   com prefers-reduced-motion, corre só `aplicar()` — o código de sempre. Os
+   nomes só existem durante a transição: o mesmo nome em dois elementos do
+   mesmo estado aborta-a. */
+const VT_CASO = typeof document.startViewTransition==='function' && !REDUCE;
+let casoOrigem=null;            /* a linha que abriu o caso: o título volta para lá */
+const nomeVT=(el,n)=>{ if(el) el.style.viewTransitionName = n||''; };
+function transicaoCaso(item, aplicar, abrir){
+  if(!VT_CASO || !item || !item.isConnected){ aplicar(); return; }
+  const raiz=document.documentElement, t=Q('.t',item), cod=Q('.code',item);
+  const h3=()=>Q('h3',caseEl);
+  raiz.classList.add('vtCaso');
+  if(abrir){ nomeVT(t,'caso-titulo'); nomeVT(cod,'caso-codigo'); }
+  else     { nomeVT(h3(),'caso-titulo'); }
+  let vt;
+  try{
+    vt=document.startViewTransition(()=>{
+      aplicar();
+      /* o nome passa para o outro lado; quem fica sem nome esconde-se até ao fim */
+      if(abrir){ nomeVT(t,''); nomeVT(cod,''); nomeVT(h3(),'caso-titulo'); item.classList.add('vtFonte'); }
+      else     { nomeVT(h3(),''); nomeVT(t,'caso-titulo'); nomeVT(cod,'caso-codigo'); raiz.classList.add('vtFecho'); }
+    });
+  }catch(e){ raiz.classList.remove('vtCaso'); aplicar(); return; }
+  const limpar=()=>{ nomeVT(t,''); nomeVT(cod,''); nomeVT(h3(),'');
+    item.classList.remove('vtFonte'); raiz.classList.remove('vtCaso','vtFecho'); };
+  vt.finished.then(limpar, limpar);
+}
+
 safe('lista de trabalhos',()=>QA('.itm').forEach((it,i)=>{
   const seed = +it.dataset.seed || 0;
   loadMedia(it.dataset.k);                 /* pré-carrega ao construir a lista */
@@ -3353,16 +3548,20 @@ safe('lista de trabalhos',()=>QA('.itm').forEach((it,i)=>{
     /* A palavra mais longa é a única que não pode quebrar, por isso é ela que
        manda no tamanho do display. Ver o comentário em `#case h3` no CSS. */
     const maisLonga = c.t.split(/\s+/).reduce((a,b)=>a.length>=b.length?a:b,'').length || 8;
-    caseIn.innerHTML=`<div class="kicker">${c.k}</div><h3 style="--ch:${maisLonga}">${c.t}</h3>${live}
-      <div class="meta">${c.meta.map(([k,v])=>`<div><b>${k}</b><span>${v}</span></div>`).join('')}</div>
-      ${shots?`<div class="shots">${shots}</div>`:''}
-      <div class="body">${c.body.map(([h,tx])=>`<h4>${h}</h4><p>${tx}</p>`).join('')}</div>`;
-    caseEl.classList.add('on');lenis.stop();pv.classList.remove('on');caseEl.scrollTop=0;
-    /* o palco reconfigura-se na forma deste projeto */
-    if(typeof setScene==='function') setScene(it.dataset.k);
-    document.documentElement.classList.add('caseOpen');
-    if(typeof forceStage!=='undefined'){ forceStage.on=true; safe('checkStage',checkStage); }
-    Q('.close',caseEl).focus()};
+    const aplicar=()=>{
+      caseIn.innerHTML=`<div class="kicker">${c.k}</div><h3 style="--ch:${maisLonga}">${c.t}</h3>${live}
+        <div class="meta">${c.meta.map(([k,v])=>`<div><b>${k}</b><span>${v}</span></div>`).join('')}</div>
+        ${shots?`<div class="shots">${shots}</div>`:''}
+        <div class="body">${c.body.map(([h,tx])=>`<h4>${h}</h4><p>${tx}</p>`).join('')}</div>`;
+      caseEl.classList.add('on');lenis.stop();pv.classList.remove('on');caseEl.scrollTop=0;
+      /* o palco reconfigura-se na forma deste projeto */
+      if(typeof setScene==='function') setScene(it.dataset.k);
+      document.documentElement.classList.add('caseOpen');
+      if(typeof forceStage!=='undefined'){ forceStage.on=true; safe('checkStage',checkStage); }
+      Q('.close',caseEl).focus();
+    };
+    casoOrigem=it;
+    transicaoCaso(it, aplicar, true)};
   it.addEventListener('click',open);
   it.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}})}));
 
@@ -3545,11 +3744,20 @@ if(caseEl&&caseProg){
     caseProg.style.width=(max>0?(caseEl.scrollTop/max)*100:0)+'%';
   },{passive:true});
 }
-function closeCase(){caseEl.classList.remove('on');lenis.start();
-  if(typeof setScene==='function') setScene('rir');   /* volta ao palco */
-  document.documentElement.classList.remove('caseOpen');
-  if(typeof forceStage!=='undefined'){ forceStage.on=false; safe('checkStage',checkStage); }
-  if(caseProg)caseProg.style.width='0%'}
+function closeCase(){
+  const aberto=caseEl.classList.contains('on');
+  const aplicar=()=>{caseEl.classList.remove('on');lenis.start();
+    if(typeof setScene==='function') setScene('rir');   /* volta ao palco */
+    document.documentElement.classList.remove('caseOpen');
+    if(typeof forceStage!=='undefined'){ forceStage.on=false; safe('checkStage',checkStage); }
+    if(caseProg)caseProg.style.width='0%';
+    /* O foco volta à linha que abriu o caso. Ficava no botão Close, que deixa de
+       se ver — quem navega por teclado perdia o sítio onde estava. */
+    if(aberto && casoOrigem && casoOrigem.isConnected) casoOrigem.focus({preventScroll:true});
+  };
+  /* O Escape chama isto mesmo com o caso fechado: aí não há nada a animar. */
+  if(aberto) transicaoCaso(casoOrigem, aplicar, false); else aplicar();
+}
 Q('.close',caseEl).addEventListener('click',closeCase);
 addEventListener('keydown',e=>{if(e.key==='Escape'){closeCase();if(menu.classList.contains('on'))closeMenu()}});
 
@@ -3787,7 +3995,21 @@ function paletteAt(p){
 }
 {
   const root=document.documentElement.style;
-  let cur=[255,61,31], shownP=0;
+  /* Começa na cor do sítio onde a página está. Começava no laranja, e cada
+     carregamento passava o primeiro segundo a interpolar até ao índigo — três
+     propriedades no :root por tick, cada uma um recálculo de estilo da página
+     inteira, durante o load. Ver the performance notes, 2 de outubro. */
+  const total0=document.documentElement.scrollHeight-innerHeight;
+  let shownP=total0>0?clamp((lenis?.scroll??scrollY)/total0,0,1):0;
+  let cur=paletteAt(shownP);
+  const escrever=()=>{
+    const r=Math.round(cur[0]), g=Math.round(cur[1]), b=Math.round(cur[2]);
+    root.setProperty('--acc',`rgb(${r},${g},${b})`);
+    root.setProperty('--acc-soft',`rgba(${r},${g},${b},.14)`);
+    root.setProperty('--acc-glow',`rgba(${r},${g},${b},.45)`);
+    if(corAo3D) corAo3D(r/255,g/255,b/255);
+  };
+  escrever();
   gsap.ticker.add(()=>{
     if(document.hidden) return;
     const total=document.documentElement.scrollHeight-innerHeight;
@@ -3802,12 +4024,7 @@ function paletteAt(p){
       cur[i]=n;
     }
     if(!moved) return;
-    const r=Math.round(cur[0]), g=Math.round(cur[1]), b=Math.round(cur[2]);
-    root.setProperty('--acc',`rgb(${r},${g},${b})`);
-    root.setProperty('--acc-soft',`rgba(${r},${g},${b},.14)`);
-    root.setProperty('--acc-glow',`rgba(${r},${g},${b},.45)`);
-    if(typeof BU!=='undefined'&&BU.accCol) BU.accCol.value.setRGB(r/255,g/255,b/255);
-    if(typeof edgeMat!=='undefined') edgeMat.color.setRGB(r/255,g/255,b/255);
+    escrever();
   });
 }
 
@@ -3941,9 +4158,20 @@ function widestLine(){
   });
   return w;
 }
+/* Só se mede com a Syne 800 carregada; até lá vale o CSS, que já é o tamanho
+   dela. Não é document.fonts.check(): esse devolve true com a face por
+   declarar, e a folha das fontes carrega assíncrona. */
+const syne800 = ()=> !document.fonts || [...document.fonts].some(f=>
+  f.family.replace(/["']/g,'')==='Syne' && String(f.weight)==='800' && f.status==='loaded');
 function fitH1(){
   const h1=Q('h1'); if(!h1) return;
-  h1.style.setProperty('--h1s','');            /* estado base do clamp */
+  if(!syne800()) return;
+  /* A meio do scramble o texto é outro e mede outra coisa (98 → 91 px no
+     laboratório). Espera-se que volte; o scramble repõe-no sempre. */
+  if(QA('h1 .ln i').some(el=>el.dataset.txt && el.textContent!==el.dataset.txt)){
+    setTimeout(fitH1,300); return;
+  }
+  h1.style.setProperty('--h1s','');            /* estado base: já é o tamanho da Syne */
   const avail=h1.getBoundingClientRect().width;
   let size=parseFloat(getComputedStyle(h1).fontSize);
   if(!avail||!size) return;
