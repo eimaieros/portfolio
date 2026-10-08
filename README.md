@@ -27,7 +27,7 @@ geometry allocated once and interpolated rather than rebuilt, and full
 `prefers-reduced-motion` support.
 
 **Where that lands, measured rather than claimed.** Seven runs per profile, and
-the six CI runs since 9 September: desktop **63–70**, mobile **74–81**
+the seven CI runs since 9 September: desktop **59–70**, mobile **74–81**
 (it was 57–60 and 65–75 before). Accessibility **100**, best practices
 **100**, SEO **100** — all three asserted at 1.0 in CI, so they cannot slip back
 without failing a build.
@@ -43,7 +43,7 @@ two numbers answer different questions and it is worth knowing which one is on
 screen.
 
 Performance moved once, on 9 September, when the background shader stopped
-compiling inside the load: blocking time went from 1,410–2,690 ms to 400–630 ms.
+compiling inside the load: blocking time went from 1,410–2,690 ms to 400–880 ms.
 It is also the number that moves most between runs of an unchanged page, which
 is why the score is a ratchet and the timings are not.
 
@@ -88,11 +88,11 @@ random, and a check that goes red at random gets ignored. Both numbers are
 printed into every run summary so the spread stays visible instead of being
 averaged into a sentence.
 
-Since 9 September the same profiles read 400–630 ms of blocking time; the
+Since 9 September the same profiles read 400–880 ms of blocking time; the
 before-and-after table is at the top of [the performance notes](the performance notes).
 
 FCP and LCP are about 0.7 s on desktop. On CI's simulated mobile profile they
-are 2.7–3.0 s, with CLS at 0.006. Before the final audit mobile scored 40, LCP was 7.1 s and TBT was
+read 2.7–3.0 s in six runs and 1.2 s in the seventh, with CLS at 0.006. Before the final audit mobile scored 40, LCP was 7.1 s and TBT was
 12.2 s. What cost that score was continuous decorative GPU work and a loader
 in front of the real content — not the most visible number in the repository:
 589 KB of the 715 KB of JavaScript on this page is Three.js.
