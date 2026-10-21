@@ -172,6 +172,10 @@ comparar_copia glaze glaze-demo
 # criar um script destes a partir do Windows vai acontecer o mesmo.
 bash tools/sincronizar-nhcs.sh --verificar || falhou=1
 
+# A demo do cadence é um build, não código-fonte, por isso compara-se o commit
+# do frontend de onde saiu (cadence-demo/ORIGEM.txt) com o do ../cadence.
+bash tools/sincronizar-cadence.sh --verificar || falhou=1
+
 # Cada biblioteca já guarda os seus próprios números — o tamanho do bundle e a
 # contagem de testes falham o CI dela se o README discordar. Esta página depois
 # CITA esses números nos painéis dos casos de estudo, e essa ponte não tinha

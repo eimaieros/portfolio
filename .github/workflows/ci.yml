@@ -51,6 +51,17 @@ jobs:
           repository: eimaieros/glaze
           path: glaze
 
+      # The cadence demo in cadence-demo/ is a build, so step 7 compares the
+      # frontend commit it was built from (cadence-demo/ORIGEM.txt) with the
+      # last commit that touched ../cadence/frontend. That needs history: in a
+      # depth-1 clone the only commit looks like it added every file, and the
+      # check would compare against the wrong one.
+      - uses: actions/checkout@v7
+        with:
+          repository: eimaieros/cadence
+          path: cadence
+          fetch-depth: 0
+
       - uses: actions/setup-node@v7
         with:
           node-version: 24

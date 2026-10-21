@@ -1,0 +1,3 @@
+b83ba5b378538085b375c03b70371cb187217a47
+Build estático do front end do cadence (NEXT_PUBLIC_DEMO=1), gerado por tools/sincronizar-cadence.sh.
+Não editar à mão: a linha de cima é o commit do frontend de onde saiu, e o verificar.sh compara-a.

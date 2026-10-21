@@ -47,6 +47,19 @@ if [ -d glaze-demo ]; then
   cp glaze-demo/src/*.js dist/glaze/src/
 fi
 
+# A demo do cadence, servida em rodrigofigueiredo.dev/cadence/.
+#
+# O caso de estudo descreve uma aplicação com backend, e quem avalia não vai
+# correr `docker compose up`. Esta é o front end verdadeiro compilado sem
+# servidor: a API é trocada no browser por uma cópia que corre o entrevistador
+# scripted do backend. Cópia gerada por tools/sincronizar-cadence.sh; o
+# verificar.sh recusa-a se o frontend do cadence tiver avançado desde o build.
+if [ -d cadence-demo ]; then
+  mkdir -p dist/cadence
+  cp -r cadence-demo/. dist/cadence/
+  rm -f dist/cadence/ORIGEM.txt
+fi
+
 # A app NHCS, servida em rodrigofigueiredo.dev/nhcs/.
 #
 # Protótipo React Native que não corre num browser. O que corre é a mesma
@@ -234,7 +247,34 @@ cat > dist/_headers <<EOF
   Cache-Control: public, max-age=0, must-revalidate
 /nhcs/assets/*
   Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+# A demo do cadence: os ficheiros em _next/static/ levam o hash do conteúdo no
+# nome (é o Next que os nomeia), por isso podem ficar em cache para sempre. As
+# páginas e os .txt do RSC não, e ficam com o default da Cloudflare
+# (max-age=0, must-revalidate).
+/cadence/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
 EOF
+
+# Guarda: a Cloudflare limita cada linha do _headers a 2000 caracteres
+# (developers.cloudflare.com/workers/static-assets/headers — "Each line in the
+# _headers file has a 2,000 character limit"). A linha do CSP é a única que se
+# aproxima, porque leva um hash por cada script inline de cada página, e a demo
+# do cadence trouxe dezassete de uma vez (um por página exportada: cada uma das
+# doze sessões tem o seu payload RSC). A 21/10/2026 está nos 1597. A doc não diz
+# o que acontece a uma linha acima do limite — cortada, ignorada ou recusada —
+# e nenhuma das três serve: um CSP truncado bloqueia as páginas cujos hashes
+# caíram, um CSP ignorado deixa o site sem política. Falha aqui, com o número.
+node -e '
+const linhas=require("fs").readFileSync("dist/_headers","utf8").split("\n");
+const longas=linhas.map((l,i)=>[i+1,l.length]).filter(([,n])=>n>2000);
+if(longas.length){
+  for(const [i,n] of longas) console.error("  !!  dist/_headers linha "+i+": "+n+" caracteres (a Cloudflare aceita 2000)");
+  console.error("      Menos páginas com scripts inline, ou o CSP do cadence num <meta> só dele.");
+  process.exit(1);
+}
+const max=Math.max(...linhas.map(l=>l.length));
+console.log("  ok  _headers: a linha mais longa tem "+max+" caracteres (limite 2000)");
+' || exit 1
 
 cat > dist/netlify.toml <<'EOF'
 # Site estático: um ficheiro HTML e uma pasta de imagens. Sem passo de build.
