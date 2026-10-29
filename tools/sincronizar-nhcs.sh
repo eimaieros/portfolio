@@ -9,6 +9,13 @@
 # A duplicação é aceitável porque é verificada: `--verificar` compara as duas
 # cópias e o verificar.sh corre-o antes de cada publicação.
 #
+# SEM COMENTÁRIOS
+#
+# A app é privada e os comentários do código dela são notas internas do
+# projecto. A cópia pública leva só o código: `tools/sem-comentarios.mjs`
+# tira-os depois de copiar, e o `--verificar` passa o original pelo mesmo
+# filtro antes de comparar.
+#
 # O QUE VAI DENTRO DA CÓPIA
 #
 # `demo/src/*.js` não é escrito à mão: é o TypeScript da app (mock, fases da
@@ -57,19 +64,23 @@ if [ "$VERIFICAR" -eq 1 ]; then
   # 1. A lógica gerada está a par do TypeScript da app?
   ( cd "$ORIGEM" && node tools/gerar-demo.mjs --verificar ) || falhou=1
 
-  # 2. A cópia daqui está a par da pasta demo/ da app?
+  # 2. A cópia daqui está a par da pasta demo/ da app, sem os comentários?
   if [ ! -d "$DESTINO" ]; then
     echo "  !!  falta $DESTINO/ — corre ./tools/sincronizar-nhcs.sh"
     exit 1
   fi
-  if diff -r -q "$ORIGEM/demo" "$DESTINO" > /tmp/nhcs-diff 2>&1; then
-    echo "  ok  nhcs-demo/ igual a $ORIGEM/demo"
+  COPIA="$(mktemp -d)"
+  cp -r "$ORIGEM/demo/." "$COPIA/"
+  node tools/sem-comentarios.mjs "$COPIA" || falhou=1
+  if diff -r -q "$COPIA" "$DESTINO" > /tmp/nhcs-diff 2>&1; then
+    echo "  ok  nhcs-demo/ igual a $ORIGEM/demo, sem comentários"
   else
     echo "  !!  nhcs-demo/ divergiu da app:"
     sed 's|^|      |' /tmp/nhcs-diff
     echo "      Corre ./tools/sincronizar-nhcs.sh"
     falhou=1
   fi
+  rm -rf "$COPIA"
 
   exit "$falhou"
 fi
@@ -79,5 +90,6 @@ fi
 rm -rf "$DESTINO"
 mkdir -p "$DESTINO"
 cp -r "$ORIGEM/demo/." "$DESTINO/"
+node tools/sem-comentarios.mjs "$DESTINO"
 
 echo "nhcs-demo/ sincronizado — $(find "$DESTINO" -type f | wc -l) ficheiros"
