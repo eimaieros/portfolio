@@ -61,19 +61,15 @@ Desktop repeats exactly at seven samples and holds a hard floor in CI. Mobile
 does not — two seven-run medians five points apart — so its performance score
 is a warning there rather than a gate, still measured and still printed into
 every run summary. A check that goes red at random gets ignored, and an ignored
-check is worse than an absent one. [the performance notes](the performance notes) has the
-readings.
+check is worse than an absent one.
 
 This paragraph said "the target here is ≥ 90" for as long as the site existed,
 and the first thing that happened when Lighthouse was actually put in CI was
 that the claim failed.
 
-Blocking time is where this page is slow, and it is also the number this
-repository has been worst at reporting. This paragraph said 1.0 s desktop and
-1.05 s mobile while [the performance notes](the performance notes)'s own table two clicks away
-said 2,050 ms and 1,670 ms. Three consecutive CI runs, September 3 2026, on a
-page that did not change between them — one commit touched a CI reporting
-script, the next touched a markdown file:
+Blocking time is where this page is slow, and it is also the number that moves
+the most between runs. Three consecutive CI runs, September 3 2026, on a page
+that did not change between them:
 
 | run | desktop TBT | mobile TBT | desktop perf |
 |---|---:|---:|---:|
@@ -88,8 +84,7 @@ random, and a check that goes red at random gets ignored. Both numbers are
 printed into every run summary so the spread stays visible instead of being
 averaged into a sentence.
 
-Since 9 September the same profiles read 400–880 ms of blocking time; the
-before-and-after table is at the top of [the performance notes](the performance notes).
+Since 9 September the same profiles read 400–880 ms of blocking time.
 
 FCP and LCP are about 0.7 s on desktop. On CI's simulated mobile profile they
 read 2.7–3.0 s in six runs and 1.2 s in the seventh, with CLS at 0.006. Before the final audit mobile scored 40, LCP was 7.1 s and TBT was
@@ -107,9 +102,7 @@ Nobody had timed it. It was a plausible story about a big, visible number, and
 it came with a recommendation — rewrite the background by hand against raw
 WebGL — that would have removed 26 ms and left the 228 ms untouched.
 
-[the performance notes](the performance notes) has the measurements, how far they move between
-runs and why, and what remains worth doing. `tools/medir-arranque.js`
-reproduces all of it in the console.
+`tools/medir-arranque.js` reproduces the measurements in the console.
 
 The fluid simulation is lazy: its shader and ping-pong render targets are
 created on first pointer movement, not during startup. The final audit also
@@ -192,8 +185,6 @@ scans for QA code that leaked into the published file, and builds.
 | `tools/gerar-glaze-thumb.py` | render the glaze thumbnail by running the actual shader |
 | `tools/gerar-cadence-thumb.py` | render the cadence thumbnail from the scorecard the backend actually returns |
 | `tools/importar-capturas.py` | import real screenshots into the asset slots |
-
-See also [the performance notes](the performance notes) — where the Lighthouse score goes.
 
 ### The pipeline runs on every push
 
@@ -329,10 +320,12 @@ Regenerate with `./tools/sincronizar-framebudget.sh` or
 
 ## Licence
 
-Code under MIT (see [`LICENSE`](LICENSE)). The written content, the imagery and
-the visual design are not — the licence notes sets out exactly which is
-which, and why the exceptions live in a separate file rather than at the bottom
-of the licence.
+Code under MIT (see [`LICENSE`](LICENSE)): `site/index.html`, everything in
+`tools/` and `tools-harness.js`. The written content, the imagery in `assets/`
+and the visual design are not. The screenshots of the Rock in Rio Lisboa website
+document work I did for that organisation and remain its property. Read the code
+and borrow the techniques, but please don't republish the content, the imagery
+or the design as your own.
 
 ---
 

@@ -40,7 +40,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[1]
 SITE = RAIZ / "site" / "index.html"
 
-# Onde procurar cada irmão. `../nome` na máquina do Rodrigo e em CI (o ci.yml
+# Onde procurar cada irmão. `../nome` na minha máquina e em CI (o ci.yml
 # clona-os de propósito); `../../nome` se alguém tiver o portefólio uma pasta
 # mais fundo.
 CANDIDATOS = ("..", "../..")

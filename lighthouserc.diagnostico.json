@@ -8,7 +8,7 @@
     "100 e enche uma grelha de pontos, e o fundo em shader, que nunca chega a",
     "um fotograma estavel — e speed index mede exactamente estabilidade.",
     "",
-    "A experiencia que estava escrita no the performance notes era correr o Chrome com",
+    "A primeira ideia era correr o Chrome com",
     "--force-prefers-reduced-motion. ESTAVA ERRADA e nunca chegou a correr: o",
     "REDUCE desta pagina tambem acelera a globalTimeline do GSAP 60x e a media",
     "query de reduced-motion mata as animacoes todas, portanto apagava os dois",

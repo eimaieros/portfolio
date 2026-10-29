@@ -3,7 +3,7 @@
  *
  * PORQUE É QUE ISTO EXISTE.
  *
- * O the performance notes afirmou durante meses que o custo era o parse dos 589 KB do
+ * Durante meses a explicação foi que o custo era o parse dos 589 KB do
  * Three.js. Nunca ninguém o cronometrou. São 26 ms num total de 4242 ms de
  * blocking time — e a correcção que essa afirmação recomendava (reescrever o
  * fundo em WebGL cru) teria removido esses 26 ms e deixado intactos os 228 ms
@@ -28,8 +28,7 @@
  * A leitura fria é a que interessa: é a que um visitante novo paga e a que o
  * Lighthouse vê. A quente serve para uma coisa só — saber quanto é cache.
  *
- * O que se mantém entre execuções é a razão, e é essa que sustenta o
- * the performance notes: o parse das bibliotecas fica nas dezenas de milissegundos
+ * O que se mantém entre execuções é a razão: o parse das bibliotecas fica nas dezenas de milissegundos
  * (26,1 e depois 25,7 para o Three.js) enquanto o blocking time fica nos
  * milhares (4242 e depois 7688). Tudo nesta página se mexe; aquilo não.
  */

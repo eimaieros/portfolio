@@ -354,8 +354,7 @@ html.dragging *{-webkit-user-select:none!important;user-select:none!important}
 /* Três casas fixas, uma por algarismo, cada uma com a largura do algarismo
    tabular da Syne 800 (1055 u − letter-spacing). Um número a crescer encostado
    à direita mudava de largura a cada valor e era a maior mudança de layout do
-   arranque — ver the performance notes, 2 de outubro. Os zeros à esquerda ficam
-   como fantasmas. */
+   arranque. Os zeros à esquerda ficam como fantasmas. */
 #pre .pct .dg{display:flex}
 #pre .pct i{font-style:normal;width:1.01em;font-variant-numeric:tabular-nums}
 #pre .pct i.z{opacity:.14}
@@ -387,7 +386,7 @@ html.dragging *{-webkit-user-select:none!important;user-select:none!important}
 .dot{width:5px;height:5px;background:var(--acc);border-radius:50%;display:inline-block;
   margin-right:10px;animation:pl 2.8s infinite}
 /* A MARCA.
-   Monograma R+F desenhado pelo Rodrigo, vectorizado a partir do PNG original.
+   Monograma R+F, desenhado por mim e vectorizado a partir do PNG original.
    `currentColor` de propósito: herda a cor do link, por isso acompanha o estado
    de hover e o percurso de temperatura do acento sem precisar de JS.
    `vector-effect` não serve aqui — o desenho é preenchimento, não traço. */
@@ -494,7 +493,7 @@ h1 .ln{display:block;overflow:hidden}
    (por exemplo translateY(89px)), guardava-o em cache e voltava a escrevê-lo em
    cada movimento do rato. Resultado: bastava mexer o rato durante o 1.3 s da
    revelação para o nome ficar preso a meio, cortado pelo overflow:hidden desta
-   .ln — e o nome nunca mais aparecia. Era isso que o Rodrigo estava a ver. */
+   .ln — e o nome nunca mais aparecia. Era isso que eu estava a ver. */
 h1 .ln i{display:block;font-style:normal;--px:0px;
   transform:translate(var(--px),116%);
   transition:transform 1.3s var(--e)}
@@ -2836,14 +2835,14 @@ const FUNDO={fragmentShader:`precision highp float;uniform float t,s,v,hasFluid;
     gl_FragColor=vec4(col,1.);}`};
 
 /* ---------- O FUNDO COMPILA SEM PARAR A PÁGINA ----------
-   Ligar este programa custa 228–287 ms de thread principal (the performance notes).
+   Ligar este programa custa 228–287 ms de thread principal.
    Com KHR_parallel_shader_compile o driver compila noutra thread: pede-se a
    ligação, pergunta-se a cada frame se acabou (COMPLETION_STATUS_KHR não
    espera) e só se desenha depois. O Three r128 não sabe — o getProgram() pede
    os uniforms logo a seguir a ligar, e isso bloqueia — por isso este programa
    é à mão: um triângulo e oito uniforms. O resto, fluido incluído, fica no
-   Three. Não é o "reescrever o fundo em WebGL puro" do the performance notes (esse
-   poupava o parse e deixava a compilação). Sem a extensão (o SwiftShader do CI)
+   Three. Reescrever o fundo todo em WebGL puro poupava o parse e deixava a
+   compilação. Sem a extensão (o SwiftShader do CI)
    a primeira pergunta bloqueia como antes. O canvas aparece no 1.º desenho. */
 const fundo=(()=>{
   const gl=R.getContext();
@@ -3999,7 +3998,7 @@ function paletteAt(p){
   /* Começa na cor do sítio onde a página está. Começava no laranja, e cada
      carregamento passava o primeiro segundo a interpolar até ao índigo — três
      propriedades no :root por tick, cada uma um recálculo de estilo da página
-     inteira, durante o load. Ver the performance notes, 2 de outubro. */
+     inteira, durante o load. */
   const total0=document.documentElement.scrollHeight-innerHeight;
   let shownP=total0>0?clamp((lenis?.scroll??scrollY)/total0,0,1):0;
   let cur=paletteAt(shownP);

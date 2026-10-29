@@ -46,7 +46,7 @@
     "",
     "History worth keeping: a 0.38 floor once caught a real regression at 35–36",
     "and it was fixed rather than lowered. Before the mobile work this page",
-    "scored 40 with a 7.1s LCP. See the performance notes for all of it."
+    "scored 40 with a 7.1s LCP."
   ],
   "ci": {
     "collect": {

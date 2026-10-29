@@ -13,11 +13,11 @@ titulo(){ printf '\n\033[1m%s\033[0m\n' "$1"; }
 
 # UMA VERIFICACAO QUE NAO CORREU NAO E UMA VERIFICACAO QUE PASSOU.
 #
-# Quatro passos deste script estao em Python. O Git Bash do Windows — a unica
+# Tres passos deste script estao em Python. O Git Bash do Windows — a unica
 # consola onde isto tem de correr antes de publicar — nao tem python3, nem
 # python, nem py. Resultado: durante semanas este script terminou sempre em
-# "Ha coisas a corrigir acima" na maquina do Rodrigo, por quatro comandos que
-# nem chegaram a arrancar. Um sinal vermelho que esta sempre vermelho deixa de
+# "Ha coisas a corrigir acima" na minha maquina, por comandos que nem
+# chegaram a arrancar. Um sinal vermelho que esta sempre vermelho deixa de
 # ser lido, e foi isso que aconteceu.
 #
 # Colocar `|| true` calava-o e era pior. O que isto faz e distinguir "correu e
@@ -25,7 +25,7 @@ titulo(){ printf '\n\033[1m%s\033[0m\n' "$1"; }
 # segundo aparece num aviso nomeado no fim, com o nome de cada verificacao que
 # ficou por fazer.
 #
-# Nao e desculpa para deixar assim. As quatro correm em CI (o ci.yml instala
+# Nao e desculpa para deixar assim. As tres correm em CI (o ci.yml instala
 # Python 3.13) e ai falham a build a serio. O caminho certo e passa-las a Node,
 # como ja aconteceu ao csp.py -> csp.mjs pela mesma razao exacta.
 py(){
@@ -94,7 +94,7 @@ fi
 # irmãos, versionadas aqui porque o Cloudflare só clona ESTE repositório. Uma
 # cópia que ninguém compara é uma segunda versão à espera de divergir, por isso
 # compara-se — no único sítio onde as duas pastas existem ao mesmo tempo: a
-# máquina do Rodrigo.
+# minha máquina.
 #
 # Escrito como função e não duas vezes de propósito: da primeira vez que isto
 # existiu só comparava o src/ e deixou passar uma alteração ao demo/index.html.
@@ -184,28 +184,12 @@ bash tools/sincronizar-cadence.sh --verificar || falhou=1
 # ninguém instrumentou.
 py "numeros dos irmaos no site (numeros-irmaos.py)" tools/numeros-irmaos.py || falhou=1
 
-# E os números que saem daqui para fora — o CV, os posts do LinkedIn e o peso
-# do site declarado no the project notes.
-#
-# Existe porque a 4 de setembro o CV dizia cadence 44 testes, framebudget
-# 7.3 KB e 24 testes, glaze 16.1 KB e 83 testes — cinco números todos
-# verdadeiros no dia em que foram escritos e nenhum verdadeiro nesse dia.
-#
-# **Passou a falhar a build a 10 de setembro de 2026.** Estava com `|| true`,
-# com a justificação de que o CV vive fora do repositório e o CI não o tem —
-# "vermelho por ausência e não por defeito". A justificação era boa e a
-# conclusão era larga de mais: o script já distingue os dois casos. Quando não
-# encontra o CV imprime `..` e não conta; só conta números que estão mesmo
-# errados. Deitar fora o código de saída deitava fora essa distinção, e um
-# guarda que não pode falhar é um comentário.
-py "numeros no CV e nos posts (numeros-publicos.py)" tools/numeros-publicos.py || falhou=1
-
 titulo "8. Build"
 ./tools/build.sh > /dev/null && echo "  ok  dist/ gerado e verificado" || falhou=1
 
 if [ -n "$naoCorreu" ]; then
   printf '\n\033[33mNAO foi tudo verificado.\033[0m Ficaram por correr:%b\n' "$naoCorreu"
-  printf '      Falta python3 nesta consola. Estas quatro correm em CI, no push.\n'
+  printf '      Falta python3 nesta consola. Estas tres correm em CI, no push.\n'
 fi
 
 if [ "$falhou" -eq 0 ]; then

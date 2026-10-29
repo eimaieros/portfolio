@@ -29,8 +29,8 @@ cp assets/case/*.webp dist/assets/case/ 2>/dev/null || true
 # visível. Uma pessoa a avaliar o portefólio pode carregar num botão e ver isso
 # acontecer, em vez de ler que acontece. É por isso que vale a pena os 30 KB.
 #
-# A pasta é uma cópia gerada por tools/sincronizar-framebudget.sh — ver o
-# LEIA-ME lá dentro, e a comparação em verificar.sh que impede que divirja.
+# A pasta é uma cópia gerada por tools/sincronizar-framebudget.sh, e a
+# comparação em verificar.sh impede que divirja.
 if [ -d framebudget-demo ]; then
   mkdir -p dist/framebudget
   cp framebudget-demo/index.html framebudget-demo/LICENSE dist/framebudget/
@@ -63,8 +63,8 @@ fi
 # A app NHCS, servida em rodrigofigueiredo.dev/nhcs/.
 #
 # Protótipo React Native que não corre num browser. O que corre é a mesma
-# lógica: `nhcs-demo/src/*.js` é o TypeScript da app com os tipos retirados
-# (ver o LEIA-ME lá dentro), portanto a página não imita a app, executa-a. Só a
+# lógica: `nhcs-demo/src/*.js` é o TypeScript da app com os tipos retirados,
+# portanto a página não imita a app, executa-a. Só a
 # camada de desenho é reescrita, porque React Native não desenha em DOM.
 #
 # Cópia gerada por tools/sincronizar-nhcs.sh; o verificar.sh compara-a com o

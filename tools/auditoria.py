@@ -141,7 +141,7 @@ for rotulo, agulha in [
 # nenhum — aponta o Google para uma página que não existe. Fica como pendência
 # de publicação, não como falha.
 tem_canonical = ('rel=' + '"canonical"') in head
-estado = 'sim' if tem_canonical else 'por pôr — depende do domínio (ver docs/deploy.md)'
+estado = 'sim' if tem_canonical else 'por pôr — depende do domínio'
 print(f'  {"ok" if tem_canonical else ".."}  {"canonical":34} {estado}')
 
 print()

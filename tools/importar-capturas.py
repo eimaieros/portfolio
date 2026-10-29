@@ -6,9 +6,8 @@ Porquê: as imagens geradas por código serviram para o site não ter buracos, m
 uma captura do site verdadeiro vale infinitamente mais num portefólio — é a
 diferença entre "ele diz que construiu" e "aqui está".
 
-Fonte das do Rock in Rio: a pasta RIR-report-mockups, preparada pelo próprio
-Rodrigo para um relatório interno. São capturas do site que ele desenvolveu,
-com o URL na barra. Mostrar o site que se construiu é prática normal de
+Fonte das do Rock in Rio: a pasta RIR-report-mockups, que preparei para um
+relatório interno. São capturas do site que desenvolvi, com o URL na barra. Mostrar o site que se construiu é prática normal de
 portefólio — é documentação do trabalho, não republicação de conteúdo alheio.
 
 As imagens geradas continuam disponíveis em tools/gerar-visuais.py, caso se
@@ -20,7 +19,7 @@ import sys
 
 from PIL import Image, ImageEnhance
 
-ORIGEM_RIR = '../RIR-report-mockups'
+ORIGEM_RIR = os.environ.get('ORIGEM_RIR', '../RIR-report-mockups')
 DESTINO = 'assets'
 LARGURA = 1600
 QUALIDADE = 80
