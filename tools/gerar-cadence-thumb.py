@@ -67,6 +67,21 @@ def ler_dimensoes_esperadas() -> set:
     return set(re.findall(r'"([^"]+)"', bloco.group(1)))
 
 
+def ler_testes_backend() -> int:
+    """O número de testes do backend, tal como o README do cadence o diz.
+
+    Esteve aqui escrito à mão ("44 tests") e ficou desactualizado enquanto o
+    backend passava dos cem. O README é verificado pelo CI do cadence
+    (tools/contagem.py contra a corrida dos testes), portanto lê-lo aqui é ler
+    um número que alguém contou, e a miniatura deixa de poder mentir sozinha.
+    """
+    readme = (CADENCE.parent / "README.md").read_text(encoding="utf-8")
+    m = re.search(r"(\d+) backend tests\.", readme)
+    if not m:
+        raise SystemExit("número de testes do backend não encontrado no README do cadence")
+    return int(m.group(1))
+
+
 def font(caminhos, tamanho):
     for c in caminhos:
         p = Path(c)
@@ -209,7 +224,7 @@ def desenhar(score: dict) -> Image.Image:
     base = H - 96
     d.line([(M, base - 34), (W - M, base - 34)], fill=rgba(LINE, 0.08), width=1)
     etiqueta(M, base, "fastapi · postgres 16 · next.js · sse")
-    dir_txt = "44 tests · real postgres"
+    dir_txt = f"{ler_testes_backend()} tests · real postgres"
     xw = W - M - (d.textlength(dir_txt.upper(), font=f_lbl) + 3.4 * len(dir_txt))
     etiqueta(xw, base, dir_txt, ACCENT, 0.62)
 
