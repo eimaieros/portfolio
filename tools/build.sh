@@ -203,12 +203,17 @@ if [ "${CSP_MODO:-}" = "relatorio" ]; then
 fi
 printf '%s\n' "${CSP_MODO:-normal}" > dist/csp-modo.txt
 
+# HSTS: o dominio so serve HTTPS (Cloudflare), mas sem este cabecalho o
+# primeiro pedido de quem escreve rodrigofigueiredo.dev sem https:// ainda sai
+# em HTTP antes do redirect. Um ano, e os subdominios tambem, porque nenhum
+# deles serve HTTP.
 cat > dist/_headers <<EOF
 /*
   ${CABECALHO}: ${CSP}
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
 /csp-modo.txt
